@@ -84,11 +84,10 @@ export interface EncodeResultPayload {
 /** Orchestrator start input — mirrors `encode/orchestrator` EncodeStartInput. */
 export interface EncodeStartInput {
   videoPath: string;
-  subsPath: string | null;
+  subtitlePath: string;
   outputPath: string;
-  preset: 'fast' | 'balanced' | 'pristine';
-  hw: 'nvenc' | 'qsv' | 'amf' | 'videotoolbox' | 'vaapi' | 'cpu';
-  container: 'mp4' | 'mkv' | 'webm';
+  /** Optional partial encode-settings override merged onto BALANCED_PRESET. */
+  settings?: Record<string, unknown>;
 }
 
 /** Orchestrator start result — mirrors `encode/orchestrator` EncodeStartResult. */
@@ -104,15 +103,48 @@ interface PreflightInput {
   bitrateKbps: number;
 }
 
+/**
+ * Mirror of `Electron.FileFilter` duplicated here so the renderer bundle
+ * stays free of any `electron` typings import. Keep in sync with the
+ * upstream shape (name + extensions array).
+ */
+export interface FileFilter {
+  name: string;
+  extensions: string[];
+}
+
+/** `dialog:open-file` / `dialog:save-file` input. */
+export interface DialogFileInput {
+  filters: FileFilter[];
+  defaultPath?: string;
+}
+
+/** `dialog:open-folder` input. */
+export interface DialogOpenFolderInput {
+  defaultPath?: string;
+}
+
+/** `dialog:open-file` / `dialog:save-file` result. */
+export interface DialogFileResult {
+  canceled: boolean;
+  filePath: string | null;
+}
+
+/** `dialog:open-folder` result. */
+export interface DialogFolderResult {
+  canceled: boolean;
+  folderPath: string | null;
+}
+
 export interface ElectronAPI {
   app: {
     getVersion: () => Promise<string>;
     openExternal: (url: string) => Promise<void>;
   };
   dialog: {
-    openFile: () => Promise<string | null>;
-    saveFile: () => Promise<string | null>;
-    openFolder: () => Promise<string | null>;
+    openFile: (input: DialogFileInput) => Promise<DialogFileResult>;
+    saveFile: (input: DialogFileInput) => Promise<DialogFileResult>;
+    openFolder: (input: DialogOpenFolderInput) => Promise<DialogFolderResult>;
   };
   store: {
     get: <K extends UserSettingsKey>(key: K) => Promise<UserSettings[K]>;

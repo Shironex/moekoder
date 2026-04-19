@@ -90,13 +90,35 @@ const electronAPI = {
       invokeWithTimeout<void>(IPC_CHANNELS.APP_OPEN_EXTERNAL, [url]),
   },
   dialog: {
-    // Stubs — wired to handlers in a later phase.
-    openFile: (): Promise<string | null> =>
-      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_OPEN_FILE, []),
-    saveFile: (): Promise<string | null> =>
-      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_SAVE_FILE, []),
-    openFolder: (): Promise<string | null> =>
-      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_OPEN_FOLDER, []),
+    // File dialogs can stay open indefinitely while the user browses — bump
+    // the timeout well above the 10s default so we don't fail legitimate
+    // long-running picks.
+    openFile: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }): Promise<{ canceled: boolean; filePath: string | null }> =>
+      invokeWithTimeout<{ canceled: boolean; filePath: string | null }>(
+        IPC_CHANNELS.DIALOG_OPEN_FILE,
+        [input],
+        300_000
+      ),
+    saveFile: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }): Promise<{ canceled: boolean; filePath: string | null }> =>
+      invokeWithTimeout<{ canceled: boolean; filePath: string | null }>(
+        IPC_CHANNELS.DIALOG_SAVE_FILE,
+        [input],
+        300_000
+      ),
+    openFolder: (input: {
+      defaultPath?: string;
+    }): Promise<{ canceled: boolean; folderPath: string | null }> =>
+      invokeWithTimeout<{ canceled: boolean; folderPath: string | null }>(
+        IPC_CHANNELS.DIALOG_OPEN_FOLDER,
+        [input],
+        300_000
+      ),
   },
   store: {
     get: <K extends UserSettingsKey>(key: K): Promise<UserSettings[K]> =>

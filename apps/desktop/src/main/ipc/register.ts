@@ -12,6 +12,7 @@
  */
 import type { BrowserWindow } from 'electron';
 import { registerAppHandlers, cleanupAppHandlers } from './handlers/app';
+import { registerDialogHandlers, cleanupDialogHandlers } from './handlers/dialog';
 import { registerStoreHandlers, cleanupStoreHandlers } from './handlers/store';
 import { registerUpdaterHandlers, cleanupUpdaterHandlers } from './handlers/updater';
 import { registerFfmpegHandlers, cleanupFfmpegHandlers } from './handlers/ffmpeg';
@@ -24,6 +25,7 @@ export interface IpcContext {
 
 export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerAppHandlers(ctx);
+  registerDialogHandlers(ctx);
   registerStoreHandlers(ctx);
   registerUpdaterHandlers(ctx);
   registerFfmpegHandlers(ctx);
@@ -33,6 +35,7 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
 
 export function cleanupAllIpcHandlers(): void {
   cleanupAppHandlers();
+  cleanupDialogHandlers();
   cleanupStoreHandlers();
   cleanupUpdaterHandlers();
   cleanupFfmpegHandlers();
