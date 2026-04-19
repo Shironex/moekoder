@@ -12,6 +12,7 @@
  */
 import type { BrowserWindow } from 'electron';
 import { registerAppHandlers, cleanupAppHandlers } from './handlers/app';
+import { registerStoreHandlers, cleanupStoreHandlers } from './handlers/store';
 
 export interface IpcContext {
   mainWindow: BrowserWindow;
@@ -19,8 +20,10 @@ export interface IpcContext {
 
 export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerAppHandlers(ctx);
+  registerStoreHandlers(ctx);
 }
 
 export function cleanupAllIpcHandlers(): void {
   cleanupAppHandlers();
+  cleanupStoreHandlers();
 }
