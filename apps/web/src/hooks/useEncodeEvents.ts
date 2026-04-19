@@ -14,13 +14,15 @@ import { useEncodeStore } from '@/stores';
  */
 export const useEncodeEvents = (): void => {
   const api = useElectronAPI();
-  const { setProgress, appendLog, setResult, setError, setPhase } = useEncodeStore(s => ({
-    setProgress: s.setProgress,
-    appendLog: s.appendLog,
-    setResult: s.setResult,
-    setError: s.setError,
-    setPhase: s.setPhase,
-  }));
+  // Select each setter individually — returning a fresh object from a Zustand
+  // selector on every render triggers useSyncExternalStore's "getSnapshot
+  // should be cached" warning and causes an infinite re-render loop, because
+  // every snapshot is reference-different from the last.
+  const setProgress = useEncodeStore(s => s.setProgress);
+  const appendLog = useEncodeStore(s => s.appendLog);
+  const setResult = useEncodeStore(s => s.setResult);
+  const setError = useEncodeStore(s => s.setError);
+  const setPhase = useEncodeStore(s => s.setPhase);
 
   useEffect(() => {
     const offProgress = api.encode.onProgress((_jobId, p) => {
