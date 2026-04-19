@@ -4,6 +4,7 @@ import {
   ensureInstalled,
   getInstalledVersion,
   isInstalled,
+  removeInstalled,
   type InstallProgress,
 } from '../../ffmpeg/manager';
 import { probe, type ProbeResult } from '../../ffmpeg/probe';
@@ -13,6 +14,7 @@ import {
   ffmpegGetVersionSchema,
   ffmpegIsInstalledSchema,
   ffmpegProbeSchema,
+  ffmpegRemoveInstalledSchema,
 } from '../schemas/ffmpeg.schemas';
 import type { IpcContext } from '../register';
 
@@ -41,6 +43,10 @@ export function registerFfmpegHandlers(ctx: IpcContext): void {
   handle<[string], ProbeResult>(IPC_CHANNELS.FFMPEG_PROBE, ffmpegProbeSchema, (_event, filePath) =>
     probe(filePath)
   );
+
+  handle<[], void>(IPC_CHANNELS.FFMPEG_REMOVE_INSTALLED, ffmpegRemoveInstalledSchema, async () => {
+    await removeInstalled();
+  });
 }
 
 export function cleanupFfmpegHandlers(): void {
@@ -48,4 +54,5 @@ export function cleanupFfmpegHandlers(): void {
   ipcMain.removeHandler(IPC_CHANNELS.FFMPEG_GET_VERSION);
   ipcMain.removeHandler(IPC_CHANNELS.FFMPEG_ENSURE_BINARIES);
   ipcMain.removeHandler(IPC_CHANNELS.FFMPEG_PROBE);
+  ipcMain.removeHandler(IPC_CHANNELS.FFMPEG_REMOVE_INSTALLED);
 }

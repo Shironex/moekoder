@@ -32,6 +32,7 @@ export interface ElectronAPI {
     getVersion: () => Promise<string>;
     openExternal: (url: string) => Promise<void>;
     revealInFolder: (filePath: string) => Promise<void>;
+    openLogsFolder: () => Promise<void>;
   };
   dialog: {
     openFile: () => Promise<string | null>;
@@ -54,6 +55,7 @@ export interface ElectronAPI {
     isInstalled: () => Promise<boolean>;
     getVersion: () => Promise<string | null>;
     ensureBinaries: () => Promise<void>;
+    removeInstalled: () => Promise<void>;
     probe: (filePath: string) => Promise<ProbeResult>;
     onDownloadProgress: (handler: (payload: InstallProgress) => void) => () => void;
   };

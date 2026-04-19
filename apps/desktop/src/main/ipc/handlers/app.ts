@@ -1,9 +1,11 @@
+import * as path from 'node:path';
 import { app, ipcMain, shell } from 'electron';
 import { IPC_CHANNELS } from '@moekoder/shared';
 import { IpcError } from '../errors';
 import { handle } from '../with-ipc-handler';
 import {
   appOpenExternalSchema,
+  appOpenLogsFolderSchema,
   appRevealInFolderSchema,
   appVersionSchema,
 } from '../schemas/app.schemas';
@@ -46,10 +48,23 @@ export function registerAppHandlers(_ctx: IpcContext): void {
       shell.showItemInFolder(filePath);
     }
   );
+
+  handle<[], void>(IPC_CHANNELS.APP_OPEN_LOGS_FOLDER, appOpenLogsFolderSchema, async () => {
+    // The logger writes into `<userData>/logs` (see main/logger.ts). We don't
+    // pre-create the directory here — `shell.openPath` on a missing folder
+    // returns a non-empty error string rather than throwing; callers can show
+    // that to the user without us guessing a creation policy.
+    const logsDir = path.join(app.getPath('userData'), 'logs');
+    const result = await shell.openPath(logsDir);
+    if (result) {
+      throw new IpcError('INTERNAL', `Failed to open logs folder: ${result}`);
+    }
+  });
 }
 
 export function cleanupAppHandlers(): void {
   ipcMain.removeHandler(IPC_CHANNELS.APP_VERSION);
   ipcMain.removeHandler(IPC_CHANNELS.APP_OPEN_EXTERNAL);
   ipcMain.removeHandler(IPC_CHANNELS.APP_REVEAL_IN_FOLDER);
+  ipcMain.removeHandler(IPC_CHANNELS.APP_OPEN_LOGS_FOLDER);
 }

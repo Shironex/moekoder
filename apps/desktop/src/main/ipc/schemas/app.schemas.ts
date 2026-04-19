@@ -12,3 +12,10 @@ export const appOpenExternalSchema = z.tuple([z.string().url()]);
  * highlighted; pass a file path, not a directory.
  */
 export const appRevealInFolderSchema = z.tuple([z.string().min(1)]);
+
+/**
+ * `app:open-logs-folder` — no args. Reveals the `<userData>/logs` directory
+ * in the OS file manager. Used by the Settings screen's "Open logs folder"
+ * row so users can grab a log bundle when filing an issue.
+ */
+export const appOpenLogsFolderSchema = z.tuple([]);

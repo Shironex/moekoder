@@ -12,5 +12,13 @@ export const ffmpegGetVersionSchema = z.tuple([]);
  */
 export const ffmpegEnsureBinariesSchema = z.tuple([]);
 
+/**
+ * `ffmpeg:remove-installed` — no args. Deletes the installed ffmpeg +
+ * ffprobe binaries from `<userData>/bin`. Used by the Settings "Reinstall
+ * ffmpeg" flow; callers typically redirect to onboarding afterwards so the
+ * Engine step re-runs and re-downloads.
+ */
+export const ffmpegRemoveInstalledSchema = z.tuple([]);
+
 /** `ffmpeg:probe` — takes a single absolute file path string. */
 export const ffmpegProbeSchema = z.tuple([z.string().min(1)]);

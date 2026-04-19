@@ -90,6 +90,8 @@ const electronAPI = {
       invokeWithTimeout<void>(IPC_CHANNELS.APP_OPEN_EXTERNAL, [url]),
     revealInFolder: (filePath: string): Promise<void> =>
       invokeWithTimeout<void>(IPC_CHANNELS.APP_REVEAL_IN_FOLDER, [filePath]),
+    openLogsFolder: (): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.APP_OPEN_LOGS_FOLDER, []),
   },
   dialog: {
     // File dialogs can stay open indefinitely while the user browses — bump
@@ -152,6 +154,8 @@ const electronAPI = {
     // Downloads can legitimately take minutes; override the 10s default.
     ensureBinaries: (): Promise<void> =>
       invokeWithTimeout<void>(IPC_CHANNELS.FFMPEG_ENSURE_BINARIES, [], 600_000),
+    removeInstalled: (): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.FFMPEG_REMOVE_INSTALLED, []),
     probe: (filePath: string): Promise<ProbeResult> =>
       invokeWithTimeout<ProbeResult>(IPC_CHANNELS.FFMPEG_PROBE, [filePath], 60_000),
     onDownloadProgress: (handler: (payload: InstallProgress) => void): (() => void) => {
