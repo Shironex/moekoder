@@ -16,6 +16,7 @@ import { registerStoreHandlers, cleanupStoreHandlers } from './handlers/store';
 import { registerUpdaterHandlers, cleanupUpdaterHandlers } from './handlers/updater';
 import { registerFfmpegHandlers, cleanupFfmpegHandlers } from './handlers/ffmpeg';
 import { registerGpuHandlers, cleanupGpuHandlers } from './handlers/gpu';
+import { registerEncodeHandlers, cleanupEncodeHandlers } from './handlers/encode';
 
 export interface IpcContext {
   mainWindow: BrowserWindow;
@@ -27,6 +28,7 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerUpdaterHandlers(ctx);
   registerFfmpegHandlers(ctx);
   registerGpuHandlers(ctx);
+  registerEncodeHandlers(ctx);
 }
 
 export function cleanupAllIpcHandlers(): void {
@@ -35,4 +37,5 @@ export function cleanupAllIpcHandlers(): void {
   cleanupUpdaterHandlers();
   cleanupFfmpegHandlers();
   cleanupGpuHandlers();
+  cleanupEncodeHandlers();
 }
