@@ -8,7 +8,11 @@
     "dev": "node esbuild.config.mjs && cross-env NODE_ENV=development electron .",
     "start": "pnpm build && electron .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "electron-builder",
+    "package:win": "electron-builder --win --publish never",
+    "package:mac": "electron-builder --mac --publish never",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "electron-log": "^5.2.4",
@@ -23,6 +27,7 @@
     "@types/yauzl": "^2.10.3",
     "cross-env": "^10.1.0",
     "electron": "^41.0.0",
+    "electron-builder": "^26.0.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
