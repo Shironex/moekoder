@@ -1,0 +1,103 @@
+/* ============================================================
+ * NAV — ported verbatim from MoeKoder Landing.html:94-174.
+ * ============================================================ */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(14px);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+
+.brand-k {
+  font-size: 28px;
+  color: var(--primary);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 20px color-mix(in oklab, var(--primary) 50%, transparent);
+}
+
+.brand-edition {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav-link {
+  padding: 8px 14px;
+  color: var(--fg-2);
+  transition: color 0.15s;
+  border-radius: var(--r-sm);
+}
+
+.nav-link:hover {
+  color: var(--fg);
+}
+
+.nav-link .num {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  margin-right: 4px;
+  letter-spacing: 0;
+}
+
+.nav-dl {
+  margin-left: 8px;
+  padding: 9px 16px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+
+.nav-dl:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
+.nav-dl .arrow {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0;
+}
