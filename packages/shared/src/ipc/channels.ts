@@ -22,6 +22,11 @@ export const IPC_CHANNELS = {
   UPDATER_CHECK: 'updater:check',
   UPDATER_DOWNLOAD: 'updater:download',
   UPDATER_INSTALL: 'updater:install',
+  FFMPEG_IS_INSTALLED: 'ffmpeg:is-installed',
+  FFMPEG_GET_VERSION: 'ffmpeg:get-version',
+  FFMPEG_ENSURE_BINARIES: 'ffmpeg:ensure-binaries',
+  FFMPEG_PROBE: 'ffmpeg:probe',
+  GPU_PROBE: 'gpu:probe',
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -41,3 +46,14 @@ export const UPDATER_EVENT_CHANNELS = {
 
 export type UpdaterEventChannel =
   (typeof UPDATER_EVENT_CHANNELS)[keyof typeof UPDATER_EVENT_CHANNELS];
+
+/**
+ * One-way main -> renderer ffmpeg event channels. `DOWNLOAD_PROGRESS`
+ * streams install pipeline progress so the renderer can render a live
+ * progress bar during `ffmpeg:ensure-binaries`.
+ */
+export const FFMPEG_EVENT_CHANNELS = {
+  DOWNLOAD_PROGRESS: 'ffmpeg:download-progress',
+} as const;
+
+export type FfmpegEventChannel = (typeof FFMPEG_EVENT_CHANNELS)[keyof typeof FFMPEG_EVENT_CHANNELS];
