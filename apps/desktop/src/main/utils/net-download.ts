@@ -29,6 +29,10 @@ export async function downloadFile(
   const contentLengthHeader = response.headers.get('content-length');
   const contentLength = contentLengthHeader ? parseInt(contentLengthHeader, 10) : 0;
   let downloaded = 0;
+  // Track the last integer pct we emitted so we don't spam the caller (and,
+  // downstream, IPC) with identical values for every write — on a fast
+  // network chunks land far faster than the rounded pct changes.
+  let lastReportedPct = -1;
 
   const fileStream = fs.createWriteStream(destPath);
 
@@ -38,7 +42,11 @@ export async function downloadFile(
     write(chunk: Buffer, _enc, callback) {
       downloaded += chunk.length;
       if (contentLength > 0 && onProgress) {
-        onProgress(Math.min(100, Math.round((downloaded / contentLength) * 100)));
+        const pct = Math.min(100, Math.round((downloaded / contentLength) * 100));
+        if (pct !== lastReportedPct) {
+          lastReportedPct = pct;
+          onProgress(pct);
+        }
       }
       fileStream.write(chunk, err => {
         if (err) callback(err);

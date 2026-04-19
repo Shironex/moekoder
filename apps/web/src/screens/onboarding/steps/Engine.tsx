@@ -92,9 +92,26 @@ export const Engine = ({ onReady }: EngineProps) => {
   // but duplicate log entries are confusing for the user.
   const inFlightRef = useRef(false);
 
+  // Dedupe key for the last log line we emitted from a progress event. The
+  // main process can fire dozens of `downloading` ticks at the same rounded
+  // pct; we bucket those into 10% steps so the log reads as milestones
+  // instead of spam. State-change stages (resolving / verifying / extracting
+  // / installing / done) are always let through on transition.
+  const lastLogSigRef = useRef<string>('');
+
+  // Scroll container for the install log — pinned to the bottom on append so
+  // the newest line stays visible while stages progress.
+  const logScrollRef = useRef<HTMLDivElement | null>(null);
+
   const appendLog = useCallback((level: LogLevel, msg: React.ReactNode): void => {
     setLog(l => [...l, { t: fmtTime(), level, msg }]);
   }, []);
+
+  useEffect(() => {
+    const el = logScrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [log]);
 
   const handleProgress = useCallback((p: InstallProgress): void => {
     // Map upstream stage onto the visual stage registry.
@@ -126,6 +143,7 @@ export const Engine = ({ onReady }: EngineProps) => {
     setPct(0);
     setDownloadedBytes(0);
     setTotalBytes(0);
+    lastLogSigRef.current = '';
     appendLog('info', 'Starting ffmpeg install pipeline…');
 
     const unsub = api.ffmpeg.onDownloadProgress(p => {
@@ -141,7 +159,20 @@ export const Engine = ({ onReady }: EngineProps) => {
         done: { level: 'ok', text: p.message ?? 'ffmpeg ready' },
       };
       const entry = upstreamMessages[p.stage];
-      if (entry) appendLog(entry.level, entry.text);
+      if (entry) {
+        // Bucket `downloading` logs into 10% milestones (+0, +100 always
+        // allowed) so a fast connection doesn't spam the terminal; other
+        // stages dedupe by (stage, message) so identical transitions only
+        // log once.
+        const sig =
+          p.stage === 'downloading'
+            ? `dl:${Math.min(100, Math.floor(Math.round(p.pct * 100) / 10) * 10)}:${entry.text}`
+            : `${p.stage}:${entry.text}`;
+        if (sig !== lastLogSigRef.current) {
+          lastLogSigRef.current = sig;
+          appendLog(entry.level, entry.text);
+        }
+      }
       handleProgress(p);
     });
 
@@ -409,7 +440,10 @@ export const Engine = ({ onReady }: EngineProps) => {
                     : 'running'}
               </span>
             </div>
-            <div className="max-h-[240px] overflow-y-auto px-4 py-3 font-mono text-[11.5px] leading-5">
+            <div
+              ref={logScrollRef}
+              className="max-h-[240px] overflow-y-auto px-4 py-3 font-mono text-[11.5px] leading-5"
+            >
               {log.length === 0 ? (
                 <div className="text-muted">Waiting for install events…</div>
               ) : (
