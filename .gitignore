@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+bin/
+release/
+*.log
+.turbo/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+.claude
+.mcp.json
+coverage
+
+# Internal planning docs — kept locally, not published
+docs/
