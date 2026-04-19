@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { app } from 'electron';
+import yauzl, { type Entry, type ZipFile } from 'yauzl';
 import { createMainLogger } from '../logger';
 import { downloadToFile } from '../http';
 import { getBinDir, getFfmpegPath, getFfprobePath } from '../utils/bin-paths';
@@ -164,9 +165,118 @@ async function verifyArchive(
 }
 
 /**
+ * Open a zip archive with yauzl. Promisified to play nicely with the rest
+ * of the async install pipeline.
+ */
+function openZip(archivePath: string): Promise<ZipFile> {
+  return new Promise((resolve, reject) => {
+    yauzl.open(archivePath, { lazyEntries: true }, (err, zip) => {
+      if (err || !zip) {
+        reject(err ?? new Error(`Failed to open zip: ${archivePath}`));
+        return;
+      }
+      resolve(zip);
+    });
+  });
+}
+
+/**
+ * Walk every entry in the zip once, piping the two archive paths named in
+ * `source.entries` to their destinations under `binDir`. Other entries are
+ * skipped — BtbN ships a large tree of docs and licences we don't need.
+ */
+async function extractBinariesFromZip(
+  archivePath: string,
+  source: FFmpegSource,
+  binDir: string
+): Promise<void> {
+  const targets = new Map<string, string>([
+    [source.entries.ffmpeg, getFfmpegPath()],
+    [source.entries.ffprobe, getFfprobePath()],
+  ]);
+  const found = new Set<string>();
+
+  const zip = await openZip(archivePath);
+
+  await new Promise<void>((resolve, reject) => {
+    zip.on('error', reject);
+    zip.on('end', () => {
+      if (found.size < targets.size) {
+        const missing = [...targets.keys()].filter(k => !found.has(k));
+        reject(new Error(`Zip missing expected entries: ${missing.join(', ')}`));
+        return;
+      }
+      resolve();
+    });
+
+    zip.on('entry', (entry: Entry) => {
+      const dest = targets.get(entry.fileName);
+      if (!dest) {
+        zip.readEntry();
+        return;
+      }
+      zip.openReadStream(entry, (streamErr, readStream) => {
+        if (streamErr || !readStream) {
+          reject(streamErr ?? new Error(`Failed to read entry ${entry.fileName}`));
+          return;
+        }
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        const writeStream = fs.createWriteStream(dest);
+        readStream.pipe(writeStream);
+        writeStream.on('close', () => {
+          found.add(entry.fileName);
+          zip.readEntry();
+        });
+        writeStream.on('error', reject);
+        readStream.on('error', reject);
+      });
+    });
+
+    zip.readEntry();
+  });
+
+  void binDir;
+}
+
+/**
+ * Extract stage: pull only the ffmpeg/ffprobe entries out of the zip into
+ * `<binDir>`, then set the executable bit on Unix. Windows already marks
+ * `.exe` files executable via the file extension.
+ */
+async function extractArchive(
+  archivePath: string,
+  source: FFmpegSource,
+  onProgress: ProgressCallback
+): Promise<void> {
+  const base = STAGE_WEIGHTS.downloading + STAGE_WEIGHTS.verifying;
+  onProgress({
+    stage: 'extracting',
+    pct: base,
+    message: 'Extracting ffmpeg archive',
+  });
+
+  if (source.archive !== 'zip') {
+    throw new Error(`unsupported archive type for extractor: ${source.archive}`);
+  }
+
+  await extractBinariesFromZip(archivePath, source, getBinDir());
+
+  if (process.platform !== 'win32') {
+    fs.chmodSync(getFfmpegPath(), 0o755);
+    fs.chmodSync(getFfprobePath(), 0o755);
+  }
+
+  onProgress({
+    stage: 'extracting',
+    pct: base + STAGE_WEIGHTS.extracting,
+    message: 'Extraction complete',
+  });
+}
+
+/**
  * Ensures ffmpeg + ffprobe are installed under `<userData>/bin`. No-op if
- * both binaries are already present. Download / verify / extract stages are
- * filled in by later commits.
+ * both binaries are already present. Runs the full pipeline: resolve ->
+ * download -> verify -> extract -> install.
  */
 export async function ensureInstalled(onProgress: ProgressCallback): Promise<void> {
   if (await isInstalled()) {
@@ -183,12 +293,23 @@ export async function ensureInstalled(onProgress: ProgressCallback): Promise<voi
 
   try {
     await verifyArchive(archivePath, source, onProgress);
+    await extractArchive(archivePath, source, onProgress);
   } catch (err) {
     fs.rmSync(archivePath, { force: true });
     throw err;
   }
 
-  // Extract / install stages filled in by subsequent commits.
-  void archivePath;
-  throw new Error('ensureInstalled: extract/install stages not yet implemented');
+  fs.rmSync(archivePath, { force: true });
+
+  onProgress({
+    stage: 'installing',
+    pct:
+      STAGE_WEIGHTS.downloading +
+      STAGE_WEIGHTS.verifying +
+      STAGE_WEIGHTS.extracting +
+      STAGE_WEIGHTS.installing,
+    message: 'ffmpeg installed',
+  });
+  onProgress({ stage: 'done', pct: 1, message: 'ffmpeg ready' });
+  log.info(`[install] ffmpeg + ffprobe installed to ${getBinDir()}`);
 }
