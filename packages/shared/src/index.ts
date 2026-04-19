@@ -3,4 +3,5 @@
 export * from './constants/app';
 export * from './ipc';
 export * from './logger';
+export * from './settings';
 export * from './themes';
