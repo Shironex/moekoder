@@ -2,3 +2,4 @@
 
 export * from './constants/app';
 export * from './logger';
+export * from './themes';
