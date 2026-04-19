@@ -17,9 +17,14 @@ const logWinErr =
 export type TitlebarRoute = 'single' | 'queue';
 
 interface TitlebarProps {
-  /** Currently active route tab. */
+  /** Currently active route tab. Only rendered when `onRouteChange` is set. */
   route: TitlebarRoute;
-  /** Optional route tab switcher. Tabs are no-ops without this. */
+  /**
+   * Route tab switcher. When omitted, the Single/Queue tab nav is hidden
+   * entirely — v0.1.0 ships Single only (Queue lands in v0.3 per the
+   * roadmap), so the caller doesn't wire this. Adding it back in the
+   * future re-enables the tabs with zero component changes.
+   */
   onRouteChange?: (route: TitlebarRoute) => void;
   /** Required — Settings is always reachable from the titlebar. */
   onSettings: () => void;
@@ -71,24 +76,28 @@ export const Titlebar = ({
 
       <div className="spacer" />
 
-      <nav className="title-nav" aria-label="Main routes">
-        <button
-          type="button"
-          className={route === 'single' ? 'active' : ''}
-          onClick={() => onRouteChange?.('single')}
-        >
-          Single
-        </button>
-        <button
-          type="button"
-          className={route === 'queue' ? 'active' : ''}
-          onClick={() => onRouteChange?.('queue')}
-        >
-          Queue
-        </button>
-      </nav>
+      {onRouteChange && (
+        <>
+          <nav className="title-nav" aria-label="Main routes">
+            <button
+              type="button"
+              className={route === 'single' ? 'active' : ''}
+              onClick={() => onRouteChange('single')}
+            >
+              Single
+            </button>
+            <button
+              type="button"
+              className={route === 'queue' ? 'active' : ''}
+              onClick={() => onRouteChange('queue')}
+            >
+              Queue
+            </button>
+          </nav>
 
-      <div className="spacer" />
+          <div className="spacer" />
+        </>
+      )}
 
       <div className="title-actions">
         {onHistory && (
