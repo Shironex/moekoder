@@ -150,9 +150,37 @@ export class FFmpegProcessor {
     });
   }
 
+  /**
+   * Signals the running ffmpeg process to stop. ffmpeg handles SIGTERM
+   * cleanly — it flushes whatever frames are in flight and exits with
+   * `null` (or `255` on Windows) which we map to a cancelled state in
+   * {@link onChildClose}.
+   *
+   * Safe to call when no process is running (no-op) or after a cancel
+   * has already been issued (idempotent).
+   */
   cancel(): void {
-    // Placeholder — real implementation lands in the next commit.
-    void this.wasCancelled;
+    if (!this.child || this.wasCancelled) return;
+    this.wasCancelled = true;
+    try {
+      this.child.kill('SIGTERM');
+    } catch (err) {
+      this.emitLog('warn', `Failed to SIGTERM ffmpeg child: ${String(err)}`);
+    }
+  }
+
+  /**
+   * Delete the partial output file after cancellation. Swallows ENOENT
+   * so a cancel before ffmpeg has written any output is a silent no-op.
+   */
+  private async cleanupPartialOutput(): Promise<void> {
+    try {
+      await this.deps.unlink(this.job.outputPath);
+      this.emitLog('info', `Deleted partial output: ${this.job.outputPath}`);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') return;
+      this.emitLog('warn', `Failed to delete partial output: ${String(err)}`);
+    }
   }
 
   private async onChildClose(
@@ -160,6 +188,15 @@ export class FFmpegProcessor {
     resolve: (v: EncodeResult) => void,
     reject: (err: Error) => void
   ): Promise<void> {
+    if (this.wasCancelled) {
+      await this.cleanupPartialOutput();
+      const err = new Error('Encode cancelled');
+      (err as Error & { code?: string }).code = 'CANCELLED';
+      this.callbacks.onError?.(err);
+      reject(err);
+      return;
+    }
+
     if (code === 0) {
       const elapsedMs = this.deps.now() - this.startedAt;
       let outputBytes = this.latestSizeBytes;
