@@ -6,12 +6,16 @@
  * the repo currently uses while no tags exist yet.
  */
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-/** CHANGELOG.md lives at the repo root — three levels above src/lib. */
-export const CHANGELOG_PATH = resolve(__dirname, '../../../../CHANGELOG.md');
+/**
+ * CHANGELOG.md lives at the repo root.
+ *
+ * `process.cwd()` during `astro build` is the landing app directory
+ * (`apps/landing`), so two `..` hops reach the repo root. This also
+ * works inside the Docker build because the file is copied there.
+ */
+export const CHANGELOG_PATH = resolve(process.cwd(), '../../CHANGELOG.md');
 
 export interface ChangelogSection {
   heading: string;

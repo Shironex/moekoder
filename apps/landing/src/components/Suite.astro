@@ -5,7 +5,16 @@ import '../styles/components/suite.css';
  * The Shiro Suite — four sibling apps with matching kanji + CamelCase domains.
  * Moekoder is marked as the current site (`self: true`, · you are here inline).
  */
-const cards = [
+interface SuiteCard {
+  kanji: string;
+  name: string;
+  domain: string;
+  role: string;
+  href?: string;
+  self?: boolean;
+}
+
+const cards: SuiteCard[] = [
   {
     kanji: '白波',
     name: 'Shiranami',
@@ -34,7 +43,7 @@ const cards = [
     role: 'Manga reader',
     href: 'https://kireimanga.app',
   },
-] as const;
+];
 ---
 
 <section class="suite" id="suite">
