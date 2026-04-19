@@ -25,19 +25,26 @@ function writeFixture(name: string, content: Buffer): string {
 }
 
 describe('getSourceForPlatform', () => {
-  it('returns the Windows source for win32', () => {
+  it('returns the Windows source for win32 with ffmpeg + ffprobe in a single zip', () => {
     const source = getSourceForPlatform('win32');
     expect(source).toBe(WINDOWS_SOURCE);
-    expect(source.archive).toBe('zip');
-    expect(source.entries.ffmpeg).toContain('ffmpeg.exe');
-    expect(source.entries.ffprobe).toContain('ffprobe.exe');
+    expect(source.downloads).toHaveLength(1);
+    const [dl] = source.downloads;
+    expect(dl.archive).toBe('zip');
+    expect(dl.entries.ffmpeg).toContain('ffmpeg.exe');
+    expect(dl.entries.ffprobe).toContain('ffprobe.exe');
   });
 
-  it('throws a clear error for darwin until Phase 2c wires MACOS_SOURCE', () => {
-    // Sanity check: if the macOS source is wired in a future phase, this test
-    // will fail and force the assertions to be updated.
-    expect(MACOS_SOURCE).toBeNull();
-    expect(() => getSourceForPlatform('darwin')).toThrow(/macOS.*Phase 2c/i);
+  it('returns the macOS evermeet source for darwin with split ffmpeg/ffprobe zips', () => {
+    const source = getSourceForPlatform('darwin');
+    expect(source).toBe(MACOS_SOURCE);
+    expect(source.downloads).toHaveLength(2);
+    const ffmpegDl = source.downloads.find(d => d.entries.ffmpeg);
+    const ffprobeDl = source.downloads.find(d => d.entries.ffprobe);
+    expect(ffmpegDl?.url).toMatch(/evermeet\.cx/);
+    expect(ffmpegDl?.entries.ffmpeg).toBe('ffmpeg');
+    expect(ffprobeDl?.url).toMatch(/evermeet\.cx/);
+    expect(ffprobeDl?.entries.ffprobe).toBe('ffprobe');
   });
 
   it('throws for unsupported platforms', () => {
@@ -46,7 +53,7 @@ describe('getSourceForPlatform', () => {
   });
 
   it('WINDOWS_SOURCE points at a BtbN release URL', () => {
-    expect(WINDOWS_SOURCE.url).toMatch(/BtbN\/FFmpeg-Builds/);
+    expect(WINDOWS_SOURCE.downloads[0].url).toMatch(/BtbN\/FFmpeg-Builds/);
   });
 });
 
