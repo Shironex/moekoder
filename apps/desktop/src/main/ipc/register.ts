@@ -11,11 +11,16 @@
  *   add new channels to that record first.
  */
 import type { BrowserWindow } from 'electron';
+import { registerAppHandlers, cleanupAppHandlers } from './handlers/app';
 
 export interface IpcContext {
   mainWindow: BrowserWindow;
 }
 
-export function registerAllIpcHandlers(_ctx: IpcContext): void {
-  // Individual domain registrations are wired here as they come online.
+export function registerAllIpcHandlers(ctx: IpcContext): void {
+  registerAppHandlers(ctx);
+}
+
+export function cleanupAllIpcHandlers(): void {
+  cleanupAppHandlers();
 }
