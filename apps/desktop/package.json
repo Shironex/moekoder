@@ -1,0 +1,16 @@
+{
+  "name": "@moekoder/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/main/index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@moekoder/shared": "workspace:*",
+    "@types/node": "^22.10.0",
+    "electron": "^41.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3"
+  }
+}
