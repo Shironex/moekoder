@@ -126,8 +126,17 @@ export const startEncode = async (
   const processor = deps.createProcessor(job, {
     onProgress: p => events.onProgress(jobId, p),
     onLog: l => events.onLog(jobId, l),
-    onComplete: r => events.onComplete(jobId, r),
-    onError: e => events.onError(jobId, { code: 'INTERNAL', message: e.message }),
+    onComplete: r => {
+      activeJobs.delete(jobId);
+      events.onComplete(jobId, r);
+    },
+    onError: e => {
+      activeJobs.delete(jobId);
+      // Propagate a CANCELLED error with that code instead of the generic
+      // INTERNAL bucket so renderer code can distinguish user-initiated stops.
+      const code = (e as Error & { code?: string }).code === 'CANCELLED' ? 'CANCELLED' : 'INTERNAL';
+      events.onError(jobId, { code, message: e.message });
+    },
   });
 
   activeJobs.set(jobId, { cancel: () => processor.cancel() });
