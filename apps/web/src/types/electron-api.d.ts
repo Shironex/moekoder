@@ -17,11 +17,26 @@ import type {
   ENCODE_EVENT_CHANNELS,
 } from '@moekoder/shared';
 
+/**
+ * FFmpeg install-pipeline stage — mirrors `ffmpeg/manager` InstallStage.
+ * `resolving -> downloading -> verifying -> extracting -> installing -> done`.
+ */
+export type InstallStage =
+  | 'resolving'
+  | 'downloading'
+  | 'verifying'
+  | 'extracting'
+  | 'installing'
+  | 'done';
+
 /** FFmpeg install-pipeline progress — mirrors `ffmpeg/manager` InstallProgress. */
 export interface InstallProgress {
-  phase: string;
+  stage: InstallStage;
+  /** Monotonically increasing across the whole install, 0..1. */
   pct: number;
-  detail?: string;
+  downloadedBytes?: number;
+  totalBytes?: number;
+  message?: string;
 }
 
 /** ffprobe-derived media summary — mirrors `ffmpeg/probe` ProbeResult. */
