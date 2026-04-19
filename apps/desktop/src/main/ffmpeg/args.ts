@@ -17,8 +17,11 @@
  *   - Auto-transcode incompatible audio to AAC 192k when targeting MP4
  *     (see {@link shouldTranscodeAudio}).
  */
+import { shouldTranscodeAudio } from './audio-fallback';
 import { escapeSubtitlePath } from './path-escape';
 import type { EncodingSettings } from './settings';
+
+export { shouldTranscodeAudio };
 
 export interface EncodeJob {
   videoPath: string;
@@ -28,24 +31,6 @@ export interface EncodeJob {
   /** Detected source audio codec — used by the audio-fallback logic. */
   sourceAudioCodec?: string;
 }
-
-/**
- * Source audio codecs that ffmpeg refuses to stream-copy into an MP4
- * container (lossless PCM / TrueHD / DTS / FLAC). When the user targets
- * MP4 with one of these, we transparently transcode to AAC 192k rather
- * than failing with the opaque `Could not find tag for codec ... in
- * stream` muxer error.
- */
-const LOSSLESS_IN_MP4_INCOMPATIBLE = new Set(['truehd', 'dts', 'flac', 'pcm_s16le', 'pcm_s24le']);
-
-/** Internal — exported as a standalone helper in audio-fallback.ts. */
-export const shouldTranscodeAudio = (
-  sourceCodec: string | undefined,
-  container: EncodingSettings['container']
-): boolean => {
-  if (container !== 'mp4' || !sourceCodec) return false;
-  return LOSSLESS_IN_MP4_INCOMPATIBLE.has(sourceCodec.toLowerCase());
-};
 
 const buildFilterChain = (subtitlePath: string, hwAccel: EncodingSettings['hwAccel']): string => {
   const parts = [`subtitles='${escapeSubtitlePath(subtitlePath)}'`];
