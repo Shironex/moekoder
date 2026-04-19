@@ -55,19 +55,10 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
 
   return (
     <section className="relative flex flex-1 flex-col gap-8 overflow-hidden px-10 py-8">
-      {/* Ambient watermark — lives behind the copy block. */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -bottom-24 select-none font-display text-[420px] leading-none text-foreground/[0.04]"
-        style={{ letterSpacing: '-0.05em' }}
-      >
-        始
-      </span>
-
       <PageHead
         screen="idle"
         route="single"
-        title="Pick three ingredients."
+        title="Burn subs."
         subtitle="Drop an MKV and an ASS file — MoeKoder hardburns them with the GPU while the pot whistles. No preview noise. No pop-ups."
         right={
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
@@ -80,28 +71,40 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
         }
       />
 
-      <div className="relative z-[1] flex flex-1 flex-col items-start justify-center gap-6 rounded-lg border border-dashed border-border/80 bg-card/30 p-10">
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-6 top-4 select-none font-display text-[120px] leading-none text-primary/20"
-        >
-          始
-        </span>
-
-        <div className="flex flex-col gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            idle · 待
+      {/* Centered composition — kanji + flanking hairlines + heading + copy
+          + step dots stack vertically in the middle of the available space,
+          per the design prototype. Previous versions put the kanji in the
+          top/bottom-right corners of a bordered card, which drifted from the
+          spec. */}
+      <div className="relative z-[1] flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        {/* Kanji overlay with flanking hairlines. */}
+        <div className="flex items-center gap-6">
+          <span
+            className="h-px w-28 bg-gradient-to-r from-transparent to-primary/40"
+            aria-hidden="true"
+          />
+          <span
+            aria-hidden="true"
+            className="select-none font-display text-[240px] leading-none text-primary/60"
+            style={{ textShadow: '0 0 60px color-mix(in oklab, var(--primary) 40%, transparent)' }}
+          >
+            始
           </span>
-          <h2 className="max-w-[40ch] font-display text-5xl leading-[1.05] text-foreground">
-            Ready when <em className="not-italic text-primary">you</em> are.
-          </h2>
-          <p className="max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-            Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
-            them up and wait for your go-ahead. No drag-and-drop surprises, no preview popups.
-          </p>
+          <span
+            className="h-px w-28 bg-gradient-to-l from-transparent to-primary/40"
+            aria-hidden="true"
+          />
         </div>
 
-        <div className="flex items-center gap-4">
+        <h2 className="max-w-[44ch] font-display text-5xl leading-[1.05] text-foreground">
+          Ready when <em className="not-italic text-primary">you</em> are.
+        </h2>
+        <p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground">
+          Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
+          them up and wait for your go-ahead.
+        </p>
+
+        <div className="flex items-center gap-4 pt-2">
           <StepPill n="01" label="video" done={!!video} />
           <span className="h-px w-8 bg-border" />
           <StepPill n="02" label="subs" done={!!subs} />
@@ -110,7 +113,7 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
         </div>
 
         {video && subs && out && (
-          <div className="flex items-center gap-2 rounded-sm border border-primary/30 bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] px-3 py-2">
+          <div className="mt-2 flex items-center gap-2 rounded-sm border border-primary/30 bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] px-3 py-2">
             <span className="font-display text-lg text-primary">好</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
               all three · ready · press begin in the rail
