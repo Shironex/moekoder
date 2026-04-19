@@ -12,7 +12,14 @@
  * Does NOT manage the job queue — that lives in `encode/orchestrator.ts`.
  */
 import type { ChildProcess } from 'node:child_process';
-import type { EncodeJob } from './args';
+import { buildEncodeArgs, type EncodeJob } from './args';
+import {
+  categorizeLog,
+  filterLogLines,
+  parseProgressPipe,
+  type LogType,
+  type PartialProgress,
+} from './output-parser';
 
 export interface EncodeProgress {
   /** 0..100 based on `outTimeSec / durationSec`. */
@@ -67,6 +74,26 @@ export interface ProcessorDeps {
   now: () => number;
 }
 
+/**
+ * Categorises an ffmpeg stderr line into the structured 4-level palette
+ * we expose to the renderer. The full AG-Wypalarka 6-level palette is
+ * flattened here — `metadata` + `debug` collapse to `trace`, `success`
+ * collapses to `info`, `warning` to `warn`.
+ */
+const logLevelFromType = (type: LogType): LogLine['level'] => {
+  switch (type) {
+    case 'error':
+      return 'error';
+    case 'warning':
+      return 'warn';
+    case 'debug':
+    case 'metadata':
+      return 'trace';
+    default:
+      return 'info';
+  }
+};
+
 export class FFmpegProcessor {
   private child: ChildProcess | null = null;
   private wasCancelled = false;
@@ -82,6 +109,8 @@ export class FFmpegProcessor {
   };
   private totalFrames = 0;
   private latestSizeBytes = 0;
+  private stdoutBuffer = '';
+  private stderrBuffer = '';
 
   constructor(
     private readonly job: EncodeJob,
@@ -89,25 +118,148 @@ export class FFmpegProcessor {
     private readonly deps: ProcessorDeps
   ) {}
 
-  /** Implemented in follow-up commits. */
   async run(): Promise<EncodeResult> {
-    // Keep fields referenced so TS noUnusedLocals doesn't complain until
-    // the real implementation lands in the next commit.
-    void this.job;
-    void this.callbacks;
-    void this.deps;
-    void this.child;
-    void this.wasCancelled;
-    void this.durationSec;
-    void this.startedAt;
-    void this.latestProgress;
-    void this.totalFrames;
-    void this.latestSizeBytes;
-    throw new Error('FFmpegProcessor.run() not yet implemented');
+    if (this.child) {
+      throw new Error('FFmpegProcessor: run() called while a process is already active');
+    }
+
+    this.durationSec = await this.deps.probeDuration(this.job.videoPath);
+    this.startedAt = this.deps.now();
+
+    const args = buildEncodeArgs(this.job);
+    const ffmpegPath = this.deps.getFfmpegPath();
+    this.emitLog('info', `ffmpeg ${args.join(' ')}`);
+
+    const child = this.deps.spawn(ffmpegPath, args);
+    this.child = child;
+
+    return new Promise<EncodeResult>((resolve, reject) => {
+      child.stdout?.on('data', (chunk: Buffer) => this.handleStdout(chunk));
+      child.stderr?.on('data', (chunk: Buffer) => this.handleStderr(chunk));
+
+      child.on('error', err => {
+        this.child = null;
+        this.callbacks.onError?.(err);
+        reject(err);
+      });
+
+      child.on('close', code => {
+        this.child = null;
+        void this.onChildClose(code, resolve, reject);
+      });
+    });
   }
 
-  /** Implemented in follow-up commits. */
   cancel(): void {
-    throw new Error('FFmpegProcessor.cancel() not yet implemented');
+    // Placeholder — real implementation lands in the next commit.
+    void this.wasCancelled;
+  }
+
+  private async onChildClose(
+    code: number | null,
+    resolve: (v: EncodeResult) => void,
+    reject: (err: Error) => void
+  ): Promise<void> {
+    if (code === 0) {
+      const elapsedMs = this.deps.now() - this.startedAt;
+      let outputBytes = this.latestSizeBytes;
+      try {
+        outputBytes = await this.deps.statSize(this.job.outputPath);
+      } catch {
+        // Fall back to the last in-progress size report.
+      }
+      const avgFps = elapsedMs > 0 ? (this.totalFrames / elapsedMs) * 1000 : 0;
+      const result: EncodeResult = {
+        outputPath: this.job.outputPath,
+        durationSec: this.durationSec,
+        avgFps,
+        outputBytes,
+        elapsedMs,
+      };
+      this.callbacks.onComplete?.(result);
+      resolve(result);
+      return;
+    }
+
+    const err = new Error(`ffmpeg exited with code ${code ?? 'null'}`);
+    this.callbacks.onError?.(err);
+    reject(err);
+  }
+
+  /**
+   * Accumulate stdout into lines (structured progress key=value pairs).
+   * Emits `onProgress` on each `progress=continue`/`progress=end`
+   * sentinel with the latest accumulated snapshot.
+   */
+  private handleStdout(chunk: Buffer): void {
+    this.stdoutBuffer += chunk.toString('utf-8');
+
+    let newlineIdx = this.stdoutBuffer.indexOf('\n');
+    while (newlineIdx !== -1) {
+      const line = this.stdoutBuffer.slice(0, newlineIdx);
+      this.stdoutBuffer = this.stdoutBuffer.slice(newlineIdx + 1);
+      this.applyProgressLine(line);
+      newlineIdx = this.stdoutBuffer.indexOf('\n');
+    }
+  }
+
+  private applyProgressLine(line: string): void {
+    const partial = parseProgressPipe(line);
+    if (!partial) return;
+
+    this.accumulateProgress(partial);
+
+    if (partial.progress === 'continue' || partial.progress === 'end') {
+      this.callbacks.onProgress?.({ ...this.latestProgress });
+    }
+  }
+
+  private accumulateProgress(partial: PartialProgress): void {
+    if (typeof partial.frame === 'number') this.totalFrames = partial.frame;
+    if (typeof partial.fps === 'number') this.latestProgress.fps = partial.fps;
+    if (typeof partial.bitrateKbps === 'number') {
+      this.latestProgress.bitrateKbps = partial.bitrateKbps;
+    }
+    if (typeof partial.speed === 'number') this.latestProgress.speed = partial.speed;
+    if (typeof partial.sizeBytes === 'number') this.latestSizeBytes = partial.sizeBytes;
+
+    if (typeof partial.outTimeUs === 'number') {
+      const outTimeSec = partial.outTimeUs / 1_000_000;
+      this.latestProgress.outTimeSec = outTimeSec;
+      if (this.durationSec > 0) {
+        this.latestProgress.pct = Math.min(100, (outTimeSec / this.durationSec) * 100);
+        const remaining = this.durationSec - outTimeSec;
+        const speed = this.latestProgress.speed;
+        this.latestProgress.etaSec = speed > 0 ? remaining / speed : 0;
+      }
+    }
+  }
+
+  /**
+   * Split stderr into lines, filter out the `frame=`/`size=` noise, and
+   * forward each remaining line through the level categoriser as a
+   * structured `LogLine`.
+   */
+  private handleStderr(chunk: Buffer): void {
+    this.stderrBuffer += chunk.toString('utf-8');
+
+    const lastNewline = this.stderrBuffer.lastIndexOf('\n');
+    if (lastNewline === -1) return;
+
+    const complete = this.stderrBuffer.slice(0, lastNewline);
+    this.stderrBuffer = this.stderrBuffer.slice(lastNewline + 1);
+
+    for (const line of filterLogLines(complete)) {
+      const level = logLevelFromType(categorizeLog(line));
+      this.emitLog(level, line);
+    }
+  }
+
+  private emitLog(level: LogLine['level'], text: string): void {
+    this.callbacks.onLog?.({
+      ts: this.deps.now(),
+      level,
+      text,
+    });
   }
 }
