@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwind from '@tailwindcss/vite';
@@ -10,9 +11,31 @@ import path from 'node:path';
  *  the alias below and resolve fine. */
 const VITE_DEV_PORT = 15180;
 
+/** Resolve the short git commit hash at build time for the About screen's
+ *  `build` row. Best-effort — falls back to `'dev'` when `git` isn't on PATH
+ *  or the current dir isn't a working tree, so CI sandboxes never break.
+ *  Uses execFileSync (no shell) so there is no injection surface. */
+function resolveGitHash(): string {
+  const envHash = process.env.GIT_COMMIT_HASH;
+  if (envHash) return envHash.slice(0, 7);
+  try {
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd: __dirname,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim();
+  } catch {
+    return 'dev';
+  }
+}
+
 export default defineConfig({
   base: './',
   plugins: [react(), tailwind()],
+  define: {
+    __MOEKODER_BUILD_HASH__: JSON.stringify(resolveGitHash()),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
