@@ -40,6 +40,23 @@ export async function isInstalled(): Promise<boolean> {
 }
 
 /**
+ * Delete the installed ffmpeg + ffprobe binaries from `<binDir>`. Used by
+ * the eventual "repair / reinstall" Settings flow — callers should prompt
+ * before invoking. Swallows ENOENT so calling it on a fresh install is a
+ * harmless no-op.
+ */
+export async function removeInstalled(): Promise<void> {
+  for (const p of [getFfmpegPath(), getFfprobePath()]) {
+    try {
+      fs.rmSync(p, { force: true });
+      log.info(`[remove] unlinked ${p}`);
+    } catch (err) {
+      log.warn(`[remove] failed to unlink ${p}`, err);
+    }
+  }
+}
+
+/**
  * Returns the ffmpeg binary's version string (e.g. `"N-xxxxx-g..."`) by
  * running `ffmpeg -version` and parsing the first line. Returns `null` if
  * the binary is missing or the spawn fails — never throws, version probing
