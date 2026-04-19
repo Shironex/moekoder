@@ -1,0 +1,126 @@
+/* ============================================================
+   Moekoder · chrome
+   Titlebar · brand · route tabs · window controls
+   ============================================================ */
+
+.titlebar {
+  flex: 0 0 auto;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px 0 18px;
+  background: var(--popover);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 3;
+  -webkit-app-region: drag;
+  gap: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 18px;
+}
+.brand .kanji-sm {
+  font-size: 20px;
+  color: var(--primary);
+  line-height: 1;
+}
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+/* Route tabs — pill-style nav inside the titlebar. */
+.title-nav {
+  display: flex;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+  padding: 4px;
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.title-nav button {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 6px 14px;
+  background: transparent;
+  border: 0;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+.title-nav button:hover {
+  color: var(--foreground);
+}
+.title-nav button.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Right-aligned action icons (history, settings). */
+.title-actions {
+  display: flex;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+.title-icon-btn {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+.title-icon-btn:hover {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+/* Native-like minimize / maximize / close triplet. */
+.win-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+  margin-left: 4px;
+}
+.win-controls button {
+  width: 36px;
+  height: 32px;
+  background: transparent;
+  border: 0;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.15s;
+  display: grid;
+  place-items: center;
+}
+.win-controls button:hover {
+  background: var(--card);
+  color: var(--foreground);
+}
+.win-controls button.close:hover {
+  background: var(--bad);
+  color: white;
+}
