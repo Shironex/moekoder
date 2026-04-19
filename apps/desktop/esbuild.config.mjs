@@ -1,15 +1,13 @@
 import { build } from 'esbuild';
-import { readFileSync, copyFileSync } from 'node:fs';
+import { copyFileSync } from 'node:fs';
 import path from 'node:path';
 
-const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
-
-// Externalize runtime deps; bundle workspace packages so the packaged main
-// doesn't carry workspace-protocol references.
-const external = [
-  'electron',
-  ...Object.keys(pkg.dependencies ?? {}).filter((d) => !d.startsWith('@moekoder/')),
-];
+// Bundle everything except `electron` itself. Several of our deps
+// (electron-store@10, electron-updater@6, electron-log@5) ship ESM-only,
+// which Electron's CJS main cannot `require()` at runtime. Letting esbuild
+// bundle them resolves the ESM→CJS interop at build time. Workspace deps
+// (e.g. @moekoder/shared) bundle through naturally.
+const external = ['electron'];
 
 await build({
   entryPoints: ['src/main/index.ts', 'src/main/preload.ts'],
