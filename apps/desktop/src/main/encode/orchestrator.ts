@@ -96,6 +96,11 @@ export const startEncode = async (
   events: EncodeEvents,
   deps: OrchestratorDeps = defaultOrchestratorDeps()
 ): Promise<EncodeStartResult> => {
+  // v0.1 runs one encode at a time; queueing lands in v0.3.
+  if (activeJobs.size > 0) {
+    throw new IpcError('UNAVAILABLE', 'Another encode is already running');
+  }
+
   const settings: EncodingSettings = { ...BALANCED_PRESET, ...(input.settings ?? {}) };
 
   const durationSec = await deps.probeDuration(input.videoPath);
