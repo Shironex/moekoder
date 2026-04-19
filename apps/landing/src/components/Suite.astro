@@ -1,0 +1,77 @@
+---
+import '../styles/components/suite.css';
+
+/**
+ * The Shiro Suite — four sibling apps with matching kanji + CamelCase domains.
+ * Moekoder is marked as the current site (`self: true`, · you are here inline).
+ */
+const cards = [
+  {
+    kanji: '白波',
+    name: 'Shiranami',
+    domain: 'shiranami.app',
+    role: 'Music sanctuary',
+    href: 'https://shiranami.app',
+  },
+  {
+    kanji: '白アニ',
+    name: 'ShiroAni',
+    domain: 'shiroani.app',
+    role: 'Anime tracker',
+    href: 'https://shiroani.app',
+  },
+  {
+    kanji: '萌コーダー',
+    name: 'Moekoder',
+    domain: 'moekoder.app',
+    role: 'Hardsub tool',
+    self: true,
+  },
+  {
+    kanji: '綺麗漫画',
+    name: 'KireiManga',
+    domain: 'kireimanga.app',
+    role: 'Manga reader',
+    href: 'https://kireimanga.app',
+  },
+] as const;
+---
+
+<section class="suite" id="suite">
+  <div class="container">
+    <div class="suite-inner">
+      <div class="suite-head">
+        <h2>One app today. <em>A small family</em> tomorrow.</h2>
+        <div class="meta">
+          section · shiro suite<br />
+          白 · 綺 · 萌
+        </div>
+      </div>
+
+      <div class="suite-grid">
+        {
+          cards.map((card) =>
+            card.self ? (
+              <article class="suite-card is-self">
+                <span class="suite-kanji">{card.kanji}</span>
+                <span class="suite-name">{card.name}</span>
+                <span class="suite-role">
+                  {card.role}
+                  <span class="here">· you are here</span>
+                </span>
+                <span class="suite-domain">{card.domain}</span>
+              </article>
+            ) : (
+              <a class="suite-card" href={card.href} target="_blank" rel="noopener">
+                <span class="suite-kanji">{card.kanji}</span>
+                <span class="suite-name">{card.name}</span>
+                <span class="suite-role">{card.role}</span>
+                <span class="suite-domain">{card.domain}</span>
+              </a>
+            )
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>

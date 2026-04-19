@@ -1,0 +1,148 @@
+/* ============================================================
+ * SUITE — 4 sibling cards (Shiro Suite)
+ *
+ * Matches the visual language of the landing (surface tiles with
+ * a kanji watermark) rather than Shiranami's Tailwind layout.
+ * ============================================================ */
+
+.suite {
+  padding: 80px 0 100px;
+  position: relative;
+}
+
+.suite-inner {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: 40px;
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+}
+
+.suite-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.suite-head h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.suite-head h2 em {
+  font-style: italic;
+  color: var(--primary);
+}
+
+.suite-head .meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+}
+
+.suite-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.suite-card {
+  position: relative;
+  padding: 22px 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 180px;
+  transition: all 0.18s;
+  overflow: hidden;
+}
+
+.suite-card:hover {
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+  transform: translateY(-2px);
+  background: color-mix(in oklab, var(--primary) 4%, var(--bg));
+}
+
+.suite-card.is-self {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 12%, var(--surface)),
+    var(--surface)
+  );
+  cursor: default;
+}
+
+.suite-card.is-self:hover {
+  transform: none;
+}
+
+.suite-kanji {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.suite-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.suite-role {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.suite-card.is-self .suite-role {
+  color: var(--primary);
+}
+
+.suite-role .here {
+  color: var(--good);
+  letter-spacing: 0.15em;
+  margin-left: 6px;
+}
+
+.suite-domain {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+}
+
+@media (max-width: 900px) {
+  .suite-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .suite-inner {
+    padding: 28px 22px;
+  }
+}
+
+@media (max-width: 560px) {
+  .suite-grid {
+    grid-template-columns: 1fr;
+  }
+}
