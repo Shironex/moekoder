@@ -1,53 +1,251 @@
-import { useEffect } from 'react';
-import { ErrorBoundary } from '@/components/shared';
-import { Titlebar } from '@/components/chrome';
-import { Ring } from '@/components/ui';
-import { useAppStore } from '@/stores';
+import { useCallback, useEffect, useState } from 'react';
+import { AppShell, Sidebar, Titlebar, type PickedFile } from '@/components/chrome';
+import { CrashFallback, ErrorBoundary } from '@/components/shared';
+import { DoneScreen, EncodingScreen, IdleScreen, SplashScreen } from '@/screens';
+import { useAppStore, useEncodeStore } from '@/stores';
+import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
 
 /**
- * Phase 4a placeholder. Wires the new foundation modules together at the
- * import level to prove the barrel exports resolve and the CSS split boots
- * cleanly. Screen assembly (splash / onboarding / idle / encoding / done /
- * settings / about) lands in Phase 4b — this whole component will be
- * replaced.
+ * Extract a trailing filename from a path using both `/` and `\` as
+ * separators so Windows and POSIX shells both work. Falls back to the input
+ * when no separator is present.
  */
-export function App() {
+const basename = (p: string): string => {
+  const segs = p.split(/[\\/]/);
+  return segs[segs.length - 1] || p;
+};
+
+/**
+ * Extension (without dot), derived from the tail of the filename. Empty when
+ * the filename has no extension.
+ */
+const extOf = (p: string): string | undefined => {
+  const name = basename(p);
+  const dot = name.lastIndexOf('.');
+  if (dot <= 0 || dot === name.length - 1) return undefined;
+  return name.slice(dot + 1).toLowerCase();
+};
+
+/**
+ * Strip the extension from a filename. Used when composing the default
+ * output name from the video source.
+ */
+const stripExt = (name: string): string => {
+  const dot = name.lastIndexOf('.');
+  if (dot <= 0) return name;
+  return name.slice(0, dot);
+};
+
+/**
+ * Join an output directory with a filename using the platform-appropriate
+ * separator (inferred from the directory itself so we don't pull `path` in).
+ */
+const joinPath = (dir: string, file: string): string => {
+  if (!dir) return file;
+  const sep = dir.includes('\\') ? '\\' : '/';
+  const trimmed = dir.endsWith('/') || dir.endsWith('\\') ? dir.slice(0, -1) : dir;
+  return `${trimmed}${sep}${file}`;
+};
+
+const VIDEO_FILTERS = [
+  { name: 'Video', extensions: ['mkv', 'mp4', 'mov', 'avi', 'webm', 'm4v'] },
+  { name: 'All files', extensions: ['*'] },
+];
+const SUB_FILTERS = [
+  { name: 'Subtitle', extensions: ['ass', 'ssa', 'srt'] },
+  { name: 'All files', extensions: ['*'] },
+];
+
+/**
+ * Placeholder card for routes that haven't landed yet (onboarding, settings,
+ * about, crash). Replaced in Phase 4c/4d.
+ */
+interface PlaceholderProps {
+  title: string;
+  detail: string;
+}
+
+const Placeholder = ({ title, detail }: PlaceholderProps) => (
+  <div className="flex flex-1 items-center justify-center p-10">
+    <div className="flex max-w-[480px] flex-col items-center gap-3 rounded-lg border border-border bg-card/30 p-10 text-center">
+      <span className="font-display text-5xl text-primary">工</span>
+      <h2 className="font-display text-2xl text-foreground">{title}</h2>
+      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{detail}</p>
+    </div>
+  </div>
+);
+
+/**
+ * Root application shell. Wires the foundation together:
+ *   · applyTheme on themeId changes (persisted + in-memory)
+ *   · useEncodeEvents subscription at a stable mount point
+ *   · activeView → screen switch with the shared AppShell layout
+ *   · local file-pick state piped through to Sidebar + screens
+ */
+export const App = () => {
+  const api = useElectronAPI();
+  const activeView = useAppStore(s => s.activeView);
+  const setView = useAppStore(s => s.setView);
   const themeId = useAppStore(s => s.themeId);
+  const setThemeId = useAppStore(s => s.setThemeId);
+
+  const setPhase = useEncodeStore(s => s.setPhase);
+  const setJobId = useEncodeStore(s => s.setJobId);
+  const clearLogs = useEncodeStore(s => s.clearLogs);
+  const phase = useEncodeStore(s => s.phase);
+
+  const [persistedTheme] = useSetting('themeId');
+  const [hasCompletedOnboarding] = useSetting('hasCompletedOnboarding');
+
+  // Pipe the IPC encode event stream into the store once at this stable mount.
+  useEncodeEvents();
+
+  // File-pick state. Local to the app for v0.1; promote to a store if it
+  // needs to be read from multiple distant branches later.
+  const [video, setVideo] = useState<PickedFile | null>(null);
+  const [subs, setSubs] = useState<PickedFile | null>(null);
+  const [out, setOut] = useState<{ name: string; path: string } | null>(null);
+
+  // Sync persisted themeId into the app store once it loads from main.
+  useEffect(() => {
+    if (persistedTheme && persistedTheme !== themeId) {
+      setThemeId(persistedTheme);
+    }
+  }, [persistedTheme, themeId, setThemeId]);
 
   useEffect(() => {
     void applyTheme(themeId);
   }, [themeId]);
 
+  // Advance the shell view when the encode reaches a terminal phase. Running
+  // the transition here (rather than inside useEncodeEvents) keeps the
+  // event hook purely "IPC → store" and leaves route control on App.
+  useEffect(() => {
+    if (phase === 'done' && activeView === 'single-encoding') {
+      setView('single-done');
+    }
+  }, [phase, activeView, setView]);
+
+  const onPickVideo = useCallback(async (): Promise<void> => {
+    try {
+      const res = await api.dialog.openFile({ filters: VIDEO_FILTERS });
+      if (res.canceled || !res.filePath) return;
+      const name = basename(res.filePath);
+      setVideo({ name, path: res.filePath, ext: extOf(res.filePath) });
+    } catch (err) {
+      console.error('[dialog.openFile video] failed', err);
+    }
+  }, [api]);
+
+  const onPickSubs = useCallback(async (): Promise<void> => {
+    try {
+      const res = await api.dialog.openFile({ filters: SUB_FILTERS });
+      if (res.canceled || !res.filePath) return;
+      const name = basename(res.filePath);
+      setSubs({ name, path: res.filePath, ext: extOf(res.filePath) });
+    } catch (err) {
+      console.error('[dialog.openFile subs] failed', err);
+    }
+  }, [api]);
+
+  const onPickOut = useCallback(async (): Promise<void> => {
+    try {
+      const res = await api.dialog.openFolder({});
+      if (res.canceled || !res.folderPath) return;
+      const baseName = video ? `${stripExt(video.name)}.mp4` : 'output.mp4';
+      setOut({ name: baseName, path: res.folderPath });
+    } catch (err) {
+      console.error('[dialog.openFolder] failed', err);
+    }
+  }, [api, video]);
+
+  const onStart = useCallback(async (): Promise<void> => {
+    if (!video || !subs || !out) return;
+    const outputPath = joinPath(out.path, out.name);
+    try {
+      clearLogs();
+      const res = await api.encode.start({
+        videoPath: video.path,
+        subtitlePath: subs.path,
+        outputPath,
+      });
+      setJobId(res.jobId);
+      setPhase('running');
+      setView('single-encoding');
+    } catch (err) {
+      console.error('[encode.start] failed', err);
+    }
+  }, [api, video, subs, out, clearLogs, setJobId, setPhase, setView]);
+
+  const onEncodeAnother = useCallback((): void => {
+    // Reset the picks so the user truly starts fresh. The encode store is
+    // reset by DoneScreen itself via the `reset()` selector.
+    setVideo(null);
+    setSubs(null);
+    setOut(null);
+    setView('single-idle');
+  }, [setView]);
+
+  const sidebar = (
+    <Sidebar
+      video={video}
+      subs={subs}
+      out={out}
+      onPickVideo={onPickVideo}
+      onPickSubs={onPickSubs}
+      onPickOut={onPickOut}
+      onStart={onStart}
+    />
+  );
+
+  const renderView = (): React.ReactNode => {
+    switch (activeView) {
+      case 'splash':
+        return (
+          <SplashScreen
+            onComplete={() => setView(hasCompletedOnboarding ? 'single-idle' : 'onboarding')}
+          />
+        );
+      case 'single-idle':
+        return (
+          <AppShell sidebar={sidebar}>
+            <IdleScreen video={video} subs={subs} out={out} />
+          </AppShell>
+        );
+      case 'single-encoding':
+        return (
+          <AppShell sidebar={sidebar}>
+            <EncodingScreen video={video} subs={subs} out={out} />
+          </AppShell>
+        );
+      case 'single-done':
+        return (
+          <AppShell sidebar={sidebar}>
+            <DoneScreen onReset={onEncodeAnother} />
+          </AppShell>
+        );
+      case 'onboarding':
+        return <Placeholder title="Onboarding lands in Phase 4c." detail="first-run · 初" />;
+      case 'settings':
+        return <Placeholder title="Settings lands in Phase 4d." detail="config · 設" />;
+      case 'about':
+        return <Placeholder title="About lands in Phase 4d." detail="about · 解" />;
+      case 'crash':
+        return <CrashFallback message="Manual crash view — use the titlebar to return." />;
+      default:
+        return <Placeholder title="Unknown view." detail={String(activeView)} />;
+    }
+  };
+
   return (
-    <ErrorBoundary variant="root" viewName="root">
+    <ErrorBoundary variant="root" viewName="root" fallback={<CrashFallback />}>
       <div className="app-root">
-        <Titlebar route="single" onSettings={() => {}} />
-        <main
-          style={{
-            flex: 1,
-            display: 'grid',
-            placeItems: 'center',
-            gap: 24,
-            padding: 48,
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'var(--muted)',
-            }}
-          >
-            Phase 4a · foundations ready
-          </div>
-          <Ring pct={42} eta="2m 13s" />
-        </main>
+        {activeView !== 'splash' && activeView !== 'crash' && (
+          <Titlebar route="single" onSettings={() => setView('settings')} />
+        )}
+        {renderView()}
       </div>
     </ErrorBoundary>
   );
-}
+};
