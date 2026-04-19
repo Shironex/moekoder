@@ -1,5 +1,4 @@
 import { THEMES_BY_ID, type ThemeId } from '@moekoder/shared';
-import { IconPlus } from '@/components/ui';
 import {
   HW_OPTIONS_TEMPLATE,
   OB_CONTS,
@@ -73,8 +72,8 @@ export const Done = ({ inputs, hwOptions = [...HW_OPTIONS_TEMPLATE] }: DoneProps
           Ready <em className="not-italic text-primary">when you</em> are.
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-muted-foreground">
-          Everything&apos;s wired up. Drop your first MKV and its ASS file onto the window —
-          MoeKoder will pair them and fire up the encoder.
+          Everything&apos;s wired up. Hit <b className="text-foreground">Start encoding</b> to pick
+          your first video and subtitle — the pipeline takes it from there.
         </p>
       </div>
 
@@ -85,28 +84,6 @@ export const Done = ({ inputs, hwOptions = [...HW_OPTIONS_TEMPLATE] }: DoneProps
         <Chip k="器" label="container" value={`.${cont.ext}`} />
         <Chip k={save.k} label="save" value={saveShort} />
         <Chip k={theme.kanji} label="theme" value={theme.name} />
-      </div>
-
-      {/* Drop target preview */}
-      <div className="flex w-full max-w-[520px] flex-col items-center gap-3 rounded-xl border border-dashed border-primary/45 bg-card/20 px-8 py-10">
-        <IconPlus size={32} className="text-primary" aria-hidden="true" />
-        <b className="font-display text-xl text-foreground">
-          Drop <em className="not-italic text-primary">video</em> +{' '}
-          <em className="not-italic text-primary">subtitle</em> here
-        </b>
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          MKV · MP4 · ASS · SSA · SRT
-        </span>
-        <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          <kbd className="rounded border border-border bg-card px-1.5 py-0.5">or</kbd>
-          <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-foreground">
-            Ctrl
-          </kbd>
-          <kbd className="rounded border border-border bg-card px-1.5 py-0.5 text-foreground">
-            O
-          </kbd>
-          <kbd className="rounded border border-border bg-card px-1.5 py-0.5">to browse</kbd>
-        </div>
       </div>
     </div>
   );
