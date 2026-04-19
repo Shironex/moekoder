@@ -1,7 +1,12 @@
 import { execFile } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { app } from 'electron';
 import { createMainLogger } from '../logger';
-import { getFfmpegPath, getFfprobePath } from '../utils/bin-paths';
+import { downloadToFile } from '../http';
+import { getBinDir, getFfmpegPath, getFfprobePath } from '../utils/bin-paths';
+import { getSourceForPlatform, type FFmpegSource } from './sources';
 
 const log = createMainLogger('ffmpeg/manager');
 
@@ -56,6 +61,58 @@ export async function getInstalledVersion(): Promise<string | null> {
 }
 
 /**
+ * Stage weights inside `ensureInstalled` — must sum to 1. Downloading is by
+ * far the largest real-world cost so it dominates the bar.
+ */
+const STAGE_WEIGHTS = {
+  downloading: 0.8,
+  verifying: 0.08,
+  extracting: 0.1,
+  installing: 0.02,
+} as const;
+
+function resolveTmpArchivePath(source: FFmpegSource): string {
+  const tmpDir = path.join(app.getPath('userData'), 'tmp');
+  fs.mkdirSync(tmpDir, { recursive: true });
+  const suffix = source.archive === 'zip' ? 'zip' : 'tar.xz';
+  const token = randomBytes(8).toString('hex');
+  return path.join(tmpDir, `ffmpeg-${token}.${suffix}`);
+}
+
+/**
+ * Download the source archive to a random path under `<userData>/tmp`.
+ * Progress events are rescaled into the overall `downloading` slice so the
+ * caller sees a smooth 0..0.8 band during this stage.
+ */
+async function downloadArchive(
+  source: FFmpegSource,
+  onProgress: ProgressCallback
+): Promise<string> {
+  const tmpPath = resolveTmpArchivePath(source);
+  onProgress({
+    stage: 'downloading',
+    pct: 0,
+    message: `Downloading ffmpeg (${source.version})`,
+  });
+
+  try {
+    await downloadToFile(source.url, tmpPath, pct => {
+      onProgress({
+        stage: 'downloading',
+        pct: (pct / 100) * STAGE_WEIGHTS.downloading,
+        message: `Downloading ffmpeg (${pct}%)`,
+      });
+    });
+  } catch (err) {
+    fs.rmSync(tmpPath, { force: true });
+    throw err;
+  }
+
+  log.info(`downloaded ${source.url} -> ${tmpPath}`);
+  return tmpPath;
+}
+
+/**
  * Ensures ffmpeg + ffprobe are installed under `<userData>/bin`. No-op if
  * both binaries are already present. Download / verify / extract stages are
  * filled in by later commits.
@@ -67,8 +124,13 @@ export async function ensureInstalled(onProgress: ProgressCallback): Promise<voi
   }
 
   onProgress({ stage: 'resolving', pct: 0, message: 'Resolving ffmpeg source' });
+  const source = getSourceForPlatform(process.platform);
 
-  // Stages filled in by subsequent commits:
-  //   download -> verify -> extract -> install -> done
-  throw new Error('ensureInstalled: install pipeline not yet implemented');
+  fs.mkdirSync(getBinDir(), { recursive: true });
+
+  const archivePath = await downloadArchive(source, onProgress);
+
+  // Verify / extract / install stages filled in by subsequent commits.
+  void archivePath;
+  throw new Error('ensureInstalled: verify/extract/install stages not yet implemented');
 }
