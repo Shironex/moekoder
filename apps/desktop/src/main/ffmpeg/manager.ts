@@ -1,7 +1,8 @@
 import { execFile } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { app } from 'electron';
 import { createMainLogger } from '../logger';
 import { downloadToFile } from '../http';
@@ -113,6 +114,56 @@ async function downloadArchive(
 }
 
 /**
+ * Hex-encoded SHA-256 of a file, computed by streaming — never loads the
+ * whole archive into memory. Exported for unit tests.
+ */
+export async function hashFileSha256(filePath: string): Promise<string> {
+  const hash = createHash('sha256');
+  await pipeline(fs.createReadStream(filePath), hash);
+  return hash.digest('hex');
+}
+
+/**
+ * Verify the downloaded archive against the pinned SHA-256 from the source
+ * config. Mismatches throw so the caller can discard the archive. When the
+ * source's `sha256` is `null` (trust-on-first-use), verify is skipped with a
+ * warning — this path exists because BtbN's `latest` tag is a rolling pointer
+ * we can't pin yet; we'll swap it for a tagged release before v0.1.0 GA.
+ */
+async function verifyArchive(
+  archivePath: string,
+  source: FFmpegSource,
+  onProgress: ProgressCallback
+): Promise<void> {
+  const base = STAGE_WEIGHTS.downloading;
+
+  if (!source.sha256) {
+    log.warn(`[verify] source ${source.url} has no pinned sha256 — skipping hash verification`);
+    onProgress({
+      stage: 'verifying',
+      pct: base + STAGE_WEIGHTS.verifying,
+      message: 'Skipping hash verification (no pinned SHA)',
+    });
+    return;
+  }
+
+  onProgress({ stage: 'verifying', pct: base, message: 'Verifying SHA-256' });
+  const actual = await hashFileSha256(archivePath);
+  const expected = source.sha256.toLowerCase();
+  if (actual.toLowerCase() !== expected) {
+    throw new Error(
+      `SHA-256 mismatch for downloaded ffmpeg archive. expected=${expected} actual=${actual}`
+    );
+  }
+  log.info(`[verify] sha256 ok (${actual})`);
+  onProgress({
+    stage: 'verifying',
+    pct: base + STAGE_WEIGHTS.verifying,
+    message: 'SHA-256 verified',
+  });
+}
+
+/**
  * Ensures ffmpeg + ffprobe are installed under `<userData>/bin`. No-op if
  * both binaries are already present. Download / verify / extract stages are
  * filled in by later commits.
@@ -130,7 +181,14 @@ export async function ensureInstalled(onProgress: ProgressCallback): Promise<voi
 
   const archivePath = await downloadArchive(source, onProgress);
 
-  // Verify / extract / install stages filled in by subsequent commits.
+  try {
+    await verifyArchive(archivePath, source, onProgress);
+  } catch (err) {
+    fs.rmSync(archivePath, { force: true });
+    throw err;
+  }
+
+  // Extract / install stages filled in by subsequent commits.
   void archivePath;
-  throw new Error('ensureInstalled: verify/extract/install stages not yet implemented');
+  throw new Error('ensureInstalled: extract/install stages not yet implemented');
 }
