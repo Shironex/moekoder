@@ -207,7 +207,8 @@ export class FFmpegProcessor {
       } catch {
         // Fall back to the last in-progress size report.
       }
-      const avgFps = elapsedMs > 0 ? (this.totalFrames / elapsedMs) * 1000 : 0;
+      const elapsedSec = elapsedMs / 1000;
+      const avgFps = elapsedSec > 0 ? this.totalFrames / elapsedSec : 0;
       const result: EncodeResult = {
         outputPath: this.job.outputPath,
         durationSec: this.durationSec,
@@ -215,6 +216,11 @@ export class FFmpegProcessor {
         outputBytes,
         elapsedMs,
       };
+      this.emitLog(
+        'info',
+        `Encode complete: ${this.totalFrames} frames in ${elapsedSec.toFixed(2)}s ` +
+          `(avg ${avgFps.toFixed(1)} fps), ${outputBytes} bytes`
+      );
       this.callbacks.onComplete?.(result);
       resolve(result);
       return;
