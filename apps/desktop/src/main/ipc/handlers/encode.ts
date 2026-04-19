@@ -57,7 +57,20 @@ export function registerEncodeHandlers(ctx: IpcContext): void {
         onProgress: (jobId, progress) =>
           safeSend(ENCODE_EVENT_CHANNELS.PROGRESS, { jobId, progress }),
         onLog: (jobId, line) => safeSend(ENCODE_EVENT_CHANNELS.LOG, { jobId, line }),
-        onComplete: (jobId, result) => safeSend(ENCODE_EVENT_CHANNELS.COMPLETE, { jobId, result }),
+        // The renderer contract uses `file` + `bytes`; the main-process
+        // domain type uses `outputPath` + `outputBytes`. Normalize here at
+        // the wire boundary so neither side has to know about the other's
+        // field names.
+        onComplete: (jobId, result) =>
+          safeSend(ENCODE_EVENT_CHANNELS.COMPLETE, {
+            jobId,
+            result: {
+              file: result.outputPath,
+              bytes: result.outputBytes,
+              durationSec: result.durationSec,
+              avgFps: result.avgFps,
+            },
+          }),
         onError: (jobId, error) => safeSend(ENCODE_EVENT_CHANNELS.ERROR, { jobId, error }),
       });
     }
