@@ -13,3 +13,23 @@ Early development. Pre-1.0. See [CHANGELOG.md](./CHANGELOG.md) for released vers
 ## License
 
 Moekoder Source Available License — see [LICENSE](./LICENSE). Personal use only; no redistribution.
+
+## Quickstart
+
+Requires Node 22.13+ and pnpm 9+.
+
+```sh
+# One-time install (after Node upgrade)
+pnpm install
+
+# Build shared package (types + runtime)
+pnpm --filter @moekoder/shared build
+
+# Run web dev server in one terminal
+pnpm --filter @moekoder/web dev
+
+# Build and launch desktop shell in another terminal
+pnpm --filter @moekoder/desktop start
+```
+
+Phase 1 ships a placeholder desktop shell with a titlebar and four theme flips — real features land in v0.1.0. See `docs/roadmap/v0.1.0.md` for scope.
