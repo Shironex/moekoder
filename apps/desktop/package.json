@@ -7,7 +7,8 @@
     "build": "node esbuild.config.mjs",
     "dev": "node esbuild.config.mjs",
     "start": "pnpm build && electron dist/main/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "electron-log": "^5.2.4",
@@ -20,6 +21,7 @@
     "@types/node": "^22.10.0",
     "electron": "^41.0.0",
     "esbuild": "^0.25.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
