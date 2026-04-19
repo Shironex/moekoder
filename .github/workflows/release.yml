@@ -1,0 +1,138 @@
+name: Release Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.1.0). Leave empty on release trigger.'
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  HUSKY: 0
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version and channel from tag
+        id: version
+        shell: bash
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name || github.event.inputs.tag }}
+        run: |
+          if [ -z "$TAG_NAME" ]; then
+            echo "No tag name available — aborting."
+            exit 1
+          fi
+          VERSION="${TAG_NAME#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          if echo "${VERSION}" | grep -qE '\-beta(\.|$)'; then
+            echo "channel=beta" >> "$GITHUB_OUTPUT"
+          elif echo "${VERSION}" | grep -qE '\-alpha(\.|$)'; then
+            echo "channel=alpha" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync package.json versions for tag
+        shell: bash
+        run: bash ./scripts/set-version-ci.sh "${{ steps.version.outputs.version }}"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build web + desktop
+        run: pnpm build
+
+      - name: Package macOS
+        if: matrix.platform == 'mac'
+        working-directory: apps/desktop
+        run: pnpm exec electron-builder --mac --publish never -c.publish.channel=${{ steps.version.outputs.channel }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Package Windows
+        if: matrix.platform == 'win'
+        shell: bash
+        working-directory: apps/desktop
+        run: pnpm exec electron-builder --win --publish never -c.publish.channel=${{ steps.version.outputs.channel }}
+
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-builds
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*-mac.yml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Windows artifacts
+        if: matrix.platform == 'win'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest.yml
+          if-no-files-found: error
+          retention-days: 30
+
+  upload:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-builds
+          path: artifacts/macos-builds
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-builds
+          path: artifacts/windows-builds
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/macos-builds/*.dmg
+            artifacts/macos-builds/*-mac.yml
+            artifacts/windows-builds/*.exe
+            artifacts/windows-builds/*.blockmap
+            artifacts/windows-builds/*.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
