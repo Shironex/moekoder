@@ -14,6 +14,8 @@ import type { BrowserWindow } from 'electron';
 import { registerAppHandlers, cleanupAppHandlers } from './handlers/app';
 import { registerStoreHandlers, cleanupStoreHandlers } from './handlers/store';
 import { registerUpdaterHandlers, cleanupUpdaterHandlers } from './handlers/updater';
+import { registerFfmpegHandlers, cleanupFfmpegHandlers } from './handlers/ffmpeg';
+import { registerGpuHandlers, cleanupGpuHandlers } from './handlers/gpu';
 
 export interface IpcContext {
   mainWindow: BrowserWindow;
@@ -23,10 +25,14 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerAppHandlers(ctx);
   registerStoreHandlers(ctx);
   registerUpdaterHandlers(ctx);
+  registerFfmpegHandlers(ctx);
+  registerGpuHandlers(ctx);
 }
 
 export function cleanupAllIpcHandlers(): void {
   cleanupAppHandlers();
   cleanupStoreHandlers();
   cleanupUpdaterHandlers();
+  cleanupFfmpegHandlers();
+  cleanupGpuHandlers();
 }
