@@ -2,7 +2,7 @@ import type { ComponentType, SVGProps } from 'react';
 
 interface MetricProps {
   /** Lucide / custom icon component. Rendered at 10px inside the label row. */
-  icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
+  icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
   /** Short uppercase label (e.g. "FPS", "Bitrate"). */
   label: string;
   /** Primary value (formatted upstream — Metric does not coerce). */
