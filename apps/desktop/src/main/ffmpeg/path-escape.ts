@@ -25,8 +25,11 @@
  *   After libass parse: C:\path\file.ass (1 backslash - correct!)
  */
 
+export type EscapePlatform = 'win32' | 'posix';
+
 /**
- * Escapes a file path for use in FFmpeg's `subtitles=` filter.
+ * Platform-parametrised core of {@link escapeSubtitlePath}. Exported for
+ * unit tests so both branches can be exercised on a single host.
  *
  * Windows branch: runs the 3-layer backslash / drive-letter / filter-graph
  * escape chain documented above.
@@ -38,12 +41,9 @@
  * path would otherwise split the filter expression. Filter-graph specials
  * (`[ ] ; , = '`) are escaped on both platforms because they can legally
  * appear in filenames.
- *
- * @param absolutePath - The absolute path to the subtitle file
- * @returns Escaped path safe for use inside `subtitles='<path>'`
  */
-export const escapeSubtitlePath = (absolutePath: string): string => {
-  if (process.platform === 'win32') {
+export const escapeSubtitlePathFor = (absolutePath: string, platform: EscapePlatform): string => {
+  if (platform === 'win32') {
     return (
       absolutePath
         // Step 1: Escape backslashes first (must be done before other escapes)
@@ -75,3 +75,13 @@ export const escapeSubtitlePath = (absolutePath: string): string => {
       .replace(/=/g, '\\=')
   );
 };
+
+/**
+ * Escapes a file path for use in FFmpeg's `subtitles=` filter. Dispatches
+ * to the Windows or POSIX branch based on the current process platform.
+ *
+ * @param absolutePath - The absolute path to the subtitle file
+ * @returns Escaped path safe for use inside `subtitles='<path>'`
+ */
+export const escapeSubtitlePath = (absolutePath: string): string =>
+  escapeSubtitlePathFor(absolutePath, process.platform === 'win32' ? 'win32' : 'posix');
