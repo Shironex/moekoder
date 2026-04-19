@@ -1,6 +1,116 @@
-import { contextBridge } from 'electron';
-import { THEMES, DEFAULT_THEME_ID, APP_NAME, APP_SIGIL, APP_EDITION } from '@moekoder/shared';
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import {
+  THEMES,
+  DEFAULT_THEME_ID,
+  APP_NAME,
+  APP_SIGIL,
+  APP_EDITION,
+  IPC_CHANNELS,
+  UPDATER_EVENT_CHANNELS,
+  type UpdaterEventChannel,
+  type UserSettings,
+  type UserSettingsKey,
+} from '@moekoder/shared';
 
+/**
+ * Allow-list of IPC channels the renderer is permitted to invoke. Built from
+ * the shared `IPC_CHANNELS` record so drift with the main-process handler
+ * registrations is impossible — adding a channel here requires adding it to
+ * the shared constants first.
+ */
+const ALLOWED_IPC_CHANNELS = new Set<string>(Object.values(IPC_CHANNELS));
+
+/** Plain-object shape we reject with; mirrors the `IpcError` structural check. */
+interface IpcErrorShape {
+  name: 'IpcError';
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+function makeIpcError(code: string, message: string, details?: unknown): IpcErrorShape {
+  return { name: 'IpcError', code, message, details };
+}
+
+/**
+ * Invoke an allow-listed IPC channel with a wall-clock timeout. Channels not
+ * in the allow-list reject immediately (fast fail). The timer is `.unref()`ed
+ * so it never keeps the event loop alive on its own.
+ */
+function invokeWithTimeout<T>(channel: string, args: unknown[], timeoutMs = 10_000): Promise<T> {
+  if (!ALLOWED_IPC_CHANNELS.has(channel)) {
+    return Promise.reject(
+      makeIpcError('PERMISSION_DENIED', `IPC channel not allowed: "${channel}"`)
+    );
+  }
+
+  const invoke = ipcRenderer.invoke(channel, ...args) as Promise<T>;
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        makeIpcError('TIMEOUT', `IPC timeout: "${channel}" did not respond within ${timeoutMs}ms`)
+      );
+      // Ensure the still-pending invoke doesn't cause unhandled rejection noise.
+      invoke.catch(() => {});
+    }, timeoutMs);
+    if (timer && typeof timer === 'object' && 'unref' in timer) {
+      timer.unref();
+    }
+  });
+
+  return Promise.race([
+    invoke.finally(() => {
+      if (timer) clearTimeout(timer);
+    }),
+    timeout,
+  ]);
+}
+
+const electronAPI = {
+  app: {
+    getVersion: (): Promise<string> => invokeWithTimeout<string>(IPC_CHANNELS.APP_VERSION, []),
+    openExternal: (url: string): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.APP_OPEN_EXTERNAL, [url]),
+  },
+  dialog: {
+    // Stubs — wired to handlers in a later phase.
+    openFile: (): Promise<string | null> =>
+      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_OPEN_FILE, []),
+    saveFile: (): Promise<string | null> =>
+      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_SAVE_FILE, []),
+    openFolder: (): Promise<string | null> =>
+      invokeWithTimeout<string | null>(IPC_CHANNELS.DIALOG_OPEN_FOLDER, []),
+  },
+  store: {
+    get: <K extends UserSettingsKey>(key: K): Promise<UserSettings[K]> =>
+      invokeWithTimeout<UserSettings[K]>(IPC_CHANNELS.STORE_GET, [key]),
+    set: <K extends UserSettingsKey>(key: K, value: UserSettings[K]): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.STORE_SET, [key, value]),
+    delete: (key: UserSettingsKey): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.STORE_DELETE, [key]),
+  },
+  updater: {
+    check: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.UPDATER_CHECK, []),
+    download: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.UPDATER_DOWNLOAD, []),
+    install: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.UPDATER_INSTALL, []),
+    on: (channel: UpdaterEventChannel, handler: (payload: unknown) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: unknown): void => handler(payload);
+      ipcRenderer.on(channel, listener);
+      return () => {
+        ipcRenderer.removeListener(channel, listener);
+      };
+    },
+  },
+  /** Enumerated updater event channel names, re-exposed for renderer convenience. */
+  updaterEvents: UPDATER_EVENT_CHANNELS,
+} as const;
+
+contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+
+// Phase-1 placeholder surface kept alive so `shell.html` continues to work.
+// The real renderer (Phase 4) consumes `electronAPI` instead.
 contextBridge.exposeInMainWorld('moekoder', {
   app: { name: APP_NAME, sigil: APP_SIGIL, edition: APP_EDITION },
   themes: THEMES,
