@@ -1,0 +1,32 @@
+name: Security Audit
+
+on:
+  schedule:
+    # Weekly on Mondays at 09:00 UTC.
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HUSKY: 0
+
+jobs:
+  audit:
+    name: pnpm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high
