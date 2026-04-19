@@ -1,7 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import pkg from 'electron-updater';
 import type { UpdateInfo, ProgressInfo } from 'electron-updater';
-import { IPC_CHANNELS, UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
+import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { createMainLogger } from './logger';
 
 const { autoUpdater } = pkg;
@@ -146,7 +146,3 @@ export function quitAndInstall(): void {
 export function isUpdaterEnabled(): boolean {
   return enabled;
 }
-
-// Re-export the invoke channel names for the IPC handler file to consume
-// without pulling a second import from `@moekoder/shared`.
-export { IPC_CHANNELS };
