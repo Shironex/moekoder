@@ -5,12 +5,16 @@ import {
   APP_NAME,
   APP_SIGIL,
   APP_EDITION,
+  FFMPEG_EVENT_CHANNELS,
   IPC_CHANNELS,
   UPDATER_EVENT_CHANNELS,
   type UpdaterEventChannel,
   type UserSettings,
   type UserSettingsKey,
 } from '@moekoder/shared';
+import type { InstallProgress } from './ffmpeg/manager';
+import type { ProbeResult } from './ffmpeg/probe';
+import type { GpuProbeResult } from './ffmpeg/gpu-probe';
 
 /**
  * Allow-list of IPC channels the renderer is permitted to invoke. Built from
@@ -105,6 +109,29 @@ const electronAPI = {
   },
   /** Enumerated updater event channel names, re-exposed for renderer convenience. */
   updaterEvents: UPDATER_EVENT_CHANNELS,
+  ffmpeg: {
+    isInstalled: (): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.FFMPEG_IS_INSTALLED, []),
+    getVersion: (): Promise<string | null> =>
+      invokeWithTimeout<string | null>(IPC_CHANNELS.FFMPEG_GET_VERSION, []),
+    // Downloads can legitimately take minutes; override the 10s default.
+    ensureBinaries: (): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.FFMPEG_ENSURE_BINARIES, [], 600_000),
+    probe: (filePath: string): Promise<ProbeResult> =>
+      invokeWithTimeout<ProbeResult>(IPC_CHANNELS.FFMPEG_PROBE, [filePath], 60_000),
+    onDownloadProgress: (handler: (payload: InstallProgress) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: InstallProgress): void =>
+        handler(payload);
+      ipcRenderer.on(FFMPEG_EVENT_CHANNELS.DOWNLOAD_PROGRESS, listener);
+      return () => {
+        ipcRenderer.removeListener(FFMPEG_EVENT_CHANNELS.DOWNLOAD_PROGRESS, listener);
+      };
+    },
+  },
+  gpu: {
+    probe: (): Promise<GpuProbeResult> =>
+      invokeWithTimeout<GpuProbeResult>(IPC_CHANNELS.GPU_PROBE, [], 10_000),
+  },
 } as const;
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
