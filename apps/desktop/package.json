@@ -9,6 +9,9 @@
     "start": "pnpm build && electron dist/main/index.js",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
   "devDependencies": {
     "@moekoder/shared": "workspace:*",
     "@types/node": "^22.10.0",
