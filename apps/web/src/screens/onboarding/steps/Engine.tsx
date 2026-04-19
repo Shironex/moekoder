@@ -231,6 +231,17 @@ export const Engine = ({ onReady }: EngineProps) => {
     void start();
   }, [start]);
 
+  // Derived values — computed *before* the early return so every render walks
+  // through the same hook sequence (Rules of Hooks: identical hook order each
+  // render, regardless of which branch we later render).
+  const activeStage = DL_STAGES[Math.min(activeStageIdx, DL_STAGES.length - 1)];
+  const busyHeadline = useMemo(() => {
+    if (phase === 'already') return 'Already installed.';
+    if (phase === 'done') return 'Engine ready.';
+    if (phase === 'error') return 'Download failed.';
+    return activeStage.label;
+  }, [phase, activeStage]);
+
   // Gate screen shown on first launch before the user confirms the download.
   // Splitting this out of the main layout keeps the "we're about to do a
   // thing" moment distinct from the "we're doing the thing" progress view.
@@ -314,15 +325,6 @@ export const Engine = ({ onReady }: EngineProps) => {
       </div>
     );
   }
-
-  const activeStage = DL_STAGES[Math.min(activeStageIdx, DL_STAGES.length - 1)];
-
-  const busyHeadline = useMemo(() => {
-    if (phase === 'already') return 'Already installed.';
-    if (phase === 'done') return 'Engine ready.';
-    if (phase === 'error') return 'Download failed.';
-    return activeStage.label;
-  }, [phase, activeStage]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
