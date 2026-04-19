@@ -1,0 +1,60 @@
+---
+import '../styles/components/engine.css';
+---
+
+<div class="engine-grid">
+  <div class="engine-copy">
+    <p>
+      MoeKoder is a thin, opinionated wrapper around <b>ffmpeg</b>. Every button in the app maps to
+      a flag you can read in the log panel. Nothing is hidden.
+    </p>
+    <p>
+      The app picks the GPU codec that's available, bakes <code>libass</code> subtitles into the
+      pixels with a <code>subtitles</code> filter, copies the audio track through untouched, and
+      muxes the result.
+    </p>
+
+    <ul>
+      <li>
+        <span class="k">壱</span><span
+          ><b>Detects</b> your hardware and picks the best encoder at launch</span
+        >
+      </li>
+      <li>
+        <span class="k">弐</span><span
+          ><b>Probes</b> the input with ffprobe — color space, subtitle track, HDR, chapters</span
+        >
+      </li>
+      <li>
+        <span class="k">参</span><span
+          ><b>Renders</b> through NVENC/QSV/AMF with your CQ and preset</span
+        >
+      </li>
+      <li>
+        <span class="k">肆</span><span
+          ><b>Verifies</b> the output with a second ffprobe pass, then mux-copies it</span
+        >
+      </li>
+    </ul>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dots"><span></span><span></span><span></span></div>
+      <div class="terminal-title"><span class="k">令</span>command · live preview</div>
+    </div>
+    <div
+      class="terminal-body"
+    ><span class="prompt">D:\anime&gt;</span> ffmpeg <span class="cmt"># auto-generated</span>
+  <span class="flag">-hwaccel</span> cuda <span class="flag">-hwaccel_output_format</span> cuda \
+  <span class="flag">-i</span> <span class="str">"Eclipse of Illusion - 02.mkv"</span> \
+  <span class="flag">-c:v</span> h264_nvenc \
+  <span class="flag">-preset</span> p4 <span class="flag">-tune</span> hq \
+  <span class="flag">-rc</span> vbr <span class="flag">-cq</span> 19 <span class="flag">-b:v</span> 0 \
+  <span class="flag">-vf</span> <span class="str">"subtitles='Eclipse of Illusion - 02.ass'"</span> \
+  <span class="flag">-c:a</span> copy <span class="cmt"># audio untouched</span> \
+  <span class="flag">-movflags</span> +faststart \
+  <span class="str">"D:\anime\wypalone\Eclipse of Illusion - 02.mp4"</span><span class="cursor"
+      ></span></div>
+  </div>
+</div>
