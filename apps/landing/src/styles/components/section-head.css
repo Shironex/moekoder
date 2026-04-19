@@ -1,0 +1,53 @@
+/* ============================================================
+ * SECTION HEADER — reusable numbered header
+ * Ported verbatim from MoeKoder Landing.html:446-482 + :846.
+ * ============================================================ */
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.section-head .n {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  opacity: 0.35;
+}
+
+.section-head .t {
+  flex: 1;
+}
+
+.section-head .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.section-head h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 42px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.section-head h2 em {
+  font-style: italic;
+  color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .section-head h2 {
+    font-size: 32px;
+  }
+}

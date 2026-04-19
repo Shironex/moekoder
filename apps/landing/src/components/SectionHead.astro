@@ -1,0 +1,18 @@
+---
+import '../styles/components/section-head.css';
+
+interface Props {
+  n: string;
+  eyebrow: string;
+}
+
+const { n, eyebrow } = Astro.props;
+---
+
+<div class="section-head">
+  <div class="n">{n}</div>
+  <div class="t">
+    <div class="eyebrow">{eyebrow}</div>
+    <h2><slot /></h2>
+  </div>
+</div>
