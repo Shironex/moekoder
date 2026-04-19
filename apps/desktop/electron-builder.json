@@ -5,7 +5,8 @@
   "copyright": "Copyright © 2026 Shironex",
   "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
   "directories": {
-    "output": "release"
+    "output": "release",
+    "buildResources": "build"
   },
   "files": ["dist/**/*", "package.json"],
   "publish": [
@@ -24,10 +25,12 @@
     "onlyLoadAppFromAsar": true
   },
   "win": {
-    "target": ["nsis"]
+    "target": ["nsis"],
+    "icon": "build/icon.ico"
   },
   "mac": {
     "target": ["dmg"],
-    "category": "public.app-category.video"
+    "category": "public.app-category.video",
+    "icon": "build/icon.icns"
   }
 }

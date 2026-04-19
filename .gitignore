@@ -1,6 +1,8 @@
 node_modules/
 dist/
 build/
+# Keep electron-builder resources (icons, README) tracked.
+!apps/desktop/build/
 bin/
 release/
 *.log
