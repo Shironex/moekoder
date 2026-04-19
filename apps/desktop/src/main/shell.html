@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="midnight">
+<head>
+  <meta charset="utf-8">
+  <title>MoeKoder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    html, body { height: 100%; overflow: hidden; }
+    html[data-theme="midnight"] { --bg: oklch(0.09 0.030 250); --fg: oklch(0.97 0.015 220); --primary: oklch(0.70 0.20 220); --border: oklch(1 0 0 / 0.07); }
+    html[data-theme="plum"]     { --bg: oklch(0.12 0.018 300); --fg: oklch(0.96 0.010 300); --primary: oklch(0.74 0.15 355); --border: oklch(1 0 0 / 0.08); }
+    html[data-theme="matcha"]   { --bg: oklch(0.10 0.018 160); --fg: oklch(0.97 0.012 140); --primary: oklch(0.78 0.15 140); --border: oklch(1 0 0 / 0.07); }
+    html[data-theme="paper"]    { --bg: oklch(0.97 0.008 80);  --fg: oklch(0.18 0.020 320); --primary: oklch(0.56 0.20 355); --border: oklch(0 0 0 / 0.09); }
+    body { background: var(--bg); color: var(--fg); display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
+    .titlebar { height: 44px; display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--border); gap: 14px; -webkit-app-region: drag; }
+    .brand { font-size: 18px; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
+    .brand .k { color: var(--primary); font-size: 22px; line-height: 1; }
+    .brand-sub { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg); opacity: 0.6; padding-left: 10px; border-left: 1px solid var(--border); }
+    .spacer { flex: 1; }
+    .themes { display: flex; gap: 4px; -webkit-app-region: no-drag; }
+    .themes button { padding: 6px 12px; background: transparent; color: var(--fg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 11px; letter-spacing: 0.05em; }
+    .themes button:hover { border-color: var(--primary); }
+    .themes button.active { border-color: var(--primary); background: color-mix(in oklab, var(--primary) 12%, transparent); color: var(--primary); }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; opacity: 0.55; font-family: ui-monospace, 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+  <header class="titlebar">
+    <div class="brand" id="brand"></div>
+    <div class="spacer"></div>
+    <div class="themes" id="themes"></div>
+  </header>
+  <main>phase 1 scaffold — renderer arrives in a later phase.</main>
+  <script>
+    (function () {
+      const meta = window.moekoder.app;
+      const brand = document.getElementById('brand');
+      const sigilEl = document.createElement('span');
+      sigilEl.className = 'k';
+      sigilEl.textContent = meta.sigil;
+      const nameEl = document.createElement('span');
+      nameEl.textContent = meta.name;
+      const subEl = document.createElement('span');
+      subEl.className = 'brand-sub';
+      subEl.textContent = meta.edition;
+      brand.append(sigilEl, nameEl, subEl);
+
+      const bar = document.getElementById('themes');
+      const active = window.moekoder.defaultThemeId;
+      for (const t of window.moekoder.themes) {
+        const b = document.createElement('button');
+        b.textContent = t.kanji + ' ' + t.name;
+        if (t.id === active) b.classList.add('active');
+        b.onclick = () => {
+          document.documentElement.setAttribute('data-theme', t.id);
+          for (const btn of bar.querySelectorAll('button')) btn.classList.remove('active');
+          b.classList.add('active');
+        };
+        bar.appendChild(b);
+      }
+    })();
+  </script>
+</body>
+</html>
