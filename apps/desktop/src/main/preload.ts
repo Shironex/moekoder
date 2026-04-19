@@ -229,6 +229,11 @@ const electronAPI = {
   },
   /** Enumerated encode event channel names, re-exposed for renderer convenience. */
   encodeEvents: ENCODE_EVENT_CHANNELS,
+  window: {
+    minimize: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.WINDOW_MINIMIZE, []),
+    maximize: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.WINDOW_MAXIMIZE, []),
+    close: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.WINDOW_CLOSE, []),
+  },
 } as const;
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

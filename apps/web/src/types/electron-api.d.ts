@@ -180,6 +180,11 @@ export interface ElectronAPI {
     ) => () => void;
   };
   encodeEvents: typeof ENCODE_EVENT_CHANNELS;
+  window: {
+    minimize: () => Promise<void>;
+    maximize: () => Promise<void>;
+    close: () => Promise<void>;
+  };
 }
 
 declare global {
