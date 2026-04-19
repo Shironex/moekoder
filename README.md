@@ -19,11 +19,8 @@ Moekoder Source Available License — see [LICENSE](./LICENSE). Personal use onl
 Requires Node 22.13+ and pnpm 9+.
 
 ```sh
-# One-time install (after Node upgrade)
+# One-time install
 pnpm install
-
-# Build shared package (types + runtime)
-pnpm --filter @moekoder/shared build
 
 # Run web dev server in one terminal
 pnpm --filter @moekoder/web dev
