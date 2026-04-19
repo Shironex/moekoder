@@ -61,3 +61,16 @@ export const BALANCED_PRESET: EncodingSettings = {
   audio: 'copy',
   tune: 'animation',
 };
+
+/**
+ * Average output bitrate we assume for the Balanced preset when running a
+ * preflight disk-space check before the renderer has real probe data. CQ
+ * 19 on H.264 targeting 1080p anime content lands around 2.5 Mbps in
+ * practice — conservative enough to avoid under-reserving, tight enough
+ * that the warning kicks in when storage is genuinely marginal.
+ *
+ * Pure estimate: the actual encode runs with CQ, not CBR, so real output
+ * can deviate ±30 % depending on source complexity. Preflight adds a
+ * 200 MiB safety margin on top to absorb that variance.
+ */
+export const BALANCED_BITRATE_KBPS = 2500;
