@@ -1,0 +1,60 @@
+/* ============================================================
+ * GLOBAL — design tokens + reset
+ * Ported verbatim from MoeKoder Landing.html:11-46.
+ * ============================================================ */
+
+@import './fonts.css';
+
+:root {
+  --bg: oklch(0.09 0.012 305);
+  --bg-2: oklch(0.11 0.015 305);
+  --surface: oklch(0.14 0.02 305);
+  --surface-2: oklch(0.17 0.024 305);
+  --border: oklch(0.25 0.022 305);
+  --border-soft: oklch(0.2 0.018 305);
+  --fg: oklch(0.96 0.005 305);
+  --fg-2: oklch(0.78 0.012 305);
+  --muted: oklch(0.55 0.015 305);
+  --muted-2: oklch(0.4 0.014 305);
+  --primary: oklch(0.72 0.18 0);
+  --primary-ink: oklch(0.15 0.02 0);
+  --primary-dim: oklch(0.58 0.14 0);
+  --good: oklch(0.78 0.16 150);
+
+  --font-display: 'Shippori Mincho', serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+
+  --container: 1160px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

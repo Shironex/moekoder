@@ -1,0 +1,62 @@
+/* ============================================================
+ * BASE — ambient atmosphere + layout primitives
+ * Ported verbatim from MoeKoder Landing.html:50-92.
+ * ============================================================ */
+
+/* Ambient atmosphere — two soft glows top & bottom */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.35;
+}
+
+body::before {
+  width: 700px;
+  height: 700px;
+  top: -280px;
+  left: -180px;
+  background: radial-gradient(circle, var(--primary), transparent 60%);
+}
+
+body::after {
+  width: 900px;
+  height: 900px;
+  bottom: -400px;
+  right: -200px;
+  background: radial-gradient(circle, oklch(0.45 0.14 280), transparent 60%);
+  opacity: 0.2;
+}
+
+/* Giant kanji watermark behind hero */
+.bg-kanji {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 720px;
+  line-height: 0.8;
+  color: var(--primary);
+  opacity: 0.025;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.04em;
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 0 22px;
+  }
+}
