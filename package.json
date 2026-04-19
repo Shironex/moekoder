@@ -6,9 +6,16 @@
   "license": "SEE LICENSE IN LICENSE",
   "packageManager": "pnpm@10.9.0",
   "scripts": {
+    "dev": "concurrently -k -n web,desktop -c cyan,yellow \"pnpm dev:web\" \"wait-on -t 30000 -i 1000 http-get://localhost:15180 && pnpm dev:desktop\"",
+    "dev:web": "pnpm --filter @moekoder/web dev",
+    "dev:desktop": "pnpm --filter @moekoder/desktop dev",
+    "dev:landing": "pnpm --filter @moekoder/landing dev",
+    "build": "pnpm --filter @moekoder/web build && pnpm --filter @moekoder/desktop build",
+    "build:landing": "pnpm --filter @moekoder/landing build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "pnpm --filter @moekoder/desktop test",
     "prepare": "husky"
   },
   "engines": {
@@ -16,14 +23,23 @@
     "pnpm": ">=9.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron", "esbuild"]
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   },
   "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,yml,yaml,css}": ["prettier --write"]
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "concurrently": "^9.2.0",
     "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.4.0",
@@ -31,6 +47,7 @@
     "lint-staged": "^16.3.3",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.1",
+    "wait-on": "^9.0.1"
   }
 }

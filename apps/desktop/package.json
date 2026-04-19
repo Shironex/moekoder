@@ -5,8 +5,8 @@
   "main": "./dist/main/index.js",
   "scripts": {
     "build": "node esbuild.config.mjs",
-    "dev": "node esbuild.config.mjs",
-    "start": "pnpm build && electron dist/main/index.js",
+    "dev": "node esbuild.config.mjs && cross-env NODE_ENV=development electron .",
+    "start": "pnpm build && electron .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -21,6 +21,7 @@
     "@moekoder/shared": "workspace:*",
     "@types/node": "^22.10.0",
     "@types/yauzl": "^2.10.3",
+    "cross-env": "^10.1.0",
     "electron": "^41.0.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3",
