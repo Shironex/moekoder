@@ -1,30 +1,42 @@
 ---
-const title = 'Moekoder · coming soon';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import AppPreview from '../components/AppPreview.astro';
+import Byo from '../components/Byo.astro';
+import SectionHead from '../components/SectionHead.astro';
+import FeatureGrid from '../components/FeatureGrid.astro';
+import Engine from '../components/Engine.astro';
+import DownloadSection from '../components/DownloadSection.astro';
+import Suite from '../components/Suite.astro';
+import Footer from '../components/Footer.astro';
 ---
-<!doctype html>
-<html lang="en" data-theme="midnight">
-<head>
-  <meta charset="utf-8">
-  <title>{title}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root {
-      --bg: oklch(0.09 0.030 250);
-      --fg: oklch(0.97 0.015 220);
-      --primary: oklch(0.70 0.20 220);
-    }
-    html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
-    body { display: grid; place-items: center; text-align: center; }
-    .sigil { font-size: 180px; font-weight: 800; color: var(--primary); line-height: 0.9; text-shadow: 0 0 60px color-mix(in oklab, var(--primary) 40%, transparent); }
-    .name { font-size: 36px; font-weight: 700; margin-top: 12px; }
-    .kicker { font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.5; margin-top: 16px; font-family: ui-monospace, monospace; }
-  </style>
-</head>
-<body>
-  <main>
-    <div class="sigil">夜</div>
-    <div class="name">Moekoder</div>
-    <div class="kicker">coming soon · 萌コーダー</div>
-  </main>
-</body>
-</html>
+
+<BaseLayout title="MoeKoder — Burn subtitles into video, cutely.">
+  <Navbar />
+  <Hero />
+  <AppPreview />
+  <Byo />
+
+  <section class="features" id="features">
+    <div class="container">
+      <SectionHead n="壱" eyebrow="features · 特徴">
+        Everything it does. <em>Nothing</em> it doesn't.
+      </SectionHead>
+      <FeatureGrid />
+    </div>
+  </section>
+
+  <section class="engine" id="engine">
+    <div class="container">
+      <SectionHead n="弐" eyebrow="under the hood · 仕組み">
+        It's <em>ffmpeg.</em> Wearing a yukata.
+      </SectionHead>
+      <Engine />
+    </div>
+  </section>
+
+  <DownloadSection />
+  <Suite />
+  <Footer />
+</BaseLayout>

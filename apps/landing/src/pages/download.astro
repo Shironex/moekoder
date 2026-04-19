@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import { DownloadPage } from '../components/DownloadPage';
+import '../styles/components/download.css';
+---
+
+<BaseLayout
+  title="Download MoeKoder — hardsub for Windows"
+  description="Direct downloads for MoeKoder, pulled live from the GitHub Releases feed. Free, MIT, no account."
+>
+  <Navbar />
+  <main>
+    <DownloadPage client:visible />
+  </main>
+  <Footer />
+</BaseLayout>
