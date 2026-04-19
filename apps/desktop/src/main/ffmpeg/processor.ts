@@ -314,10 +314,10 @@ export class FFmpegProcessor {
 
     const sourceCodec = job.sourceAudioCodec ?? (await this.deps.probeAudioCodec?.(job.videoPath));
 
-    if (!sourceCodec) return { ...job, sourceAudioCodec };
+    if (!sourceCodec) return { ...job, sourceAudioCodec: sourceCodec };
 
     if (!shouldTranscodeAudio(sourceCodec, job.settings.container)) {
-      return { ...job, sourceAudioCodec };
+      return { ...job, sourceAudioCodec: sourceCodec };
     }
 
     this.emitLog(
@@ -327,7 +327,7 @@ export class FFmpegProcessor {
     );
     return {
       ...job,
-      sourceAudioCodec,
+      sourceAudioCodec: sourceCodec,
       settings: { ...job.settings, audio: 'aac-192k' },
     };
   }
