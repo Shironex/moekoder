@@ -1,0 +1,191 @@
+name: CI
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      root: ${{ steps.filter.outputs.root }}
+      ci: ${{ steps.filter.outputs.ci }}
+      shared: ${{ steps.filter.outputs.shared }}
+      desktop: ${{ steps.filter.outputs.desktop }}
+      web: ${{ steps.filter.outputs.web }}
+      landing: ${{ steps.filter.outputs.landing }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            root:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.base.json'
+              - 'eslint.config.mjs'
+              - '.prettierrc'
+              - '.prettierignore'
+              - '.gitignore'
+            ci:
+              - '.github/**'
+              - 'scripts/**'
+            shared:
+              - 'packages/shared/**'
+            desktop:
+              - 'apps/desktop/**'
+            web:
+              - 'apps/web/**'
+            landing:
+              - 'apps/landing/**'
+              - 'Dockerfile.landing'
+              - 'README.md'
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+  typecheck-shared:
+    name: Typecheck (shared)
+    needs: [changes]
+    if: needs.changes.outputs.root == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck shared
+        run: pnpm --filter @moekoder/shared typecheck
+
+  typecheck-desktop:
+    name: Typecheck (desktop)
+    needs: [changes]
+    if: needs.changes.outputs.root == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.shared == 'true' || needs.changes.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck desktop
+        run: pnpm --filter @moekoder/desktop typecheck
+
+  typecheck-web:
+    name: Typecheck (web)
+    needs: [changes]
+    if: needs.changes.outputs.root == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.shared == 'true' || needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck web
+        run: pnpm --filter @moekoder/web typecheck
+
+  check-landing:
+    name: Check (landing)
+    needs: [changes]
+    if: needs.changes.outputs.root == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.landing == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Astro check
+        run: pnpm --filter @moekoder/landing check
+      - name: Build landing
+        run: pnpm --filter @moekoder/landing build
+
+  test-desktop:
+    name: Test (desktop)
+    needs: [changes]
+    if: needs.changes.outputs.root == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.shared == 'true' || needs.changes.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run desktop tests
+        run: pnpm --filter @moekoder/desktop test --run
+
+  ci-result:
+    name: CI Result
+    if: always()
+    needs: [lint, typecheck-shared, typecheck-desktop, typecheck-web, check-landing, test-desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI outcome
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "::error::One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed or were skipped"
