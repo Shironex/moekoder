@@ -17,6 +17,12 @@
   gap: 14px;
 }
 
+/* macOS: reserve space on the left so the brand clears the native traffic
+   lights (positioned at x:16 via `trafficLightPosition` in window.ts). */
+.titlebar--mac {
+  padding-left: 86px;
+}
+
 .brand {
   display: flex;
   align-items: baseline;

@@ -32,11 +32,19 @@ const VITE_DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:15180'
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function createMainWindow(): BrowserWindow {
+  // Platform-dependent chrome config:
+  //   · macOS keeps native traffic lights (`titleBarStyle: 'hidden'`) and
+  //     offsets them vertically to sit inside our 44px titlebar. The renderer
+  //     hides its custom win-controls and reserves left padding on darwin.
+  //   · Windows/Linux use a frameless window; the renderer draws its own
+  //     min/max/close triplet in Titlebar / OnboardingLayout.
+  const isMac = process.platform === 'darwin';
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
-    frame: false,
-    titleBarStyle: 'hidden',
+    frame: isMac ? undefined : false,
+    titleBarStyle: isMac ? 'hidden' : undefined,
+    trafficLightPosition: isMac ? { x: 16, y: 14 } : undefined,
     backgroundColor: '#0b1224',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

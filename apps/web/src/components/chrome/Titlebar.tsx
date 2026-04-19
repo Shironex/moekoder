@@ -1,5 +1,6 @@
 import { APP_EDITION, APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { IconClose, IconHistory, IconMax, IconMin, IconSettings } from '@/components/ui/icons';
+import { IS_MAC } from '@/lib/platform';
 
 /**
  * Small curried logger for window-control IPC failures. The preload returns
@@ -59,7 +60,7 @@ export const Titlebar = ({
   const handleClose = onClose ?? (() => void winApi?.close().catch(logWinErr('close')));
 
   return (
-    <header className="titlebar">
+    <header className={`titlebar${IS_MAC ? ' titlebar--mac' : ''}`}>
       <div className="brand">
         <span className="kanji-sm">{APP_SIGIL}</span>
         <span>{APP_NAME}</span>
@@ -100,23 +101,25 @@ export const Titlebar = ({
         </button>
       </div>
 
-      <div className="win-controls">
-        <button type="button" onClick={handleMin} title="Minimize" aria-label="Minimize">
-          <IconMin />
-        </button>
-        <button type="button" onClick={handleMax} title="Maximize" aria-label="Maximize">
-          <IconMax />
-        </button>
-        <button
-          type="button"
-          className="close"
-          onClick={handleClose}
-          title="Close"
-          aria-label="Close"
-        >
-          <IconClose />
-        </button>
-      </div>
+      {!IS_MAC && (
+        <div className="win-controls">
+          <button type="button" onClick={handleMin} title="Minimize" aria-label="Minimize">
+            <IconMin />
+          </button>
+          <button type="button" onClick={handleMax} title="Maximize" aria-label="Maximize">
+            <IconMax />
+          </button>
+          <button
+            type="button"
+            className="close"
+            onClick={handleClose}
+            title="Close"
+            aria-label="Close"
+          >
+            <IconClose />
+          </button>
+        </div>
+      )}
     </header>
   );
 };
