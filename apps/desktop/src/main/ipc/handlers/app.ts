@@ -2,7 +2,11 @@ import { app, ipcMain, shell } from 'electron';
 import { IPC_CHANNELS } from '@moekoder/shared';
 import { IpcError } from '../errors';
 import { handle } from '../with-ipc-handler';
-import { appVersionSchema, appOpenExternalSchema } from '../schemas/app.schemas';
+import {
+  appOpenExternalSchema,
+  appRevealInFolderSchema,
+  appVersionSchema,
+} from '../schemas/app.schemas';
 import type { IpcContext } from '../register';
 
 /** Protocols we are willing to hand off to the OS via `shell.openExternal`. */
@@ -32,9 +36,20 @@ export function registerAppHandlers(_ctx: IpcContext): void {
       await shell.openExternal(parsed.toString());
     }
   );
+
+  handle<[string], void>(
+    IPC_CHANNELS.APP_REVEAL_IN_FOLDER,
+    appRevealInFolderSchema,
+    (_event, filePath) => {
+      // `showItemInFolder` is best-effort and silent on invalid paths; we
+      // don't throw so callers don't need to guard against OS quirks.
+      shell.showItemInFolder(filePath);
+    }
+  );
 }
 
 export function cleanupAppHandlers(): void {
   ipcMain.removeHandler(IPC_CHANNELS.APP_VERSION);
   ipcMain.removeHandler(IPC_CHANNELS.APP_OPEN_EXTERNAL);
+  ipcMain.removeHandler(IPC_CHANNELS.APP_REVEAL_IN_FOLDER);
 }

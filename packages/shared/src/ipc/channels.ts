@@ -13,6 +13,7 @@
 export const IPC_CHANNELS = {
   APP_VERSION: 'app:version',
   APP_OPEN_EXTERNAL: 'app:open-external',
+  APP_REVEAL_IN_FOLDER: 'app:reveal-in-folder',
   DIALOG_OPEN_FILE: 'dialog:open-file',
   DIALOG_SAVE_FILE: 'dialog:save-file',
   DIALOG_OPEN_FOLDER: 'dialog:open-folder',

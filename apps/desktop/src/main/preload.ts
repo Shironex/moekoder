@@ -88,6 +88,8 @@ const electronAPI = {
     getVersion: (): Promise<string> => invokeWithTimeout<string>(IPC_CHANNELS.APP_VERSION, []),
     openExternal: (url: string): Promise<void> =>
       invokeWithTimeout<void>(IPC_CHANNELS.APP_OPEN_EXTERNAL, [url]),
+    revealInFolder: (filePath: string): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.APP_REVEAL_IN_FOLDER, [filePath]),
   },
   dialog: {
     // File dialogs can stay open indefinitely while the user browses — bump

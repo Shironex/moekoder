@@ -31,6 +31,7 @@ export interface ElectronAPI {
   app: {
     getVersion: () => Promise<string>;
     openExternal: (url: string) => Promise<void>;
+    revealInFolder: (filePath: string) => Promise<void>;
   };
   dialog: {
     openFile: () => Promise<string | null>;
