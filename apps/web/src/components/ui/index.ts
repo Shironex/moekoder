@@ -5,3 +5,4 @@ export * from './LogLine';
 export * from './Metric';
 export * from './PageHead';
 export * from './Button';
+export * from './ThemePicker';
