@@ -27,6 +27,9 @@ export const IPC_CHANNELS = {
   FFMPEG_ENSURE_BINARIES: 'ffmpeg:ensure-binaries',
   FFMPEG_PROBE: 'ffmpeg:probe',
   GPU_PROBE: 'gpu:probe',
+  ENCODE_START: 'encode:start',
+  ENCODE_CANCEL: 'encode:cancel',
+  ENCODE_GET_PREFLIGHT: 'encode:get-preflight',
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -57,3 +60,18 @@ export const FFMPEG_EVENT_CHANNELS = {
 } as const;
 
 export type FfmpegEventChannel = (typeof FFMPEG_EVENT_CHANNELS)[keyof typeof FFMPEG_EVENT_CHANNELS];
+
+/**
+ * One-way main -> renderer encode event channels. The orchestrator pushes
+ * jobId-tagged payloads down these channels so a single renderer listener
+ * can multiplex progress / logs / completion / error across future queued
+ * jobs (queue lands in v0.3; plumbing is jobId-ready from day one).
+ */
+export const ENCODE_EVENT_CHANNELS = {
+  PROGRESS: 'encode:progress',
+  LOG: 'encode:log',
+  COMPLETE: 'encode:complete',
+  ERROR: 'encode:error',
+} as const;
+
+export type EncodeEventChannel = (typeof ENCODE_EVENT_CHANNELS)[keyof typeof ENCODE_EVENT_CHANNELS];
