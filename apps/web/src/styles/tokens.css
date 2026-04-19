@@ -1,0 +1,87 @@
+/* ============================================================
+   Moekoder · design tokens
+   ------------------------------------------------------------
+   Every theme overrides the same CSS variables on the document
+   root. Shared tokens (typography, radii, status colors) live
+   under `:root`; theme-specific tokens live under
+   `[data-theme="<id>"]` and are flipped by `applyTheme()`.
+   ============================================================ */
+
+:root {
+  /* Typography */
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Shippori Mincho', 'Zen Old Mincho', serif;
+  --font-mono: 'JetBrains Mono', 'Iosevka', ui-monospace, monospace;
+
+  /* Shared status colors — stable across every theme */
+  --good: oklch(0.78 0.15 140);
+  --warn: oklch(0.82 0.18 70);
+  --bad: oklch(0.68 0.22 25);
+  --info: oklch(0.78 0.13 220);
+
+  /* Radii / geometry */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+}
+
+[data-theme='midnight'] {
+  --background: oklch(0.09 0.03 250);
+  --card: oklch(0.13 0.035 250);
+  --popover: oklch(0.07 0.03 250);
+  --primary: oklch(0.7 0.2 220);
+  --primary-foreground: oklch(0.07 0.03 250);
+  --foreground: oklch(0.97 0.015 220);
+  --muted-foreground: oklch(0.72 0.03 235);
+  --muted: oklch(0.5 0.025 240);
+  --border: oklch(1 0 0 / 0.07);
+  --glow-1: oklch(0.7 0.2 220 / 0.16);
+  --glow-2: oklch(0.5 0.15 260 / 0.18);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme='plum'] {
+  --background: oklch(0.12 0.018 300);
+  --card: oklch(0.16 0.025 300);
+  --popover: oklch(0.1 0.018 300);
+  --primary: oklch(0.74 0.15 355);
+  --primary-foreground: oklch(0.12 0.018 300);
+  --foreground: oklch(0.96 0.01 300);
+  --muted-foreground: oklch(0.72 0.03 300);
+  --muted: oklch(0.5 0.035 298);
+  --border: oklch(1 0 0 / 0.08);
+  --glow-1: oklch(0.74 0.15 355 / 0.14);
+  --glow-2: oklch(0.5 0.15 280 / 0.18);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme='matcha'] {
+  --background: oklch(0.1 0.018 160);
+  --card: oklch(0.14 0.022 160);
+  --popover: oklch(0.08 0.018 160);
+  --primary: oklch(0.78 0.15 140);
+  --primary-foreground: oklch(0.08 0.018 160);
+  --foreground: oklch(0.97 0.012 140);
+  --muted-foreground: oklch(0.72 0.03 150);
+  --muted: oklch(0.5 0.025 150);
+  --border: oklch(1 0 0 / 0.07);
+  --glow-1: oklch(0.78 0.15 140 / 0.15);
+  --glow-2: oklch(0.5 0.12 160 / 0.15);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme='paper'] {
+  --background: oklch(0.97 0.008 80);
+  --card: oklch(0.92 0.01 340);
+  --popover: oklch(0.94 0.01 80);
+  --primary: oklch(0.56 0.2 355);
+  --primary-foreground: oklch(0.97 0.008 80);
+  --foreground: oklch(0.18 0.02 320);
+  --muted-foreground: oklch(0.38 0.02 320);
+  --muted: oklch(0.52 0.02 320);
+  --border: oklch(0 0 0 / 0.09);
+  --glow-1: oklch(0.56 0.2 355 / 0.08);
+  --glow-2: oklch(0.5 0.12 300 / 0.06);
+  --watermark: oklch(0 0 0 / 0.05);
+}
