@@ -71,40 +71,43 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
         }
       />
 
-      {/* Centered composition — kanji + flanking hairlines + heading + copy
-          + step dots stack vertically in the middle of the available space,
-          per the design prototype. Previous versions put the kanji in the
-          top/bottom-right corners of a bordered card, which drifted from the
-          spec. */}
-      <div className="relative z-[1] flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        {/* Kanji overlay with flanking hairlines. */}
-        <div className="flex items-center gap-6">
-          <span
-            className="h-px w-28 bg-gradient-to-r from-transparent to-primary/40"
-            aria-hidden="true"
-          />
-          <span
-            aria-hidden="true"
-            className="select-none font-display text-[240px] leading-none text-primary/60"
-            style={{ textShadow: '0 0 60px color-mix(in oklab, var(--primary) 40%, transparent)' }}
-          >
-            始
-          </span>
-          <span
-            className="h-px w-28 bg-gradient-to-l from-transparent to-primary/40"
-            aria-hidden="true"
-          />
+      <div className="relative z-[1] flex flex-1 flex-col items-start justify-center gap-6 rounded-lg border border-dashed border-border/80 bg-card/30 p-10">
+        {/* Centered ambient overlay — kanji flanked by two soft hairlines.
+            Sits behind the left-aligned content at low opacity so it reads
+            as watermark, not chrome. Only visible on wider cards so narrow
+            layouts don't feel cluttered. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex"
+        >
+          <div className="flex items-center gap-5">
+            <span className="h-px w-20 bg-gradient-to-r from-transparent to-primary/30" />
+            <span
+              className="select-none font-display text-[140px] leading-none text-primary/20"
+              style={{
+                textShadow: '0 0 40px color-mix(in oklab, var(--primary) 25%, transparent)',
+              }}
+            >
+              始
+            </span>
+            <span className="h-px w-20 bg-gradient-to-l from-transparent to-primary/30" />
+          </div>
         </div>
 
-        <h2 className="max-w-[44ch] font-display text-5xl leading-[1.05] text-foreground">
-          Ready when <em className="not-italic text-primary">you</em> are.
-        </h2>
-        <p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground">
-          Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
-          them up and wait for your go-ahead.
-        </p>
+        <div className="relative z-[1] flex flex-col gap-3">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+            idle · 待
+          </span>
+          <h2 className="max-w-[40ch] font-display text-5xl leading-[1.05] text-foreground">
+            Ready when <em className="not-italic text-primary">you</em> are.
+          </h2>
+          <p className="max-w-[56ch] text-base leading-relaxed text-muted-foreground">
+            Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
+            them up and wait for your go-ahead. No drag-and-drop surprises, no preview popups.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-4 pt-2">
+        <div className="relative z-[1] flex items-center gap-4">
           <StepPill n="01" label="video" done={!!video} />
           <span className="h-px w-8 bg-border" />
           <StepPill n="02" label="subs" done={!!subs} />
@@ -113,7 +116,7 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
         </div>
 
         {video && subs && out && (
-          <div className="mt-2 flex items-center gap-2 rounded-sm border border-primary/30 bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] px-3 py-2">
+          <div className="relative z-[1] flex items-center gap-2 rounded-sm border border-primary/30 bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] px-3 py-2">
             <span className="font-display text-lg text-primary">好</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
               all three · ready · press begin in the rail

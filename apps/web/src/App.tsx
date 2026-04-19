@@ -14,6 +14,8 @@ import {
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
+// `applyTheme` is DOM-only. Persistence happens at explicit user-action
+// callsites (onboarding Theme step, Settings) via `persistTheme`.
 
 /**
  * Extract a trailing filename from a path using both `/` and `\` as
