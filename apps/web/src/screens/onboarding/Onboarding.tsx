@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ThemeId } from '@moekoder/shared';
 import { useAppStore, useOnboardingStore } from '@/stores';
-import { useElectronAPI } from '@/hooks';
+import { useElectronAPI, useFfmpegStatus } from '@/hooks';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
 import type { GpuProbeResult } from '@/types/electron-api';
 import { OB_STEPS } from './data';
@@ -39,6 +39,12 @@ export const Onboarding = () => {
   const setView = useAppStore(s => s.setView);
   const themeId = useAppStore(s => s.themeId);
   const setThemeId = useAppStore(s => s.setThemeId);
+
+  // Probe ffmpeg install state up-front so the Engine step (02) renders the
+  // right outcome on first paint — otherwise it flashes a "Checking…" gate
+  // between the route change and the IPC resolving. Welcome → Continue
+  // gives the probe plenty of time to complete before step 2 mounts.
+  const ffmpegProbe = useFfmpegStatus();
 
   const idx = OB_STEPS.findIndex(s => s.id === step);
   const currentStep = OB_STEPS[Math.max(0, idx)];
@@ -112,7 +118,7 @@ export const Onboarding = () => {
       case 'welcome':
         return <Welcome />;
       case 'engine':
-        return <Engine onReady={() => setEngineReady(true)} />;
+        return <Engine onReady={() => setEngineReady(true)} probe={ffmpegProbe} />;
       case 'hw':
         return (
           <Hardware

@@ -6,12 +6,28 @@ import { cn } from '@/lib/cn';
 import type { InstallProgress, InstallStage } from '@/types/electron-api';
 import { DL_STAGES, DL_STAGE_FOR_UPSTREAM, type DlStage } from '../data';
 
+/** Subset of the parent's `useFfmpegStatus` return used by this step. */
+export interface EngineProbe {
+  installed: boolean;
+  version: string | null;
+  loading: boolean;
+  refresh: () => Promise<void>;
+}
+
 interface EngineProps {
   /**
    * Called when ffmpeg is either confirmed installed or finishes downloading.
    * Flips the parent's `canNext` on so the user can advance.
    */
   onReady: (version: string | null) => void;
+  /**
+   * Pre-loaded ffmpeg status from Onboarding so this step can render the
+   * correct outcome (`already` / `needs-install`) on first paint instead of
+   * flashing a `Checking…` gate while its own probe runs. Engine also calls
+   * `probe.refresh()` after a successful install so re-mounts of this step
+   * (e.g. the user clicked Back) reflect the fresh state.
+   */
+  probe: EngineProbe;
 }
 
 type LogLevel = 'info' | 'ok' | 'warn' | 'err' | 'dl';
@@ -54,21 +70,59 @@ const LOG_LEVEL_CLASS: Record<LogLevel, string> = {
  * Otherwise kicks off `ensureBinaries()` and mirrors `onDownloadProgress`
  * events into a live stage rail + terminal log.
  */
-export const Engine = ({ onReady }: EngineProps) => {
+export const Engine = ({ onReady, probe }: EngineProps) => {
   const api = useElectronAPI();
 
+  // Derive every piece of initial state from the probe. When the parent's
+  // probe has already resolved (common case — user spends >100ms on Welcome
+  // before reaching step 2), the Engine step opens directly in `already`
+  // or `needs-install` with matching stages/log, no "Checking…" flash.
+  const preloadedInstalled = !probe.loading && probe.installed;
+  const preloadedMissing = !probe.loading && !probe.installed;
+
   const [stages, setStages] = useState<StageState[]>(() =>
-    DL_STAGES.map(s => ({ id: s.id, status: 'pending' }))
+    DL_STAGES.map(s => ({
+      id: s.id,
+      status: preloadedInstalled ? 'done' : 'pending',
+    }))
   );
-  const [log, setLog] = useState<LogEntry[]>([]);
-  const [activeStageIdx, setActiveStageIdx] = useState(0);
-  const [pct, setPct] = useState(0);
+  const [log, setLog] = useState<LogEntry[]>(() => {
+    const t = fmtTime();
+    if (preloadedInstalled) {
+      return [
+        {
+          t,
+          level: 'ok',
+          msg: probe.version
+            ? `ffmpeg already installed · ${probe.version}`
+            : 'ffmpeg already installed in AppData',
+        },
+      ];
+    }
+    if (preloadedMissing) {
+      return [
+        {
+          t,
+          level: 'info',
+          msg: 'ffmpeg not found in AppData — waiting for user to start install.',
+        },
+      ];
+    }
+    return [];
+  });
+  const [activeStageIdx, setActiveStageIdx] = useState(
+    preloadedInstalled ? DL_STAGES.length - 1 : 0
+  );
+  const [pct, setPct] = useState(preloadedInstalled ? 100 : 0);
   const [downloadedBytes, setDownloadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [phase, setPhase] = useState<
     'probing' | 'needs-install' | 'running' | 'done' | 'error' | 'already'
-  >('probing');
-  const [version, setVersion] = useState<string | null>(null);
+  >(() => {
+    if (probe.loading) return 'probing';
+    return probe.installed ? 'already' : 'needs-install';
+  });
+  const [version, setVersion] = useState<string | null>(preloadedInstalled ? probe.version : null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const onReadyRef = useRef(onReady);
@@ -192,6 +246,10 @@ export const Engine = ({ onReady }: EngineProps) => {
       setPct(100);
       setPhase('done');
       onReadyRef.current(versionRef.current);
+      // Refresh the parent's probe so if the user navigates back to step 2
+      // later, it reflects "installed" instead of the stale pre-install
+      // snapshot captured at Onboarding mount.
+      void probe.refresh();
       appendLog('ok', 'All stages complete — engine ready.');
     } catch (err) {
       unsub();
@@ -210,52 +268,46 @@ export const Engine = ({ onReady }: EngineProps) => {
     } finally {
       inFlightRef.current = false;
     }
-  }, [api, appendLog, handleProgress]);
+  }, [api, appendLog, handleProgress, probe]);
 
-  // Boot probe — decide whether to skip or kick the installer.
+  // Fire `onReady` once on mount when ffmpeg is already installed — the
+  // parent gates step advancement on this callback. Runs via ref so the
+  // effect doesn't re-fire if the parent swaps the callback identity.
+  const readyFiredRef = useRef(false);
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const installed = await api.ffmpeg.isInstalled();
-        if (cancelled) return;
-        if (installed) {
-          let v: string | null = null;
-          try {
-            v = await api.ffmpeg.getVersion();
-          } catch {
-            // ignore
-          }
-          if (cancelled) return;
-          setVersion(v);
-          setStages(DL_STAGES.map(s => ({ id: s.id, status: 'done' })));
-          setActiveStageIdx(DL_STAGES.length - 1);
-          setPct(100);
-          setPhase('already');
-          appendLog(
-            'ok',
-            v ? `ffmpeg already installed · ${v}` : 'ffmpeg already installed in AppData'
-          );
-          onReadyRef.current(v);
-          return;
-        }
-        // Do NOT auto-start the download: show the user a gate explaining
-        // what's about to happen and let them click "Install" when ready.
-        setPhase('needs-install');
-        appendLog('info', 'ffmpeg not found in AppData — waiting for user to start install.');
-      } catch (err) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[onboarding/engine] probe failed', err);
-        setErrorMsg(message);
-        setPhase('error');
-        appendLog('err', message);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [api, appendLog, start]);
+    if (readyFiredRef.current) return;
+    if (probe.loading) return;
+    if (!probe.installed) return;
+    readyFiredRef.current = true;
+    onReadyRef.current(probe.version);
+  }, [probe.loading, probe.installed, probe.version]);
+
+  // Slow-probe transition: if we opened in 'probing' because the parent's
+  // probe hadn't resolved yet, sync the visible state once it does. Runs
+  // only while phase === 'probing' so it never overrides a running /
+  // done / error state the user has already moved through.
+  useEffect(() => {
+    if (phase !== 'probing') return;
+    if (probe.loading) return;
+    if (probe.installed) {
+      setVersion(probe.version);
+      setStages(DL_STAGES.map(s => ({ id: s.id, status: 'done' })));
+      setActiveStageIdx(DL_STAGES.length - 1);
+      setPct(100);
+      setPhase('already');
+      appendLog(
+        'ok',
+        probe.version
+          ? `ffmpeg already installed · ${probe.version}`
+          : 'ffmpeg already installed in AppData'
+      );
+      onReadyRef.current(probe.version);
+      readyFiredRef.current = true;
+    } else {
+      setPhase('needs-install');
+      appendLog('info', 'ffmpeg not found in AppData — waiting for user to start install.');
+    }
+  }, [phase, probe.loading, probe.installed, probe.version, appendLog]);
 
   const retry = useCallback((): void => {
     setLog([]);
