@@ -5,6 +5,7 @@ import {
   APP_NAME,
   APP_SIGIL,
   APP_EDITION,
+  ENCODE_EVENT_CHANNELS,
   FFMPEG_EVENT_CHANNELS,
   IPC_CHANNELS,
   UPDATER_EVENT_CHANNELS,
@@ -15,6 +16,16 @@ import {
 import type { InstallProgress } from './ffmpeg/manager';
 import type { ProbeResult } from './ffmpeg/probe';
 import type { GpuProbeResult } from './ffmpeg/gpu-probe';
+import type { PreflightResult } from './ffmpeg/disk-space';
+import type { EncodeProgress, EncodeResult, LogLine } from './ffmpeg/processor';
+import type { EncodeStartInput, EncodeStartResult } from './encode/orchestrator';
+
+interface PreflightInput {
+  videoPath: string;
+  outputDir: string;
+  durationSec: number;
+  bitrateKbps: number;
+}
 
 /**
  * Allow-list of IPC channels the renderer is permitted to invoke. Built from
@@ -132,6 +143,70 @@ const electronAPI = {
     probe: (): Promise<GpuProbeResult> =>
       invokeWithTimeout<GpuProbeResult>(IPC_CHANNELS.GPU_PROBE, [], 10_000),
   },
+  encode: {
+    /**
+     * Kicks off an encode. Returns the `jobId` + preflight snapshot once
+     * ffmpeg has been spawned. Progress / completion / errors arrive via
+     * the `on*` listeners below, not this promise.
+     */
+    start: (input: EncodeStartInput): Promise<EncodeStartResult> =>
+      invokeWithTimeout<EncodeStartResult>(IPC_CHANNELS.ENCODE_START, [input], 30_000),
+    cancel: (jobId: string): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.ENCODE_CANCEL, [jobId]),
+    getPreflight: (input: PreflightInput): Promise<PreflightResult> =>
+      invokeWithTimeout<PreflightResult>(IPC_CHANNELS.ENCODE_GET_PREFLIGHT, [input]),
+    /**
+     * Attaches a listener for the given encode event channel. Returns an
+     * unsubscribe function — call it on unmount / when the render tree
+     * no longer needs the stream. `ipcRenderer` does not expose a
+     * `removeAllListeners` hook scoped per-channel, so every `on*` caller
+     * is responsible for its own teardown.
+     */
+    onProgress: (handler: (jobId: string, p: EncodeProgress) => void): (() => void) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        payload: { jobId: string; progress: EncodeProgress }
+      ): void => handler(payload.jobId, payload.progress);
+      ipcRenderer.on(ENCODE_EVENT_CHANNELS.PROGRESS, listener);
+      return () => {
+        ipcRenderer.removeListener(ENCODE_EVENT_CHANNELS.PROGRESS, listener);
+      };
+    },
+    onLog: (handler: (jobId: string, line: LogLine) => void): (() => void) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        payload: { jobId: string; line: LogLine }
+      ): void => handler(payload.jobId, payload.line);
+      ipcRenderer.on(ENCODE_EVENT_CHANNELS.LOG, listener);
+      return () => {
+        ipcRenderer.removeListener(ENCODE_EVENT_CHANNELS.LOG, listener);
+      };
+    },
+    onComplete: (handler: (jobId: string, r: EncodeResult) => void): (() => void) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        payload: { jobId: string; result: EncodeResult }
+      ): void => handler(payload.jobId, payload.result);
+      ipcRenderer.on(ENCODE_EVENT_CHANNELS.COMPLETE, listener);
+      return () => {
+        ipcRenderer.removeListener(ENCODE_EVENT_CHANNELS.COMPLETE, listener);
+      };
+    },
+    onError: (
+      handler: (jobId: string, e: { code: string; message: string }) => void
+    ): (() => void) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        payload: { jobId: string; error: { code: string; message: string } }
+      ): void => handler(payload.jobId, payload.error);
+      ipcRenderer.on(ENCODE_EVENT_CHANNELS.ERROR, listener);
+      return () => {
+        ipcRenderer.removeListener(ENCODE_EVENT_CHANNELS.ERROR, listener);
+      };
+    },
+  },
+  /** Enumerated encode event channel names, re-exposed for renderer convenience. */
+  encodeEvents: ENCODE_EVENT_CHANNELS,
 } as const;
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
