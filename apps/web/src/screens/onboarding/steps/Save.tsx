@@ -46,7 +46,7 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
           The output gets this location by default. <b className="text-foreground">Beside source</b>{' '}
           is the safest — MoeKoder never overwrites your original, it writes to a{' '}
-          <code className="font-mono text-[12px] text-foreground">wypalone/</code> subfolder next to
+          <code className="font-mono text-[12px] text-foreground">moekoder/</code> subfolder next to
           it.
         </p>
       </div>

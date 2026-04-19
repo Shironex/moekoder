@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { SaveTarget } from '@moekoder/shared';
 
 /**
  * Ordered onboarding steps. The wizard walks them 1 -> 1 with no branching;
@@ -18,8 +19,9 @@ export type OnboardingStep =
 
 export type HwChoice = 'nvenc' | 'qsv' | 'amf' | 'cpu';
 export type PresetChoice = 'fast' | 'balanced' | 'pristine';
-export type SaveTarget = 'wypalone' | 'same' | 'subbed' | 'custom';
 export type Container = 'mp4' | 'mkv' | 'webm';
+
+export type { SaveTarget };
 
 /**
  * Wizard-only inputs. `themeId` intentionally does NOT live here — the
@@ -49,7 +51,7 @@ interface OnboardingState {
 const DEFAULT_INPUTS: OnboardingInputs = {
   hwChoice: 'cpu',
   presetChoice: 'balanced',
-  saveTarget: 'wypalone',
+  saveTarget: 'moekoder',
   customSavePath: null,
   container: 'mp4',
 };

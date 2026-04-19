@@ -14,6 +14,7 @@ import {
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
+import { resolveOutputDir } from '@/lib/resolve-output';
 // `applyTheme` is DOM-only — persistence happens at explicit user-action
 // callsites (onboarding Theme step, Settings) via `persistTheme`. If this
 // boot-time effect called a persisting variant, the default `themeId` would
@@ -106,6 +107,11 @@ export const App = () => {
 
   const [persistedTheme] = useSetting('themeId');
   const [hasCompletedOnboarding] = useSetting('hasCompletedOnboarding');
+  // Save preference chosen in onboarding — drives the auto-populated output
+  // folder when the user picks a video. `null` until useSetting hydrates from
+  // electron-store; the pick handler gates on that.
+  const [saveTarget] = useSetting('saveTarget');
+  const [customSavePath] = useSetting('customSavePath');
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -151,10 +157,20 @@ export const App = () => {
       if (res.canceled || !res.filePath) return;
       const name = basename(res.filePath);
       setVideo({ name, path: res.filePath, ext: extOf(res.filePath) });
+
+      // Auto-populate the output target from the onboarding save preference.
+      // The user can still click the Output stage to override. Skipped until
+      // `useSetting('saveTarget')` hydrates so we never derive against a
+      // stale default on first paint.
+      if (saveTarget) {
+        const outputDir = resolveOutputDir(saveTarget, res.filePath, customSavePath);
+        const outputName = `${stripExt(name)}.mp4`;
+        setOut({ name: outputName, path: outputDir });
+      }
     } catch (err) {
       console.error('[dialog.openFile video] failed', err);
     }
-  }, [api]);
+  }, [api, saveTarget, customSavePath]);
 
   const onPickSubs = useCallback(async (): Promise<void> => {
     try {

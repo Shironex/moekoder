@@ -78,6 +78,13 @@ export interface OrchestratorDeps {
     durationSec: number,
     bitrateKbps: number
   ) => Promise<PreflightResult>;
+  /**
+   * Create the output directory (recursive) before the preflight runs.
+   * Split out as a seam so tests can stub it without hitting the real fs —
+   * the renderer can derive output paths that don't yet exist (e.g. the
+   * onboarding `moekoder` save target maps to `<source>/moekoder/`).
+   */
+  ensureDir: (dir: string) => Promise<void>;
   /** UUID factory — swapped for a deterministic one in tests. */
   newJobId: () => string;
 }
@@ -105,6 +112,12 @@ export const startEncode = async (
 
   const durationSec = await deps.probeDuration(input.videoPath);
   const outputDir = path.dirname(input.outputPath);
+  // The renderer can derive output dirs the user never created — e.g. the
+  // onboarding `moekoder` save target maps to `<source>/moekoder/`, which
+  // won't exist until the first encode. Create it recursively here so the
+  // preflight `fs.statfs` call + ffmpeg itself both find a real directory.
+  // Idempotent: existing directories are left alone.
+  await deps.ensureDir(outputDir);
   const preflight = await deps.checkPreflight(outputDir, durationSec, BALANCED_BITRATE_KBPS);
 
   if (!preflight.ok) {
@@ -183,6 +196,9 @@ export const defaultOrchestratorDeps = (): OrchestratorDeps => {
     probeDuration: async (videoPath: string) => (await probe(videoPath)).durationSec,
     checkPreflight: (outputDir, durationSec, bitrateKbps) =>
       checkPreflight(outputDir, durationSec, bitrateKbps),
+    ensureDir: async dir => {
+      await fs.mkdir(dir, { recursive: true });
+    },
     newJobId: () => randomUUID(),
   };
 };

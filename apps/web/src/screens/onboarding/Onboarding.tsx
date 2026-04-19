@@ -125,9 +125,15 @@ export const Onboarding = () => {
 
   const finish = useCallback(async (): Promise<void> => {
     try {
-      // `themeId` is persisted per-pick in `onThemePick`, so only the
-      // completion flag needs flipping here.
-      await api.store.set('hasCompletedOnboarding', true);
+      // `themeId` is persisted per-pick in `onThemePick`. The save
+      // preference is settled at finish so App.tsx can read it via
+      // `useSetting` on the next mount and derive the default output
+      // path when the user picks a video.
+      await Promise.all([
+        api.store.set('hasCompletedOnboarding', true),
+        api.store.set('saveTarget', inputs.saveTarget),
+        api.store.set('customSavePath', inputs.customSavePath),
+      ]);
     } catch (err) {
       console.error('[onboarding] persist failed', err);
       // Swallow — we don't want a store blip to block the user from using
@@ -136,7 +142,7 @@ export const Onboarding = () => {
     }
     markCompleted();
     setView('single-idle');
-  }, [api, markCompleted, setView]);
+  }, [api, inputs.saveTarget, inputs.customSavePath, markCompleted, setView]);
 
   const handleNext = useCallback((): void => {
     if (currentStep.id === 'done') {

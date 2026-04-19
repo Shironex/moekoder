@@ -69,6 +69,7 @@ const makeDeps = (
     }),
     probeDuration: vi.fn(async () => 60),
     checkPreflight: vi.fn(async () => preflight),
+    ensureDir: vi.fn(async () => {}),
     newJobId: vi.fn(() => `job-${++jobCounter}`),
     ...overrides,
   };

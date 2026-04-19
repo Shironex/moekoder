@@ -218,7 +218,7 @@ export const OB_PRESETS: readonly ObPreset[] = [
 // Save-target step.
 // ---------------------------------------------------------------------------
 
-export type ObSaveId = 'wypalone' | 'same' | 'subbed' | 'custom';
+export type ObSaveId = 'moekoder' | 'same' | 'subbed' | 'custom';
 
 export interface ObSave {
   id: ObSaveId;
@@ -230,22 +230,22 @@ export interface ObSave {
 
 export const OB_SAVES: readonly ObSave[] = [
   {
-    id: 'wypalone',
+    id: 'moekoder',
     k: '隣',
-    label: 'Beside source · in ./wypalone/',
-    path: 'D:\\anime\\<source-folder>\\wypalone\\',
+    label: 'Beside source · in ./moekoder/',
+    path: '<source-folder>/moekoder/',
   },
   {
     id: 'same',
     k: '同',
     label: 'Same folder as source',
-    path: 'D:\\anime\\<source-folder>\\',
+    path: '<source-folder>/',
   },
   {
     id: 'subbed',
     k: '済',
     label: 'A dedicated "subbed" folder',
-    path: 'D:\\anime\\subbed\\',
+    path: '<source-folder>/subbed/',
   },
   {
     id: 'custom',
