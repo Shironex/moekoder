@@ -262,7 +262,7 @@ export const About = () => {
                 onClick={() => void onOpen(`https://github.com/${GITHUB_REPO}/blob/main/LICENSE`)}
                 className="group flex items-center gap-1.5 self-start font-mono text-[13px] text-foreground transition hover:text-primary"
               >
-                <span>MIT</span>
+                <span>Source Available</span>
                 <ExternalLink size={11} className="text-muted group-hover:text-primary" />
               </button>
             </div>
