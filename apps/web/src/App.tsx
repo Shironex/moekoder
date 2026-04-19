@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell, Sidebar, Titlebar, type PickedFile } from '@/components/chrome';
 import { CrashFallback, ErrorBoundary } from '@/components/shared';
-import { DoneScreen, EncodingScreen, IdleScreen, Onboarding, SplashScreen } from '@/screens';
+import { Updater } from '@/components/Updater';
+import {
+  About,
+  DoneScreen,
+  EncodingScreen,
+  IdleScreen,
+  Onboarding,
+  Settings,
+  SplashScreen,
+} from '@/screens';
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
@@ -58,20 +67,16 @@ const SUB_FILTERS = [
 ];
 
 /**
- * Placeholder card for routes that haven't landed yet (onboarding, settings,
- * about, crash). Replaced in Phase 4c/4d.
+ * Fallback card shown when `activeView` lands on a state with no matching
+ * screen — should never happen at runtime, lives here as a safety net in
+ * case future store extensions introduce a view before the switch grows.
  */
-interface PlaceholderProps {
-  title: string;
-  detail: string;
-}
-
-const Placeholder = ({ title, detail }: PlaceholderProps) => (
+const UnknownView = ({ name }: { name: string }) => (
   <div className="flex flex-1 items-center justify-center p-10">
     <div className="flex max-w-[480px] flex-col items-center gap-3 rounded-lg border border-border bg-card/30 p-10 text-center">
-      <span className="font-display text-5xl text-primary">工</span>
-      <h2 className="font-display text-2xl text-foreground">{title}</h2>
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{detail}</p>
+      <span className="font-display text-5xl text-primary">？</span>
+      <h2 className="font-display text-2xl text-foreground">Unknown view</h2>
+      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{name}</p>
     </div>
   </div>
 );
@@ -228,23 +233,28 @@ export const App = () => {
       case 'onboarding':
         return <Onboarding />;
       case 'settings':
-        return <Placeholder title="Settings lands in Phase 4d." detail="config · 設" />;
+        return <Settings />;
       case 'about':
-        return <Placeholder title="About lands in Phase 4d." detail="about · 解" />;
+        return <About />;
       case 'crash':
         return <CrashFallback message="Manual crash view — use the titlebar to return." />;
       default:
-        return <Placeholder title="Unknown view." detail={String(activeView)} />;
+        return <UnknownView name={String(activeView)} />;
     }
   };
 
   return (
-    <ErrorBoundary variant="root" viewName="root" fallback={<CrashFallback />}>
+    <ErrorBoundary
+      variant="root"
+      viewName="root"
+      fallbackRender={({ error }) => <CrashFallback error={error} />}
+    >
       <div className="app-root">
         {activeView !== 'splash' && activeView !== 'crash' && (
           <Titlebar route="single" onSettings={() => setView('settings')} />
         )}
         {renderView()}
+        <Updater />
       </div>
     </ErrorBoundary>
   );
