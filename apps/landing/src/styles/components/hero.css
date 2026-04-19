@@ -1,0 +1,285 @@
+/* ============================================================
+ * HERO + APP PREVIEW
+ * Ported verbatim from MoeKoder Landing.html:176-364.
+ * ============================================================ */
+
+.hero {
+  position: relative;
+  padding: 80px 0 60px;
+  overflow: hidden;
+}
+
+.hero .bg-kanji {
+  top: -80px;
+  right: -60px;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.hero-meta .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 10px var(--good);
+  animation: pulse 2.4s ease infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.hero-meta .num {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(52px, 9vw, 120px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin-bottom: 28px;
+  text-wrap: balance;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.hero-title .slash {
+  display: inline-block;
+  margin: 0 8px;
+  font-weight: 400;
+  color: var(--muted);
+  transform: translateY(-6px);
+  font-style: normal;
+}
+
+.hero-kicker {
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  max-width: 680px;
+  margin-bottom: 36px;
+  text-wrap: pretty;
+}
+
+.hero-kicker b {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.hero-ctas {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-radius: var(--r-md);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.2s;
+  border: 1px solid var(--primary);
+  box-shadow: 0 12px 30px -10px color-mix(in oklab, var(--primary) 70%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: -30%;
+  width: 60%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    color-mix(in oklab, white 30%, transparent),
+    transparent
+  );
+  transform: translateX(-120%) skewX(-20deg);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -10px color-mix(in oklab, var(--primary) 90%, transparent);
+}
+
+.btn-primary:hover::before {
+  animation: sheen 0.7s ease forwards;
+}
+
+@keyframes sheen {
+  to {
+    transform: translateX(420%) skewX(-20deg);
+  }
+}
+
+.btn-primary .k {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.btn-primary .t {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  align-items: flex-start;
+}
+
+.btn-primary .t em {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 22px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.15s;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+
+.btn-ghost svg {
+  opacity: 0.8;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.hero-stats .s b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: 0;
+  margin-bottom: 2px;
+}
+
+.hero-stats .s {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* App preview window */
+.hero-preview {
+  margin-top: 72px;
+  position: relative;
+}
+
+.preview-label {
+  position: absolute;
+  top: -32px;
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.preview-label .k {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--primary);
+  letter-spacing: 0;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
+.preview-frame {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow:
+    0 40px 80px -20px oklch(0 0 0 / 0.7),
+    0 0 0 1px color-mix(in oklab, var(--primary) 15%, transparent);
+  position: relative;
+  background: var(--surface);
+}
+
+.preview-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Soft gradient fade at bottom */
+.preview-frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80px;
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--bg) 70%, transparent));
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 56px 0 40px;
+  }
+  .hero-title {
+    font-size: 56px;
+  }
+}

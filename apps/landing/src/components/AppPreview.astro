@@ -1,0 +1,22 @@
+---
+interface Props {
+  src?: string;
+  alt?: string;
+  label?: string;
+  figure?: string;
+}
+
+const {
+  src = '/assets/app-preview.png',
+  alt = 'MoeKoder app, idle screen with three pipeline stages filled',
+  label = 'figure 壱 · the whole app',
+  figure = '図',
+} = Astro.props;
+---
+
+<div class="container hero-preview">
+  <div class="preview-label"><span class="k">{figure}</span>{label}</div>
+  <div class="preview-frame">
+    <img src={src} alt={alt} />
+  </div>
+</div>
