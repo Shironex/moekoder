@@ -7,6 +7,7 @@ import { app } from 'electron';
 import yauzl, { type Entry, type ZipFile } from 'yauzl';
 import { createMainLogger } from '../logger';
 import { downloadToFile } from '../http';
+import { IpcError } from '../ipc/errors';
 import { getBinDir, getFfmpegPath, getFfprobePath } from '../utils/bin-paths';
 import { getSourceForPlatform, type FFmpegSource } from './sources';
 
@@ -285,6 +286,13 @@ export async function ensureInstalled(onProgress: ProgressCallback): Promise<voi
   }
 
   onProgress({ stage: 'resolving', pct: 0, message: 'Resolving ffmpeg source' });
+  // TODO(phase-2c): drop this darwin guard once MACOS_SOURCE is wired.
+  // The macOS download path depends on evermeet.cx / OSXExperts selection +
+  // a pinned SHA; until that lands we fail fast with a structured error so
+  // the renderer can show a friendly "download ffmpeg manually" fallback.
+  if (process.platform === 'darwin') {
+    throw new IpcError('NOT_IMPLEMENTED', 'macOS ffmpeg auto-install lands in Phase 2c');
+  }
   const source = getSourceForPlatform(process.platform);
 
   fs.mkdirSync(getBinDir(), { recursive: true });
