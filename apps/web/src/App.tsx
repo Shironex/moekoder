@@ -180,6 +180,11 @@ export const App = () => {
 
   const onStart = useCallback(async (): Promise<void> => {
     if (!video || !subs || !out) return;
+    // Second line of defense — the sidebar already hides the button while
+    // running, but a stale click (fast double-click before disable takes
+    // effect) would otherwise invoke encode.start twice and get a reject
+    // from the orchestrator. Short-circuit here.
+    if (phase === 'running') return;
     const outputPath = joinPath(out.path, out.name);
     try {
       clearLogs();
@@ -194,7 +199,7 @@ export const App = () => {
     } catch (err) {
       console.error('[encode.start] failed', err);
     }
-  }, [api, video, subs, out, clearLogs, setJobId, setPhase, setView]);
+  }, [api, video, subs, out, phase, clearLogs, setJobId, setPhase, setView]);
 
   const onEncodeAnother = useCallback((): void => {
     // Reset the picks so the user truly starts fresh. The encode store is
@@ -214,6 +219,7 @@ export const App = () => {
       onPickSubs={onPickSubs}
       onPickOut={onPickOut}
       onStart={onStart}
+      encoding={phase === 'running'}
     />
   );
 

@@ -26,6 +26,13 @@ export interface SidebarProps {
   onPickSubs: () => void;
   onPickOut: () => void;
   onStart: () => void;
+  /**
+   * True while an encode is in flight. Disables the Begin encode CTA and
+   * swaps its copy — otherwise the user can fire a second job while the
+   * first is still running (the encode orchestrator would reject it but
+   * the UI should never invite the click in the first place).
+   */
+  encoding?: boolean;
   /** GPU availability summary — e.g. `{ label: 'NVENC', detail: 'gpu · ready' }`. */
   gpu?: { label: string; detail: string } | null;
   /** Human-readable free-space value — e.g. `"3.16 TB"`. */
@@ -160,12 +167,13 @@ export const Sidebar = ({
   onPickSubs,
   onPickOut,
   onStart,
+  encoding = false,
   gpu,
   freeBytesLabel,
   freeBytesDisk,
 }: SidebarProps) => {
   const filledCount = [video, subs, out].filter(Boolean).length;
-  const ready = filledCount === 3;
+  const armed = filledCount === 3 && !encoding;
 
   return (
     <aside className="relative z-10 flex w-[320px] shrink-0 flex-col gap-4 border-r border-border bg-popover/80 p-5">
@@ -222,10 +230,11 @@ export const Sidebar = ({
       <button
         type="button"
         onClick={onStart}
-        disabled={!ready}
+        disabled={!armed}
+        aria-busy={encoding || undefined}
         className={cn(
           'group mt-1 flex h-[72px] items-center gap-3 rounded-md border px-4 text-left transition',
-          ready
+          armed
             ? 'border-primary bg-[color-mix(in_oklab,var(--primary)_14%,transparent)] text-foreground hover:bg-[color-mix(in_oklab,var(--primary)_22%,transparent)]'
             : 'cursor-not-allowed border-border bg-card/40 text-muted opacity-70'
         )}
@@ -233,26 +242,38 @@ export const Sidebar = ({
         <span
           className={cn(
             'font-display text-4xl leading-none',
-            ready ? 'text-primary' : 'text-muted/70'
+            armed ? 'text-primary' : encoding ? 'text-primary/60' : 'text-muted/70'
           )}
         >
-          斬
+          {encoding ? '焼' : '斬'}
         </span>
         <span className="flex flex-1 flex-col">
-          <span className="font-display text-lg leading-tight text-foreground">Begin encode</span>
+          <span className="font-display text-lg leading-tight text-foreground">
+            {encoding ? 'Encoding…' : 'Begin encode'}
+          </span>
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            {ready ? 'all three · ready' : `${3 - filledCount} to go`}
+            {encoding
+              ? 'in progress · 進行'
+              : armed
+                ? 'all three · ready'
+                : `${3 - filledCount} to go`}
           </span>
         </span>
         <span
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-sm border transition',
-            ready
+            armed
               ? 'border-primary/60 text-primary group-hover:translate-x-0.5'
-              : 'border-border text-muted'
+              : encoding
+                ? 'border-primary/40 text-primary/70'
+                : 'border-border text-muted'
           )}
         >
-          <IconPlay size={14} />
+          {encoding ? (
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden />
+          ) : (
+            <IconPlay size={14} />
+          )}
         </span>
       </button>
 
