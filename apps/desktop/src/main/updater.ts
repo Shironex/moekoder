@@ -1,10 +1,8 @@
 import type { BrowserWindow } from 'electron';
-import pkg from 'electron-updater';
-import type { UpdateInfo, ProgressInfo } from 'electron-updater';
+import { autoUpdater, type UpdateInfo, type ProgressInfo } from 'electron-updater';
 import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { createMainLogger } from './logger';
 
-const { autoUpdater } = pkg;
 const log = createMainLogger('updater');
 
 /** Initial check delay after `whenReady` fires. */
