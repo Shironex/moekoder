@@ -13,6 +13,7 @@
  */
 import type { ChildProcess } from 'node:child_process';
 import { buildEncodeArgs, type EncodeJob } from './args';
+import { shouldTranscodeAudio } from './audio-fallback';
 import {
   categorizeLog,
   filterLogLines,
@@ -126,7 +127,8 @@ export class FFmpegProcessor {
     this.durationSec = await this.deps.probeDuration(this.job.videoPath);
     this.startedAt = this.deps.now();
 
-    const args = buildEncodeArgs(this.job);
+    const effectiveJob = await this.applyAudioFallback(this.job);
+    const args = buildEncodeArgs(effectiveJob);
     const ffmpegPath = this.deps.getFfmpegPath();
     this.emitLog('info', `ffmpeg ${args.join(' ')}`);
 
@@ -298,5 +300,35 @@ export class FFmpegProcessor {
       level,
       text,
     });
+  }
+
+  /**
+   * Decide the effective audio plan for this job. When the user asked to
+   * stream-copy audio but the source codec is incompatible with the target
+   * container (see {@link shouldTranscodeAudio}), override the plan to
+   * `aac-192k` so the encode doesn't die inside the MP4 muxer. Logs the
+   * decision so the renderer can surface why audio was re-encoded.
+   */
+  private async applyAudioFallback(job: EncodeJob): Promise<EncodeJob> {
+    if (job.settings.audio !== 'copy') return job;
+
+    const sourceCodec = job.sourceAudioCodec ?? (await this.deps.probeAudioCodec?.(job.videoPath));
+
+    if (!sourceCodec) return { ...job, sourceAudioCodec };
+
+    if (!shouldTranscodeAudio(sourceCodec, job.settings.container)) {
+      return { ...job, sourceAudioCodec };
+    }
+
+    this.emitLog(
+      'info',
+      `Audio fallback: source codec "${sourceCodec}" cannot be stream-copied ` +
+        `into ${job.settings.container}; transcoding to AAC 192k.`
+    );
+    return {
+      ...job,
+      sourceAudioCodec,
+      settings: { ...job.settings, audio: 'aac-192k' },
+    };
   }
 }
