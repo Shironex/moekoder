@@ -53,7 +53,7 @@ const makeJob = (overrides: Partial<EncodeJob> = {}): EncodeJob => ({
 let now = 1000;
 
 const makeDeps = (child: MockChild, overrides: Partial<Record<string, unknown>> = {}) => ({
-  spawn: vi.fn(() => child.asChild()),
+  spawn: vi.fn((_cmd: string, _args: string[]) => child.asChild()),
   getFfmpegPath: vi.fn(() => '/bin/ffmpeg'),
   probeDuration: vi.fn(async () => 60),
   probeAudioCodec: vi.fn(async () => 'aac'),
@@ -248,7 +248,7 @@ describe('FFmpegProcessor — audio fallback', () => {
     child.close(0);
     await runPromise;
 
-    const args = deps.spawn.mock.calls[0][1];
+    const args = deps.spawn.mock.calls[0]![1];
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('copy');
   });
@@ -264,7 +264,7 @@ describe('FFmpegProcessor — audio fallback', () => {
     child.close(0);
     await runPromise;
 
-    const args = deps.spawn.mock.calls[0][1];
+    const args = deps.spawn.mock.calls[0]![1];
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('aac');
     expect(args).toContain('-b:a');
@@ -286,7 +286,7 @@ describe('FFmpegProcessor — audio fallback', () => {
     await runPromise;
 
     expect(probeAudio).not.toHaveBeenCalled();
-    const args = deps.spawn.mock.calls[0][1];
+    const args = deps.spawn.mock.calls[0]![1];
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('aac');
   });
