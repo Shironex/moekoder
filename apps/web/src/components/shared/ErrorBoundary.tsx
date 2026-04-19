@@ -4,6 +4,12 @@ import { Button } from '@/components/ui';
 
 type ErrorBoundaryVariant = 'root' | 'view';
 
+interface FallbackRenderProps {
+  error: Error;
+  info: ErrorInfo | null;
+  reset: () => void;
+}
+
 interface ErrorBoundaryProps {
   children: ReactNode;
   /**
@@ -14,8 +20,18 @@ interface ErrorBoundaryProps {
   variant?: ErrorBoundaryVariant;
   /** Human-readable label for the boundary, used in the report payload. */
   viewName?: string;
-  /** Completely replace the default fallback with custom content. */
+  /**
+   * Completely replace the default fallback with custom content. Use when the
+   * fallback doesn't need any error details (or pulls them from elsewhere).
+   */
   fallback?: ReactNode;
+  /**
+   * Render-prop variant of `fallback` — receives the thrown error, the React
+   * error info, and a `reset()` helper so custom fallbacks can clear state.
+   * When both `fallback` and `fallbackRender` are provided, `fallbackRender`
+   * wins because it produces richer output.
+   */
+  fallbackRender?: (props: FallbackRenderProps) => ReactNode;
   /** Called when the user clicks the "Reset view" action (view variant). */
   onReset?: () => void;
 }
@@ -227,6 +243,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render(): ReactNode {
     const { error, info, reportCopied } = this.state;
     if (!error) return this.props.children;
+    if (this.props.fallbackRender) {
+      return this.props.fallbackRender({ error, info, reset: this.reset });
+    }
     if (this.props.fallback !== undefined) return this.props.fallback;
     return (
       <Fallback

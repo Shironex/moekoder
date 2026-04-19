@@ -1,155 +1,217 @@
-import type { CSSProperties } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { ClipboardCopy, RefreshCw } from 'lucide-react';
+import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
+import { Button } from '@/components/ui';
+import { cn } from '@/lib/cn';
 
 interface CrashFallbackProps {
-  /** Short summary of what went wrong (e.g. the error.message). */
+  /** Underlying error, when available. ErrorBoundary passes this through. */
+  error?: Error;
+  /** Optional human-friendly summary override. Defaults to `error.message`. */
   message?: string;
-  /** Called when the user accepts the reload / resume action. */
+  /** Called when the user clicks the reload action. */
   onReload?: () => void;
-  /** Optional action to fire before reloading (e.g. copy a report). */
-  onReport?: () => void;
 }
 
 /**
- * Full-screen "something collapsed" fallback — the last line of defence when
- * the main `<ErrorBoundary variant="root">` itself cannot render, or the
- * caller wants a hand-assembled crash screen instead of the default card.
- *
- * Inline-styled on purpose. If the app stylesheet is what broke, the crash
- * screen should still look presentable without it — every rule below reads
- * from CSS custom properties with safe fallbacks.
+ * Build the clipboard report once per (error, message) pair. Plain text so
+ * users can paste it into GitHub issues without a formatter mangling it.
+ * Pulls user-agent / platform info from the navigator — `navigator.platform`
+ * is deprecated on paper but still the least-bad cross-engine hint we have
+ * for "this user's OS bucket" from a renderer context.
  */
-export const CrashFallback = ({
-  message = 'Something collapsed mid-render.',
-  onReload = () => window.location.reload(),
-  onReport,
-}: CrashFallbackProps) => {
-  const rootStyle: CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    display: 'grid',
-    placeItems: 'center',
-    padding: 40,
-    background: 'var(--popover, #0a0a12)',
-    color: 'var(--foreground, #eaeaf0)',
-    fontFamily: 'var(--font-body, system-ui, sans-serif)',
-    overflow: 'hidden',
-    zIndex: 9999,
-  };
+const buildReport = (error: Error | undefined, message: string | undefined): string => {
+  const ts = new Date().toISOString();
+  const name = error?.name ?? 'Error';
+  const msg = error?.message ?? message ?? 'Unknown';
+  const stack = error?.stack ?? '(no stack)';
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '(no navigator)';
+  return [
+    `MoeKoder crash report`,
+    `Timestamp: ${ts}`,
+    `Error: ${name}`,
+    `Message: ${msg}`,
+    `User agent: ${ua}`,
+    ``,
+    `Stack:`,
+    stack,
+  ].join('\n');
+};
 
-  const watermarkStyle: CSSProperties = {
-    position: 'absolute',
-    left: -60,
-    bottom: -120,
-    fontFamily: 'var(--font-display, serif)',
-    fontSize: 560,
-    fontWeight: 800,
-    lineHeight: 1,
-    color: 'var(--watermark, rgba(255,255,255,0.045))',
-    pointerEvents: 'none',
-    userSelect: 'none',
-    letterSpacing: '-0.05em',
-  };
+/**
+ * Full-screen crash view — ported from `MoeKoder Crash.html` in the design
+ * prototype. Split layout: the main narrative column sits on the left
+ * (eyebrow, headline, explainer, two actions) with a huge `崩` watermark
+ * behind it, and a side column on the right scrolls the error name, message,
+ * and stack trace. The stack trace is toggleable so very-long traces don't
+ * dominate narrow viewports.
+ *
+ * Wiring: ErrorBoundary mounts this as its `fallback` and the handlers
+ * in this component manage their own local state (copy-confirm + toggle).
+ * The Reload button defaults to `window.location.reload` so the boundary
+ * can still fall through cleanly even when its own state got wedged.
+ */
+export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) => {
+  const [copied, setCopied] = useState(false);
+  const [showStack, setShowStack] = useState(true);
 
-  const contentStyle: CSSProperties = {
-    position: 'relative',
-    maxWidth: 620,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
-    zIndex: 1,
-  };
+  const report = useMemo(() => buildReport(error, message), [error, message]);
 
-  const pillStyle: CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '6px 12px',
-    borderRadius: 999,
-    border: '1px solid var(--border, rgba(255,255,255,0.08))',
-    fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-    fontSize: 10,
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    color: 'var(--muted, #707080)',
-    alignSelf: 'flex-start',
-  };
+  const handleReload = useCallback((): void => {
+    if (onReload) {
+      onReload();
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, [onReload]);
 
-  const dotStyle: CSSProperties = {
-    width: 6,
-    height: 6,
-    borderRadius: '50%',
-    background: 'var(--bad, #e56565)',
-    boxShadow: '0 0 8px var(--bad, #e56565)',
-  };
+  const handleCopy = useCallback(async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(report);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch (err) {
+      console.warn('[crash] clipboard write failed', err);
+    }
+  }, [report]);
 
-  const headlineStyle: CSSProperties = {
-    fontFamily: 'var(--font-display, serif)',
-    fontWeight: 700,
-    fontSize: 64,
-    lineHeight: 1,
-    letterSpacing: '-0.03em',
-    margin: 0,
-  };
-
-  const emStyle: CSSProperties = { fontStyle: 'italic', color: 'var(--bad, #e56565)' };
-
-  const subStyle: CSSProperties = {
-    fontSize: 16,
-    lineHeight: 1.55,
-    color: 'var(--muted-foreground, #a0a0b0)',
-    margin: 0,
-  };
-
-  const actionsStyle: CSSProperties = { display: 'flex', gap: 10, flexWrap: 'wrap' };
-
-  const primaryBtn: CSSProperties = {
-    padding: '12px 20px',
-    borderRadius: 10,
-    border: '1px solid var(--primary, #8a6dff)',
-    background: 'var(--primary, #8a6dff)',
-    color: 'var(--primary-foreground, #0a0a12)',
-    fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-    fontSize: 11,
-    letterSpacing: '0.15em',
-    textTransform: 'uppercase',
-    fontWeight: 600,
-    cursor: 'pointer',
-  };
-
-  const ghostBtn: CSSProperties = {
-    ...primaryBtn,
-    background: 'transparent',
-    color: 'var(--foreground, #eaeaf0)',
-    border: '1px solid var(--border, rgba(255,255,255,0.12))',
-  };
+  const headline = message ?? error?.message ?? 'Something collapsed mid-render.';
+  const stack = error?.stack ?? '(no stack trace available)';
+  const errName = error?.name ?? 'Error';
 
   return (
-    <div style={rootStyle} role="alert" aria-live="assertive">
-      <div aria-hidden="true" style={watermarkStyle}>
+    <div
+      role="alert"
+      aria-live="assertive"
+      className="fixed inset-0 z-[9999] grid min-h-screen w-screen grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-[1fr_480px]"
+    >
+      {/* Huge kanji watermark in the bottom-left, well behind everything. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute select-none font-display leading-none text-bad"
+        style={{
+          left: '-60px',
+          bottom: '-120px',
+          fontSize: '560px',
+          opacity: 0.06,
+          letterSpacing: '-0.05em',
+        }}
+      >
         崩
-      </div>
-      <div style={contentStyle}>
-        <span style={pillStyle}>
-          <span style={dotStyle} />
-          crashed · 崩
-        </span>
-        <h1 style={headlineStyle}>
-          MoeKoder <span style={emStyle}>tripped.</span>
+      </span>
+
+      {/* ──────────────── MAIN — narrative column ──────────────── */}
+      <div className="relative z-[1] flex min-h-0 flex-col overflow-y-auto px-12 py-16 lg:px-20 lg:py-24">
+        {/* Eyebrow chip */}
+        <div className="mb-8 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.28em] text-bad">
+          <span className="font-display text-base text-bad" style={{ letterSpacing: 0 }}>
+            崩
+          </span>
+          <span className="h-px w-8 bg-bad" />
+          <span>unexpected error · hou · collapse</span>
+        </div>
+
+        {/* Headline */}
+        <h1 className="max-w-[22ch] font-display text-6xl font-bold leading-[0.95] tracking-[-0.03em] text-foreground">
+          {APP_NAME} <em className="not-italic italic text-bad">tripped.</em>
           <br />
-          Let's get you moving.
+          Let&apos;s get you moving.
         </h1>
-        <p style={subStyle}>{message}</p>
-        <div style={actionsStyle}>
-          <button type="button" style={primaryBtn} onClick={onReload}>
-            再 · Reload app
-          </button>
-          {onReport && (
-            <button type="button" style={ghostBtn} onClick={onReport}>
-              告 · Copy report
-            </button>
-          )}
+
+        {/* Sub */}
+        <p className="mt-6 max-w-[52ch] text-[17px] leading-[1.55] text-muted-foreground">
+          <b className="font-semibold text-foreground">{headline}</b>
+          <br />
+          <span className="mt-2 block">
+            Your settings are safe — they live on disk. Reload the app to start fresh, or copy the
+            crash report if you&apos;d like to file an issue.
+          </span>
+        </p>
+
+        {/* Actions */}
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Button variant="primary" size="lg" onClick={handleReload}>
+            <RefreshCw size={16} />再 · Reload app
+          </Button>
+          <Button variant="ghost" size="lg" onClick={handleCopy}>
+            <ClipboardCopy size={16} />
+            {copied ? 'Copied · 済' : '告 · Copy report'}
+          </Button>
+        </div>
+
+        {/* Aux pills */}
+        <div className="mt-10 flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+          <span className="font-display text-base text-primary" style={{ letterSpacing: 0 }}>
+            {APP_SIGIL}
+          </span>
+          <span>{APP_NAME}</span>
+          <span className="h-1 w-1 rounded-full bg-muted/50" />
+          <span>session · crashed</span>
         </div>
       </div>
+
+      {/* ──────────────── SIDE — diagnostics column ──────────────── */}
+      <aside
+        className="relative z-[1] flex min-h-0 flex-col overflow-hidden border-l border-border bg-[color-mix(in_oklab,var(--background)_40%,black_60%)] px-8 py-16 lg:py-24"
+        aria-label="Crash diagnostics"
+      >
+        <div className="mb-5 flex items-center gap-3 border-b border-border pb-4">
+          <span className="font-display text-2xl leading-none text-primary">診</span>
+          <div className="flex flex-col gap-0.5 leading-none">
+            <span className="font-display text-[15px] font-semibold text-foreground">
+              Diagnostics
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+              shin · diagnosis
+            </span>
+          </div>
+          <span className="ml-auto rounded border border-[color-mix(in_oklab,var(--bad)_40%,transparent)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.05em] text-bad">
+            fatal
+          </span>
+        </div>
+
+        {/* Error summary */}
+        <div className="mb-4 rounded-lg border border-[color-mix(in_oklab,var(--bad)_30%,transparent)] bg-[color-mix(in_oklab,var(--bad)_10%,var(--card))] px-4 py-3">
+          <div className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-bad">
+            {errName}
+          </div>
+          <div className="break-words font-mono text-[12px] leading-[1.4] text-foreground">
+            {error?.message || message || 'An unexpected error occurred.'}
+          </div>
+        </div>
+
+        {/* Stack toggle */}
+        <div className="mb-2 flex items-center gap-2 border-t border-border pt-3">
+          <span className="font-display text-base text-primary">録</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+            stack trace
+          </span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setShowStack(s => !s)}
+            className={cn(
+              'rounded border border-border bg-transparent px-2 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted transition',
+              'hover:border-primary hover:text-primary'
+            )}
+          >
+            {showStack ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
+        {/* Stack body — collapses to zero height but keeps its role so
+            screen-readers still announce state flips. */}
+        <pre
+          className={cn(
+            'min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-[color-mix(in_oklab,var(--background)_70%,black)] p-3 font-mono text-[11px] leading-[1.55] text-muted-foreground transition-opacity',
+            showStack ? 'opacity-100' : 'pointer-events-none h-0 flex-none opacity-0'
+          )}
+        >
+          {stack}
+        </pre>
+      </aside>
     </div>
   );
 };
