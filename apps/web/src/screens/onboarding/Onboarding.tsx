@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ThemeId } from '@moekoder/shared';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { useElectronAPI } from '@/hooks';
-import { applyTheme } from '@/lib/apply-theme';
+import { applyTheme, persistTheme } from '@/lib/apply-theme';
 import type { GpuProbeResult } from '@/types/electron-api';
 import { OB_STEPS } from './data';
 import { OnboardingLayout } from './OnboardingLayout';
@@ -19,9 +19,10 @@ import { Done } from './steps/Done';
 /**
  * Top-level onboarding screen. Reads the wizard step from `useOnboardingStore`,
  * advances / retreats with keyboard + footer controls, and on finish:
- * persists `hasCompletedOnboarding` + `themeId` via the electron-store bridge,
- * flips `markCompleted()` in the wizard store, and transitions the app view
- * to `single-idle`.
+ * persists `hasCompletedOnboarding` via the electron-store bridge, flips
+ * `markCompleted()` in the wizard store, and transitions the app view to
+ * `single-idle`. The theme is already persisted per-pick through
+ * `persistTheme` in `onThemePick`, so `finish()` doesn't need to re-save it.
  *
  * Wizard inputs that don't yet have a matching `UserSettings` key (preset,
  * save target, container, custom save path, hardware choice) are kept only
@@ -36,6 +37,7 @@ export const Onboarding = () => {
   const setInput = useOnboardingStore(s => s.setInput);
   const markCompleted = useOnboardingStore(s => s.markCompleted);
   const setView = useAppStore(s => s.setView);
+  const themeId = useAppStore(s => s.themeId);
   const setThemeId = useAppStore(s => s.setThemeId);
 
   const idx = OB_STEPS.findIndex(s => s.id === step);
@@ -70,20 +72,18 @@ export const Onboarding = () => {
 
   const onThemePick = useCallback(
     (id: ThemeId): void => {
-      setInput('themeId', id);
       setThemeId(id);
-      void applyTheme(id);
+      applyTheme(id);
+      void persistTheme(id);
     },
-    [setInput, setThemeId]
+    [setThemeId]
   );
 
   const finish = useCallback(async (): Promise<void> => {
     try {
-      // Persist what the main-process store actually knows about.
-      await Promise.all([
-        api.store.set('hasCompletedOnboarding', true),
-        api.store.set('themeId', inputs.themeId),
-      ]);
+      // `themeId` is persisted per-pick in `onThemePick`, so only the
+      // completion flag needs flipping here.
+      await api.store.set('hasCompletedOnboarding', true);
     } catch (err) {
       console.error('[onboarding] persist failed', err);
       // Swallow — we don't want a store blip to block the user from using
@@ -92,7 +92,7 @@ export const Onboarding = () => {
     }
     markCompleted();
     setView('single-idle');
-  }, [api, inputs.themeId, markCompleted, setView]);
+  }, [api, markCompleted, setView]);
 
   const handleNext = useCallback((): void => {
     if (currentStep.id === 'done') {
@@ -127,7 +127,7 @@ export const Onboarding = () => {
           />
         );
       case 'theme':
-        return <Theme value={inputs.themeId} onChange={onThemePick} />;
+        return <Theme value={themeId} onChange={onThemePick} />;
       case 'preset':
         return <Preset value={inputs.presetChoice} onChange={v => setInput('presetChoice', v)} />;
       case 'save':
@@ -144,7 +144,7 @@ export const Onboarding = () => {
       case 'privacy':
         return <Privacy />;
       case 'done':
-        return <Done inputs={inputs} />;
+        return <Done inputs={{ ...inputs, themeId }} />;
       default:
         return null;
     }

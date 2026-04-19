@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { DEFAULT_THEME_ID, type ThemeId } from '@moekoder/shared';
 
 /**
  * Ordered onboarding steps. The wizard walks them 1 -> 1 with no branching;
@@ -22,8 +21,14 @@ export type PresetChoice = 'fast' | 'balanced' | 'pristine';
 export type SaveTarget = 'wypalone' | 'same' | 'subbed' | 'custom';
 export type Container = 'mp4' | 'mkv' | 'webm';
 
+/**
+ * Wizard-only inputs. `themeId` intentionally does NOT live here — the
+ * active theme is owned by `useAppStore`, which the Theme step both reads
+ * from and writes to. Keeping two theme sources in sync proved brittle
+ * (replay-onboarding would show the wrong "selected" card because the
+ * onboarding default overrode the real app theme).
+ */
 interface OnboardingInputs {
-  themeId: ThemeId;
   hwChoice: HwChoice;
   presetChoice: PresetChoice;
   saveTarget: SaveTarget;
@@ -42,7 +47,6 @@ interface OnboardingState {
 }
 
 const DEFAULT_INPUTS: OnboardingInputs = {
-  themeId: DEFAULT_THEME_ID,
   hwChoice: 'cpu',
   presetChoice: 'balanced',
   saveTarget: 'wypalone',

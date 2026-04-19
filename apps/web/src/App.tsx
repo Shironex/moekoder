@@ -14,8 +14,10 @@ import {
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
-// `applyTheme` is DOM-only. Persistence happens at explicit user-action
-// callsites (onboarding Theme step, Settings) via `persistTheme`.
+// `applyTheme` is DOM-only — persistence happens at explicit user-action
+// callsites (onboarding Theme step, Settings) via `persistTheme`. If this
+// boot-time effect called a persisting variant, the default `themeId` would
+// clobber the user's saved choice before `useSetting` could hydrate it.
 
 /**
  * Extract a trailing filename from a path using both `/` and `\` as
@@ -85,7 +87,7 @@ const UnknownView = ({ name }: { name: string }) => (
 
 /**
  * Root application shell. Wires the foundation together:
- *   · applyTheme on themeId changes (persisted + in-memory)
+ *   · applyTheme (DOM-only) on themeId changes
  *   · useEncodeEvents subscription at a stable mount point
  *   · activeView → screen switch with the shared AppShell layout
  *   · local file-pick state piped through to Sidebar + screens
@@ -131,7 +133,7 @@ export const App = () => {
   }, [persistedTheme, themeId, setThemeId]);
 
   useEffect(() => {
-    void applyTheme(themeId);
+    applyTheme(themeId);
   }, [themeId]);
 
   // Advance the shell view when the encode reaches a terminal phase. Running

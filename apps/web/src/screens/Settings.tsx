@@ -4,7 +4,7 @@ import { APP_NAME, GITHUB_REPO, type ThemeId } from '@moekoder/shared';
 import { Button, ThemePicker } from '@/components/ui';
 import { useElectronAPI, useFfmpegStatus } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
-import { applyTheme } from '@/lib/apply-theme';
+import { applyTheme, persistTheme } from '@/lib/apply-theme';
 
 /**
  * Section wrapper — identical visual treatment for every block on the
@@ -81,13 +81,10 @@ export const Settings = () => {
   const onThemePick = useCallback(
     (id: ThemeId): void => {
       setThemeId(id);
-      void applyTheme(id);
-      // Persist; failures are logged but shouldn't block the visual change.
-      api.store.set('themeId', id).catch(err => {
-        console.warn('[settings] store.set themeId failed', err);
-      });
+      applyTheme(id);
+      void persistTheme(id);
     },
-    [api, setThemeId]
+    [setThemeId]
   );
 
   const onReplayOnboarding = useCallback(async (): Promise<void> => {

@@ -1,20 +1,30 @@
 import type { ThemeId } from '@moekoder/shared';
 
 /**
- * Set the active theme on the document root and persist the selection.
+ * Flip the active theme on `<html>`. DOM-only — the CSS token blocks in
+ * `styles/tokens.css` key off `data-theme`, so the visual swap happens
+ * synchronously as soon as the attribute changes.
  *
- * The CSS token blocks in `styles/tokens.css` key off `data-theme`, so all of
- * the visual swap happens synchronously as soon as the attribute flips. The
- * persistence hop is async and swallows electron-store errors — a pure browser
- * preview (vite dev without electron) does not have the IPC bridge available,
- * and we don't want that to break the in-memory theme switch.
+ * This is deliberately *not* a persistence operation: boot-time renders
+ * call `applyTheme(defaultThemeId)` before the async `useSetting` fetch
+ * resolves, and persisting at that moment would clobber the user's saved
+ * choice before we get a chance to read it. Persistence lives in
+ * `persistTheme` and is called at explicit user-action callsites only
+ * (onboarding Theme step, Settings).
  */
-export const applyTheme = async (id: ThemeId): Promise<void> => {
+export const applyTheme = (id: ThemeId): void => {
   document.documentElement.setAttribute('data-theme', id);
+};
+
+/**
+ * Persist the selected theme id to electron-store via the preload bridge.
+ * Swallows errors from a pure-browser preview (no Electron bridge) so a
+ * missing IPC surface doesn't break the visual swap in dev.
+ */
+export const persistTheme = async (id: ThemeId): Promise<void> => {
   try {
     await window.electronAPI?.store.set('themeId', id);
   } catch (err) {
-    // Electron may not be available in a pure-browser preview — swallow.
-    console.warn('[applyTheme] could not persist to electron-store', err);
+    console.warn('[persistTheme] could not persist to electron-store', err);
   }
 };
