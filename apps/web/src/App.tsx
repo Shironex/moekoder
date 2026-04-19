@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppShell, Sidebar, Titlebar, type PickedFile } from '@/components/chrome';
 import { CrashFallback, ErrorBoundary } from '@/components/shared';
 import { Updater } from '@/components/Updater';
@@ -112,9 +112,18 @@ export const App = () => {
   const [subs, setSubs] = useState<PickedFile | null>(null);
   const [out, setOut] = useState<{ name: string; path: string } | null>(null);
 
-  // Sync persisted themeId into the app store once it loads from main.
+  // Sync persisted themeId into the app store exactly once on initial
+  // hydration. `useSetting` is one-shot (it doesn't poll), so `persistedTheme`
+  // stays at its initial value for the rest of the session. Without this ref
+  // guard, picking a new theme would re-fire this effect (via `themeId` in
+  // the dep array), see persistedTheme still holding the stale initial value,
+  // and silently revert the user's choice.
+  const hydratedThemeRef = useRef(false);
   useEffect(() => {
-    if (persistedTheme && persistedTheme !== themeId) {
+    if (hydratedThemeRef.current) return;
+    if (!persistedTheme) return;
+    hydratedThemeRef.current = true;
+    if (persistedTheme !== themeId) {
       setThemeId(persistedTheme);
     }
   }, [persistedTheme, themeId, setThemeId]);
