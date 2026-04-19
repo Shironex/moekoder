@@ -1,0 +1,150 @@
+/* Moekoder · 夜 (yoru) edition — Phase 1 tokens */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+html { font-family: system-ui, -apple-system, sans-serif; }
+#root { width: 100vw; height: 100vh; }
+
+[data-theme="midnight"] {
+  --background: oklch(0.09 0.030 250);
+  --card: oklch(0.13 0.035 250);
+  --popover: oklch(0.07 0.030 250);
+  --primary: oklch(0.70 0.20 220);
+  --primary-foreground: oklch(0.07 0.030 250);
+  --foreground: oklch(0.97 0.015 220);
+  --muted-foreground: oklch(0.72 0.030 235);
+  --muted: oklch(0.50 0.025 240);
+  --border: oklch(1 0 0 / 0.07);
+  --glow-1: oklch(0.70 0.20 220 / 0.16);
+  --glow-2: oklch(0.50 0.15 260 / 0.18);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme="plum"] {
+  --background: oklch(0.12 0.018 300);
+  --card: oklch(0.16 0.025 300);
+  --popover: oklch(0.10 0.018 300);
+  --primary: oklch(0.74 0.15 355);
+  --primary-foreground: oklch(0.12 0.018 300);
+  --foreground: oklch(0.96 0.010 300);
+  --muted-foreground: oklch(0.72 0.030 300);
+  --muted: oklch(0.50 0.035 298);
+  --border: oklch(1 0 0 / 0.08);
+  --glow-1: oklch(0.74 0.15 355 / 0.14);
+  --glow-2: oklch(0.50 0.15 280 / 0.18);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme="matcha"] {
+  --background: oklch(0.10 0.018 160);
+  --card: oklch(0.14 0.022 160);
+  --popover: oklch(0.08 0.018 160);
+  --primary: oklch(0.78 0.15 140);
+  --primary-foreground: oklch(0.08 0.018 160);
+  --foreground: oklch(0.97 0.012 140);
+  --muted-foreground: oklch(0.72 0.030 150);
+  --muted: oklch(0.50 0.025 150);
+  --border: oklch(1 0 0 / 0.07);
+  --glow-1: oklch(0.78 0.15 140 / 0.15);
+  --glow-2: oklch(0.50 0.12 160 / 0.15);
+  --watermark: oklch(1 0 0 / 0.045);
+}
+
+[data-theme="paper"] {
+  --background: oklch(0.97 0.008 80);
+  --card: oklch(0.92 0.010 340);
+  --popover: oklch(0.94 0.010 80);
+  --primary: oklch(0.56 0.20 355);
+  --primary-foreground: oklch(0.97 0.008 80);
+  --foreground: oklch(0.18 0.020 320);
+  --muted-foreground: oklch(0.38 0.020 320);
+  --muted: oklch(0.52 0.020 320);
+  --border: oklch(0 0 0 / 0.09);
+  --glow-1: oklch(0.56 0.20 355 / 0.08);
+  --glow-2: oklch(0.50 0.12 300 / 0.06);
+  --watermark: oklch(0 0 0 / 0.05);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.app-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.titlebar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.brand .k {
+  color: var(--primary);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+.spacer { flex: 1; }
+
+.themes {
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.themes button {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.themes button:hover { border-color: var(--primary); }
+.themes button.active {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, 'JetBrains Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+}
