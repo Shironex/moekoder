@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell, Sidebar, Titlebar, type PickedFile } from '@/components/chrome';
 import { CrashFallback, ErrorBoundary } from '@/components/shared';
-import { DoneScreen, EncodingScreen, IdleScreen, SplashScreen } from '@/screens';
+import { DoneScreen, EncodingScreen, IdleScreen, Onboarding, SplashScreen } from '@/screens';
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
@@ -226,7 +226,7 @@ export const App = () => {
           </AppShell>
         );
       case 'onboarding':
-        return <Placeholder title="Onboarding lands in Phase 4c." detail="first-run · 初" />;
+        return <Onboarding />;
       case 'settings':
         return <Placeholder title="Settings lands in Phase 4d." detail="config · 設" />;
       case 'about':
