@@ -23,9 +23,10 @@ function isNoisy(message: string): boolean {
  * in @moekoder/shared). DevTools opens detached so it doesn't steal the
  * main window's layout.
  *
- * In prod we still load the Phase 1 placeholder `shell.html` — swapping
- * to the real web bundle is tracked for later phases once the
- * copy-renderer step exists.
+ * In prod we load the packaged web bundle from `dist/renderer/index.html`,
+ * which the copy-renderer build step stages next to the main-process
+ * output. The path is resolved relative to the compiled main entry at
+ * `dist/main/window.js`.
  */
 const VITE_DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:15180';
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -78,7 +79,7 @@ export function createMainWindow(): BrowserWindow {
     void win.loadURL(VITE_DEV_URL);
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    void win.loadFile(path.join(__dirname, 'shell.html'));
+    void win.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
   return win;

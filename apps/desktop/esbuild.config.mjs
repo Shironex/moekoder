@@ -1,6 +1,4 @@
 import { build } from 'esbuild';
-import { copyFileSync } from 'node:fs';
-import path from 'node:path';
 
 // Bundle everything except `electron` itself. Several of our deps
 // (electron-store@10, electron-updater@6, electron-log@5) ship ESM-only,
@@ -20,7 +18,3 @@ await build({
   external,
   logLevel: 'info',
 });
-
-// Phase 1 placeholder shell — copied straight through until the renderer takes over.
-copyFileSync(path.resolve('src/main/shell.html'), path.resolve('dist/main/shell.html'));
-console.log('[esbuild] copied shell.html -> dist/main/shell.html');
