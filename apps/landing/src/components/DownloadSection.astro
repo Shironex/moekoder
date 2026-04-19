@@ -1,0 +1,66 @@
+---
+/**
+ * Static (SSG-rendered) download CTA used on the index page.
+ *
+ * Uses hard-coded placeholder copy that mirrors MoeKoder Landing.html:1059-1094
+ * so the homepage stays fully static. The /download route renders the live
+ * DownloadPage React island instead, which pulls real assets from GitHub.
+ */
+import '../styles/components/download.css';
+---
+
+<section class="download" id="download">
+  <div class="bg-kanji">焼</div>
+  <div class="container">
+    <div class="download-inner">
+      <div class="download-eyebrow">
+        <span class="tag">● v0.1</span>
+        released 2026/04/19 · 14 mb · mit
+      </div>
+      <h2>Get burning. <em>It's free.</em></h2>
+      <p>
+        Download the installer for your OS. No account, no email, no "hi we've been trying to
+        reach you about your car's extended warranty". Just a binary. Bring your own MKV and ASS.
+      </p>
+
+      <div class="platforms platforms--win">
+        <a class="plat plat--primary" href="/download">
+          <span class="plat-os">Windows · installer</span>
+          <span class="plat-name">MoeKoder-0.1-Setup.exe</span>
+          <span class="plat-file">win 10 · 11 · x64 · 14 mb</span>
+          <span class="plat-arrow">↓</span>
+        </a>
+        <a class="plat" href="/download">
+          <span class="plat-os">macOS · disk image</span>
+          <span class="plat-name">Moekoder-0.1.dmg</span>
+          <span class="plat-file">mac 12+ · universal</span>
+          <span class="plat-arrow">↗</span>
+        </a>
+      </div>
+      <div class="download-note">
+        <span class="k">窓</span>
+        <span>
+          Windows is the primary target — macOS builds ship when they stabilise. Linux builds are
+          on the roadmap.
+          <a href="https://github.com/Shironex/moekoder" target="_blank" rel="noopener">
+            Track progress on GitHub →
+          </a>
+        </span>
+      </div>
+
+      <div class="download-sub">
+        <a href="https://github.com/Shironex/moekoder" target="_blank" rel="noopener">
+          ↗ Source on GitHub
+        </a>
+        <a href="/changelog">↗ Release notes</a>
+        <a
+          href="https://github.com/Shironex/moekoder/releases/latest"
+          target="_blank"
+          rel="noopener"
+        >
+          ↗ All releases
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
