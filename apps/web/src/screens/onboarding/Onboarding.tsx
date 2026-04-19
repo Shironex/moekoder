@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ThemeId } from '@moekoder/shared';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { useElectronAPI, useFfmpegStatus } from '@/hooks';
@@ -45,6 +45,44 @@ export const Onboarding = () => {
   // between the route change and the IPC resolving. Welcome → Continue
   // gives the probe plenty of time to complete before step 2 mounts.
   const ffmpegProbe = useFfmpegStatus();
+
+  // Hardware-encoder probe. Deferred until ffmpeg is confirmed installed —
+  // `gpu.probe` spawns `ffmpeg -encoders`, so it can't run before step 2
+  // finishes. When the pre-installed path fires, the probe starts as soon
+  // as Onboarding mounts and is essentially always done by step 3. When
+  // ffmpeg had to be downloaded in step 2, the probe fires the moment
+  // `ffmpegProbe.installed` flips true, which is right before the user
+  // clicks Continue to step 3 — most of the probe runs in parallel with
+  // the route change.
+  const [gpuResult, setGpuResult] = useState<GpuProbeResult | null>(null);
+  const [gpuLoading, setGpuLoading] = useState(false);
+  const [gpuError, setGpuError] = useState<string | null>(null);
+  const gpuFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (gpuFiredRef.current) return;
+    if (!ffmpegProbe.installed) return;
+    gpuFiredRef.current = true;
+    setGpuLoading(true);
+    void (async () => {
+      try {
+        const r = await api.gpu.probe();
+        setGpuResult(r);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[onboarding] gpu probe failed', err);
+        setGpuError(message);
+        setGpuResult(null);
+      } finally {
+        setGpuLoading(false);
+      }
+    })();
+  }, [ffmpegProbe.installed, api]);
+
+  const gpuProbe = useMemo(
+    () => ({ result: gpuResult, loading: gpuLoading, error: gpuError }),
+    [gpuResult, gpuLoading, gpuError]
+  );
 
   const idx = OB_STEPS.findIndex(s => s.id === step);
   const currentStep = OB_STEPS[Math.max(0, idx)];
@@ -130,6 +168,7 @@ export const Onboarding = () => {
               }
               setProbeSettled(true);
             }}
+            probe={gpuProbe}
           />
         );
       case 'theme':

@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { IconCheck } from '@/components/ui';
-import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
 import type { GpuProbeResult, GpuVendor } from '@/types/electron-api';
 import { HW_OPTIONS_TEMPLATE, type HwOption, type HwOptionId } from '../data';
@@ -20,6 +19,13 @@ export const pickRecommended = (available: GpuVendor[]): HwOptionId => {
   return 'cpu';
 };
 
+/** Subset of the parent's hoisted GPU-probe state consumed by this step. */
+export interface HardwareProbe {
+  result: GpuProbeResult | null;
+  loading: boolean;
+  error: string | null;
+}
+
 interface HardwareProps {
   /** Currently selected encoder — receive from the parent's wizard store. */
   value: HwOptionId;
@@ -28,6 +34,14 @@ interface HardwareProps {
   /** Fires once the initial probe settles (ok or error). Parent uses this to
    * enable the Continue button. CPU is always a valid fallback. */
   onProbed: (result: GpuProbeResult | null) => void;
+  /**
+   * Pre-run GPU probe hoisted to Onboarding so this step can render detected
+   * cards on first paint instead of flashing "Probing encoders…" while the
+   * IPC settles. The probe fires as soon as ffmpeg is confirmed installed
+   * (usually before the user reaches step 2 even completes), so by step 3
+   * it's almost always done.
+   */
+  probe: HardwareProbe;
 }
 
 /**
@@ -121,57 +135,39 @@ const HwCard = ({ opt, selected, onClick }: HwCardProps) => {
 };
 
 /**
- * Step 03 · Hardware. Calls `electronAPI.gpu.probe()` once on mount and
- * merges the result into the hardware-option template. The user can preview
- * any detected vendor by clicking a card (parent persists the selection);
- * CPU is always a valid fallback so the Continue button enables regardless
- * of whether the probe found anything.
+ * Step 03 · Hardware. Receives a pre-run GPU probe from the Onboarding parent
+ * and merges it into the hardware-option template. The user can preview any
+ * detected vendor by clicking a card (parent persists the selection); CPU is
+ * always a valid fallback so the Continue button enables regardless of
+ * whether the probe found anything.
+ *
+ * The probe used to run on mount here, which flashed a "Probing encoders…"
+ * banner for the second or so the IPC took. Hoisting it up meant it fires
+ * immediately after ffmpeg is installed (step 2) and is essentially always
+ * done by the time step 3 mounts.
  */
-export const Hardware = ({ value, onChange, onProbed }: HardwareProps) => {
-  const api = useElectronAPI();
-  const [probe, setProbe] = useState<GpuProbeResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [probeError, setProbeError] = useState<string | null>(null);
+export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) => {
+  const { result: probeResult, loading, error: probeError } = probe;
 
-  // Keep the latest `onProbed` callback behind a ref so the probe effect can
+  // Keep the latest `onProbed` callback behind a ref so the settle effect can
   // stay in a single-run shape without losing the newest handler on re-render.
   const onProbedRef = useRef(onProbed);
   useEffect(() => {
     onProbedRef.current = onProbed;
   }, [onProbed]);
 
-  // Run the probe exactly once per mounted component. We intentionally do NOT
-  // gate with a useRef here: StrictMode fires effects twice in dev by design,
-  // and combining a module-level latch with an effect-scoped `cancelled` flag
-  // traps us in the loading state forever (the first run's `cancelled` flips
-  // true on cleanup, the second run short-circuits, and nothing ever flushes
-  // `setLoading(false)`). Letting the probe run twice in dev is cheap —
-  // `ffmpeg -encoders` finishes in under a second — and produces the correct
-  // UI state on both runs.
+  // Fire `onProbed` exactly once, when the parent's probe settles. Uses a ref
+  // latch instead of a dep-change check so the callback can't double-fire
+  // if the probe result object reference changes (memoisation hiccups, etc).
+  const settledRef = useRef(false);
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const result = await api.gpu.probe();
-        if (cancelled) return;
-        setProbe(result);
-        setLoading(false);
-        onProbedRef.current(result);
-      } catch (err) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[onboarding/hardware] gpu probe failed', err);
-        setProbeError(message);
-        setLoading(false);
-        onProbedRef.current(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [api]);
+    if (settledRef.current) return;
+    if (loading) return;
+    settledRef.current = true;
+    onProbedRef.current(probeResult);
+  }, [loading, probeResult]);
 
-  const options = useMemo(() => applyProbe(probe), [probe]);
+  const options = useMemo(() => applyProbe(probeResult), [probeResult]);
   const gpuOptions = options.filter(o => o.id !== 'cpu');
   const cpuOption = options.find(o => o.id === 'cpu') ?? { ...HW_OPTIONS_TEMPLATE[3] };
 
