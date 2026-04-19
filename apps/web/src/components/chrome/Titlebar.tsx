@@ -1,6 +1,18 @@
 import { APP_EDITION, APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { IconClose, IconHistory, IconMax, IconMin, IconSettings } from '@/components/ui/icons';
 
+/**
+ * Small curried logger for window-control IPC failures. The preload returns
+ * promises so the renderer can observe rejections; we log and swallow so a
+ * transient IPC hiccup (e.g. focus loss during the call) never surfaces as
+ * an unhandled promise rejection.
+ */
+const logWinErr =
+  (action: string) =>
+  (err: unknown): void => {
+    console.warn(`[titlebar] window:${action} failed`, err);
+  };
+
 export type TitlebarRoute = 'single' | 'queue';
 
 interface TitlebarProps {
@@ -26,9 +38,10 @@ interface TitlebarProps {
  *
  * Window-control wiring:
  * - If the caller passes an explicit `onMin` / `onMax` / `onClose`, we use it.
- * - Otherwise we look for `window.electronAPI.window.*`. That surface does
- *   not exist in the preload today (it's a Phase 4b/later add), so the
- *   buttons currently render inert. No throw — cosmetic degradation only.
+ * - Otherwise we delegate to `electronAPI.window.minimize / maximize / close`.
+ *   Each returns a promise; we fire-and-forget inside the click handler and
+ *   log failures to the console so cancellation/permission errors are
+ *   observable without crashing the UI.
  */
 export const Titlebar = ({
   route,
@@ -39,21 +52,11 @@ export const Titlebar = ({
   onMax,
   onClose,
 }: TitlebarProps) => {
-  const winApi = (
-    window as unknown as {
-      electronAPI?: {
-        window?: {
-          minimize?: () => void;
-          maximize?: () => void;
-          close?: () => void;
-        };
-      };
-    }
-  ).electronAPI?.window;
+  const winApi = window.electronAPI?.window;
 
-  const handleMin = onMin ?? winApi?.minimize ?? (() => {});
-  const handleMax = onMax ?? winApi?.maximize ?? (() => {});
-  const handleClose = onClose ?? winApi?.close ?? (() => {});
+  const handleMin = onMin ?? (() => void winApi?.minimize().catch(logWinErr('minimize')));
+  const handleMax = onMax ?? (() => void winApi?.maximize().catch(logWinErr('maximize')));
+  const handleClose = onClose ?? (() => void winApi?.close().catch(logWinErr('close')));
 
   return (
     <header className="titlebar">
