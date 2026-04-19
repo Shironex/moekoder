@@ -16,9 +16,20 @@ function isNoisy(message: string): boolean {
 /**
  * Creates the main application `BrowserWindow`, attaches the console
  * forwarder (renderer console -> main-process logger), and loads the
- * placeholder `shell.html`. The renderer in Phase 4 will replace the file
- * load with the Vite dev server in dev and a packaged bundle in prod.
+ * renderer: Vite dev server in development, packaged bundle in production.
+ *
+ * In dev the Vite server address comes from VITE_DEV_SERVER_URL if set,
+ * otherwise defaults to http://localhost:15180 (the VITE_DEV_PORT constant
+ * in @moekoder/shared). DevTools opens detached so it doesn't steal the
+ * main window's layout.
+ *
+ * In prod we still load the Phase 1 placeholder `shell.html` — swapping
+ * to the real web bundle is tracked for later phases once the
+ * copy-renderer step exists.
  */
+const VITE_DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:15180';
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1280,
@@ -63,6 +74,12 @@ export function createMainWindow(): BrowserWindow {
     log.error(`[renderer] Failed to load: ${errorDescription} (code: ${errorCode})`);
   });
 
-  win.loadFile(path.join(__dirname, 'shell.html'));
+  if (IS_DEV) {
+    void win.loadURL(VITE_DEV_URL);
+    win.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    void win.loadFile(path.join(__dirname, 'shell.html'));
+  }
+
   return win;
 }
