@@ -1,15 +1,52 @@
 /* Moekoder · global stylesheet barrel.
    -----------------------------------------------------------------
-   Split layers live in sibling files so rules stay discoverable:
-     · tokens.css     — `:root` + per-theme custom-property blocks.
+   Layering:
+     · tokens.css     — `:root` + per-theme CSS custom properties.
      · base.css       — reset, html/body, #root sizing, ambient glows,
                          watermark helpers.
      · primitives.css — Ring / Filmstrip / LogLine / Metric / PageHead
-                         / Button visual rules.
+                         / Button visual rules (complex SVG + keyframes
+                         + ::before/::after — kept in CSS on purpose).
      · chrome.css     — Titlebar / brand / route tabs / window controls.
+
+   Screens (Splash, Idle, Encoding, Done, Settings, etc.) are authored
+   in Tailwind utilities referencing the design tokens re-exposed below
+   via `@theme inline`.
 */
 
 @import './tokens.css';
 @import './base.css';
 @import './primitives.css';
 @import './chrome.css';
+
+@import 'tailwindcss';
+
+/* Map Moekoder design tokens → Tailwind utility namespace so classes
+   like `bg-background`, `text-primary`, `border-border`, `font-display`,
+   `rounded-lg` work end-to-end against our theme system. `inline` means
+   the mappings resolve the custom properties at call-site, so theme
+   flips (via [data-theme="..."]) propagate through Tailwind utilities. */
+@theme inline {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-info: var(--info);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  --font-body: var(--font-body);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
