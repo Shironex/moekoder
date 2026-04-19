@@ -4,7 +4,7 @@
   "private": true,
   "main": "./dist/main/index.js",
   "scripts": {
-    "build": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs && node scripts/copy-renderer.mjs",
     "dev": "node esbuild.config.mjs && cross-env NODE_ENV=development electron .",
     "start": "pnpm build && electron .",
     "typecheck": "tsc --noEmit",
