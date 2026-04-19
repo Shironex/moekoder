@@ -1,0 +1,21 @@
+/**
+ * IPC contract
+ * ----------------------------------------------------------------------------
+ * - Handlers THROW on failure. No `{ success, error }` envelope.
+ * - Use `IpcError(code, message, details?)` for failures that renderer needs to
+ *   discriminate structurally (Electron strips prototypes across IPC).
+ * - Channel naming: `namespace:action` or `namespace:entity:action`.
+ * - Zod-validate every payload via a tuple schema attached to the handler.
+ * - Every registered channel must also appear in the preload ALLOWED_IPC_CHANNELS
+ *   set — the allow-list is built from `@moekoder/shared`'s IPC_CHANNELS, so
+ *   add new channels to that record first.
+ */
+import type { BrowserWindow } from 'electron';
+
+export interface IpcContext {
+  mainWindow: BrowserWindow;
+}
+
+export function registerAllIpcHandlers(_ctx: IpcContext): void {
+  // Individual domain registrations are wired here as they come online.
+}
