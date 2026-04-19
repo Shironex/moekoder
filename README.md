@@ -10,23 +10,46 @@ Part of the **Shiro Suite** — Shiranami 白波 · ShiroAni 白アニ · Moekod
 
 Early development. Pre-1.0. See [CHANGELOG.md](./CHANGELOG.md) for released versions.
 
-## License
-
-Moekoder Source Available License — see [LICENSE](./LICENSE). Personal use only; no redistribution.
-
 ## Quickstart
 
-Requires Node 22.13+ and pnpm 9+.
+Requires Node 22.13 (see `.nvmrc`) and pnpm 9+.
 
 ```sh
 # One-time install
+nvm use 22.13
 pnpm install
 
-# Run web dev server in one terminal
-pnpm --filter @moekoder/web dev
-
-# Build and launch desktop shell in another terminal
-pnpm --filter @moekoder/desktop start
+# Run web + desktop in one shot (root script)
+pnpm dev
 ```
 
-Phase 1 ships a placeholder desktop shell with a titlebar and four theme flips — real features land in v0.1.0. See `docs/roadmap/v0.1.0.md` for scope.
+`pnpm dev` starts the Vite web dev server on `localhost:15180`, waits for it to
+come up, then launches Electron pointed at that URL.
+
+## Packaging
+
+```sh
+# Default for the host platform
+pnpm --filter @moekoder/desktop package
+
+# Explicit targets
+pnpm --filter @moekoder/desktop package:win
+pnpm --filter @moekoder/desktop package:mac
+```
+
+Installers land in `apps/desktop/release/` (NSIS `.exe` on Windows, `.dmg` on
+macOS). Before the first package you may want icons — drop a 1024x1024 PNG at
+`apps/desktop/resources/mascot.png` and run `pnpm generate-icons`.
+
+## Cutting a release
+
+1. `pnpm version:patch` (or `version:minor` / `version:major`) — bumps every
+   workspace package.json, refreshes the lockfile, commits, and tags `vX.Y.Z`.
+2. `git push origin main --tags`.
+3. Create a GitHub Release from the pushed tag.
+4. CI's Release Build workflow builds Windows + macOS installers via
+   electron-builder and attaches them to the release.
+
+## License
+
+Moekoder Source Available License — see [LICENSE](./LICENSE). Personal use only; no redistribution.
