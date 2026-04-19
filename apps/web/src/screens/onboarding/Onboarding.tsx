@@ -8,7 +8,7 @@ import { OB_STEPS } from './data';
 import { OnboardingLayout } from './OnboardingLayout';
 import { Welcome } from './steps/Welcome';
 import { Engine } from './steps/Engine';
-import { Hardware } from './steps/Hardware';
+import { Hardware, pickRecommended } from './steps/Hardware';
 import { Theme } from './steps/Theme';
 import { Preset } from './steps/Preset';
 import { Save } from './steps/Save';
@@ -120,17 +120,7 @@ export const Onboarding = () => {
             onChange={v => setInput('hwChoice', v)}
             onProbed={(result: GpuProbeResult | null) => {
               if (result) {
-                // Pre-select the recommended encoder when the probe picks a
-                // hardware vendor; otherwise leave the user's existing pick
-                // (default `cpu`) untouched. The probe result widens to
-                // platform-only encoders (videotoolbox/vaapi) the UI doesn't
-                // surface yet — fall back to cpu in those cases.
-                const rec = result.recommended;
-                if (rec === 'nvenc' || rec === 'qsv' || rec === 'amf') {
-                  setInput('hwChoice', rec);
-                } else {
-                  setInput('hwChoice', 'cpu');
-                }
+                setInput('hwChoice', pickRecommended(result.available));
               }
               setProbeSettled(true);
             }}

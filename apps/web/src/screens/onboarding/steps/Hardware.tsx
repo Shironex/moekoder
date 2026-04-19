@@ -2,8 +2,23 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { IconCheck } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
-import type { GpuProbeResult } from '@/types/electron-api';
+import type { GpuProbeResult, GpuVendor } from '@/types/electron-api';
 import { HW_OPTIONS_TEMPLATE, type HwOption, type HwOptionId } from '../data';
+
+/** Priority order for "recommended" picks when the probe returns multiple
+ *  vendors. NVENC first (best anime encoder quality/speed), then QSV (Intel
+ *  iGPUs are everywhere), then AMF, then Apple's VideoToolbox. CPU is the
+ *  guaranteed fallback handled separately. */
+const VENDOR_PRIORITY: GpuVendor[] = ['nvenc', 'qsv', 'amf', 'videotoolbox'];
+
+/** Pick the first available vendor in priority order, or `'cpu'` as a
+ *  guaranteed fallback when the probe found nothing hardware-accelerated. */
+export const pickRecommended = (available: GpuVendor[]): HwOptionId => {
+  for (const vendor of VENDOR_PRIORITY) {
+    if (available.includes(vendor)) return vendor as HwOptionId;
+  }
+  return 'cpu';
+};
 
 interface HardwareProps {
   /** Currently selected encoder — receive from the parent's wizard store. */
@@ -16,23 +31,16 @@ interface HardwareProps {
 }
 
 /**
- * Merge the static template with the live probe. Vendors the probe flagged
- * true get `detected = true`; the recommended vendor gets `primary`.
+ * Merge the static template with the live probe. Vendors in `probe.available`
+ * get `detected = true`; the highest-priority available vendor gets `primary`.
+ * When no hardware encoders are found, CPU is promoted to `primary` instead.
  */
 const applyProbe = (probe: GpuProbeResult | null): HwOption[] => {
+  const available = probe?.available ?? [];
+  const recommended = probe ? pickRecommended(available) : 'cpu';
   return HW_OPTIONS_TEMPLATE.map(o => {
-    if (!probe) {
-      // No probe yet / probe failed — only CPU is known-detected.
-      return o.id === 'cpu' ? { ...o } : { ...o, detected: false };
-    }
-    const detectedMap: Record<HwOptionId, boolean> = {
-      nvenc: probe.nvenc,
-      qsv: probe.qsv,
-      amf: probe.amf,
-      cpu: true,
-    };
-    const detected = detectedMap[o.id];
-    const primary = probe.recommended === o.id;
+    const detected = o.id === 'cpu' ? true : (available as string[]).includes(o.id);
+    const primary = recommended === o.id;
     const chip = detected
       ? o.id === 'cpu'
         ? 'software · always available'
@@ -125,31 +133,37 @@ export const Hardware = ({ value, onChange, onProbed }: HardwareProps) => {
   const [loading, setLoading] = useState(true);
   const [probeError, setProbeError] = useState<string | null>(null);
 
-  // Guard against StrictMode double-invoke firing the probe twice.
-  const probedRef = useRef(false);
+  // Keep the latest `onProbed` callback behind a ref so the probe effect can
+  // stay in a single-run shape without losing the newest handler on re-render.
   const onProbedRef = useRef(onProbed);
   useEffect(() => {
     onProbedRef.current = onProbed;
   }, [onProbed]);
 
+  // Run the probe exactly once per mounted component. We intentionally do NOT
+  // gate with a useRef here: StrictMode fires effects twice in dev by design,
+  // and combining a module-level latch with an effect-scoped `cancelled` flag
+  // traps us in the loading state forever (the first run's `cancelled` flips
+  // true on cleanup, the second run short-circuits, and nothing ever flushes
+  // `setLoading(false)`). Letting the probe run twice in dev is cheap —
+  // `ffmpeg -encoders` finishes in under a second — and produces the correct
+  // UI state on both runs.
   useEffect(() => {
-    if (probedRef.current) return;
-    probedRef.current = true;
     let cancelled = false;
     void (async () => {
       try {
         const result = await api.gpu.probe();
         if (cancelled) return;
         setProbe(result);
+        setLoading(false);
         onProbedRef.current(result);
       } catch (err) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
         console.error('[onboarding/hardware] gpu probe failed', err);
         setProbeError(message);
+        setLoading(false);
         onProbedRef.current(null);
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     })();
     return () => {

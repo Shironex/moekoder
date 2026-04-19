@@ -52,14 +52,17 @@ export interface ProbeResult {
   hasSubtitles: boolean;
 }
 
-/** Hardware-encoder probe summary — mirrors `ffmpeg/gpu-probe` GpuProbeResult. */
+/** Vendor identifiers the probe knows about. Mirrors `ffmpeg/gpu-probe` GpuVendor. */
+export type GpuVendor = 'nvenc' | 'qsv' | 'amf' | 'videotoolbox';
+
+/** Hardware-encoder probe summary — mirrors `ffmpeg/gpu-probe` GpuProbeResult.
+ *  `available` is ordered the same way the probe inspected vendors — callers
+ *  who want a single "recommended" choice should pick the first entry, or
+ *  fall back to `'cpu'` when the list is empty. `details` carries the exact
+ *  encoder strings matched per vendor for UI surfacing. */
 export interface GpuProbeResult {
-  nvenc: boolean;
-  qsv: boolean;
-  amf: boolean;
-  videotoolbox: boolean;
-  vaapi: boolean;
-  recommended: 'nvenc' | 'qsv' | 'amf' | 'videotoolbox' | 'vaapi' | 'cpu';
+  available: GpuVendor[];
+  details: Record<GpuVendor, { encoders: string[] } | null>;
 }
 
 /** Disk-space / preflight summary — mirrors `ffmpeg/disk-space` PreflightResult. */

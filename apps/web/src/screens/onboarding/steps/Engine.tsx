@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
 import { Button, IconCheck, IconTerminal } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
@@ -65,9 +65,9 @@ export const Engine = ({ onReady }: EngineProps) => {
   const [pct, setPct] = useState(0);
   const [downloadedBytes, setDownloadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
-  const [phase, setPhase] = useState<'probing' | 'running' | 'done' | 'error' | 'already'>(
-    'probing'
-  );
+  const [phase, setPhase] = useState<
+    'probing' | 'needs-install' | 'running' | 'done' | 'error' | 'already'
+  >('probing');
   const [version, setVersion] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -208,8 +208,10 @@ export const Engine = ({ onReady }: EngineProps) => {
           onReadyRef.current(v);
           return;
         }
-        appendLog('info', 'No ffmpeg found in AppData — will download from upstream.');
-        await start();
+        // Do NOT auto-start the download: show the user a gate explaining
+        // what's about to happen and let them click "Install" when ready.
+        setPhase('needs-install');
+        appendLog('info', 'ffmpeg not found in AppData — waiting for user to start install.');
       } catch (err) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
@@ -228,6 +230,90 @@ export const Engine = ({ onReady }: EngineProps) => {
     setLog([]);
     void start();
   }, [start]);
+
+  // Gate screen shown on first launch before the user confirms the download.
+  // Splitting this out of the main layout keeps the "we're about to do a
+  // thing" moment distinct from the "we're doing the thing" progress view.
+  if (phase === 'probing' || phase === 'needs-install') {
+    const probing = phase === 'probing';
+    return (
+      <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+          <span className="font-display text-lg text-primary">引</span>
+          <span>step 02 · engine</span>
+          <span className="h-1 w-1 rounded-full bg-muted/50" />
+          <span>ffmpeg + ffprobe</span>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <h1 className="font-display text-4xl leading-tight text-foreground">
+            {probing ? (
+              <>
+                Checking the <em className="not-italic text-primary">engine…</em>
+              </>
+            ) : (
+              <>
+                We need a couple of <em className="not-italic text-primary">tools.</em>
+              </>
+            )}
+          </h1>
+          <p className="max-w-[640px] text-sm leading-relaxed text-muted-foreground">
+            MoeKoder runs on <b className="text-foreground">ffmpeg + ffprobe</b> — the open-source
+            tools that decode video, burn subtitles, and mux the output. We fetch the official{' '}
+            <b className="text-foreground">BtbN ffmpeg</b> build, verify it, and drop the binaries
+            in your AppData. One-time, around <b className="text-foreground">~180 MB</b>, then never
+            again.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card/40 p-5">
+          <div className="flex items-center gap-3">
+            <span className="font-display text-3xl leading-none text-primary">具</span>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <b className="font-display text-base text-foreground">What we&apos;ll install</b>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+                destination · %LOCALAPPDATA%\moekoder\bin
+              </span>
+            </div>
+          </div>
+          <ul className="flex flex-col gap-2 font-mono text-[11.5px] text-muted-foreground">
+            <li className="flex items-center gap-3">
+              <span className="font-display text-primary">録</span>
+              <b className="font-sans text-[13px] text-foreground">ffmpeg.exe</b>
+              <span className="text-muted">· encodes video, burns subtitles</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="font-display text-primary">測</span>
+              <b className="font-sans text-[13px] text-foreground">ffprobe.exe</b>
+              <span className="text-muted">· reads duration, streams, attachments</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="font-display text-primary">印</span>
+              <b className="font-sans text-[13px] text-foreground">sha-256 verify</b>
+              <span className="text-muted">· tamper check before install</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted">
+            {probing ? 'looking for an existing install…' : 'ready when you are'}
+          </span>
+          <Button
+            variant="primary"
+            size="lg"
+            disabled={probing}
+            onClick={() => {
+              void start();
+            }}
+          >
+            <Download size={15} />
+            {probing ? 'Checking…' : 'Install ffmpeg'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const activeStage = DL_STAGES[Math.min(activeStageIdx, DL_STAGES.length - 1)];
 

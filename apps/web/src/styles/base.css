@@ -93,3 +93,45 @@ body {
   position: relative;
   z-index: 1;
 }
+
+/* ============================================================
+   Custom scrollbar — WebKit only (Chromium / Electron)
+   ------------------------------------------------------------
+   Theme-aware: track blends into the surface, thumb uses the
+   accent color at low saturation, highlights on hover. Thin by
+   default — the mocks use a 10px wide rail, which reads tight
+   against our dense layouts.
+   ============================================================ */
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+  min-height: 36px;
+  transition: background 0.15s ease;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:active {
+  background: var(--primary);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox fallback (used when Electron is swapped out / future cross-platform) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 30%, transparent) transparent;
+}
