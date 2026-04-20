@@ -37,7 +37,7 @@
     "createStartMenuShortcut": true,
     "shortcutName": "Moekoder",
     "uninstallDisplayName": "Moekoder",
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": true
   },
   "mac": {
     "target": ["dmg"],
