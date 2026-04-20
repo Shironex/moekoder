@@ -42,5 +42,23 @@ export default defineConfig({
       '@moekoder/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
   },
+  build: {
+    // Electron 41 ships Chromium 134 — ES2022 covers everything we use and
+    // skips legacy transforms (optional chaining, nullish coalescing, etc.).
+    target: 'es2022',
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules/')) return;
+          if (/\/(react|react-dom|use-sync-external-store)\//.test(id)) return 'vendor-react';
+          if (id.includes('/zustand/')) return 'vendor-zustand';
+          if (id.includes('/lucide-react/')) return 'vendor-icons';
+        },
+      },
+    },
+  },
   server: { port: VITE_DEV_PORT, strictPort: true },
 });
