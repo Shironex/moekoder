@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { UserSettings, UserSettingsKey } from '@moekoder/shared';
 import { useElectronAPI } from './useElectronAPI';
+import { logger } from '@/lib/logger';
+
+const log = logger('useSetting');
 
 /**
  * Typed binding to a single `UserSettings` key, read through the preload
@@ -29,7 +32,7 @@ export const useSetting = <K extends UserSettingsKey>(key: K) => {
       })
       .catch(err => {
         if (cancelled) return;
-        console.error(`[useSetting] failed to read "${key}"`, err);
+        log.error(`failed to read "${key}"`, err);
         setLoading(false);
       });
     return () => {

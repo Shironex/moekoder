@@ -1,4 +1,7 @@
 import type { ThemeId } from '@moekoder/shared';
+import { logger } from '@/lib/logger';
+
+const log = logger('theme');
 
 /**
  * Flip the active theme on `<html>`. DOM-only — the CSS token blocks in
@@ -25,6 +28,6 @@ export const persistTheme = async (id: ThemeId): Promise<void> => {
   try {
     await window.electronAPI?.store.set('themeId', id);
   } catch (err) {
-    console.warn('[persistTheme] could not persist to electron-store', err);
+    log.warn('could not persist to electron-store', err);
   }
 };

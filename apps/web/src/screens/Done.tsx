@@ -1,38 +1,16 @@
 import { Button, IconOpen, IconPlay, PageHead } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { useAppStore, useEncodeStore } from '@/stores';
+import { basename } from '@/lib/paths';
+import { formatBytes, formatDuration } from '@/lib/format';
+import { logger } from '@/lib/logger';
+
+const log = logger('done');
 
 interface DoneProps {
   /** Called when the user wants to start another encode. */
   onReset?: () => void;
 }
-
-/**
- * Pretty-print a byte count into the largest binary unit that keeps the
- * numerator under 1024. Matches the precision of the design's "240 MB" blurb.
- */
-const formatBytes = (bytes: number): string => {
-  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let v = bytes;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  const decimals = v >= 100 || i === 0 ? 0 : 1;
-  return `${v.toFixed(decimals)} ${units[i]}`;
-};
-
-const formatDuration = (sec: number): string => {
-  if (!Number.isFinite(sec) || sec <= 0) return '--:--';
-  const s = Math.floor(sec);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const r = s % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
-  return `${m}:${String(r).padStart(2, '0')}`;
-};
 
 interface StatProps {
   value: string;
@@ -75,7 +53,7 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
     try {
       await api.app.revealInFolder(result.file);
     } catch (err) {
-      console.error('[app:reveal-in-folder] failed', err);
+      log.error('app.revealInFolder failed', err);
     }
   };
 
@@ -96,8 +74,7 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
     <section className="relative flex flex-1 flex-col gap-8 overflow-hidden px-10 py-8">
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -bottom-24 select-none font-display text-[420px] leading-none text-primary/[0.05]"
-        style={{ letterSpacing: '-0.05em' }}
+        className="pointer-events-none absolute -right-10 -bottom-24 select-none font-display text-[420px] leading-none tracking-[-0.05em] text-primary/[0.05]"
       >
         了
       </span>
@@ -110,7 +87,7 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
             <span className="text-good">session complete</span>
             <span className="text-foreground">
-              <b>{result.file.split(/[\\/]/).pop()}</b>
+              <b>{basename(result.file)}</b>
             </span>
             <span>saved</span>
           </div>

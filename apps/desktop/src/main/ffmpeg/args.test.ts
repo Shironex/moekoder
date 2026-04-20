@@ -112,14 +112,22 @@ describe('buildEncodeArgs — QSV path', () => {
 });
 
 describe('buildEncodeArgs — audio handling', () => {
-  it('stream-copies audio by default (lossy source)', () => {
+  // The audio fallback lives in FFmpegProcessor.applyAudioFallback — it
+  // rewrites `settings.audio` to 'aac-192k' before calling into the arg
+  // builder. These tests exercise the pure settings-to-args transform.
+
+  it('stream-copies audio when settings.audio === "copy"', () => {
     const args = buildEncodeArgs(baseJob({ sourceAudioCodec: 'aac' }));
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('copy');
   });
 
-  it('transcodes to AAC 192k when source is TrueHD + container is MP4', () => {
-    const args = buildEncodeArgs(baseJob({ sourceAudioCodec: 'truehd' }));
+  it('transcodes to AAC 192k when settings.audio === "aac-192k"', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: withSettings({ audio: 'aac-192k' }),
+      })
+    );
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('aac');
     expect(args).toContain('-b:a');
@@ -127,6 +135,8 @@ describe('buildEncodeArgs — audio handling', () => {
   });
 
   it('keeps copy for TrueHD when container is MKV (MKV accepts TrueHD)', () => {
+    // Processor would not rewrite settings.audio in this case, so builder
+    // sees 'copy' verbatim.
     const args = buildEncodeArgs(
       baseJob({
         outputPath: OUT_MKV,
@@ -136,16 +146,6 @@ describe('buildEncodeArgs — audio handling', () => {
     );
     const caIdx = args.indexOf('-c:a');
     expect(args[caIdx + 1]).toBe('copy');
-  });
-
-  it('honours an explicit aac-192k setting even without a trigger codec', () => {
-    const args = buildEncodeArgs(
-      baseJob({
-        settings: withSettings({ audio: 'aac-192k' }),
-      })
-    );
-    expect(args).toContain('aac');
-    expect(args).toContain('192k');
   });
 });
 

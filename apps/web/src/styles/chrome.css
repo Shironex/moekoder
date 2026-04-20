@@ -102,6 +102,10 @@
   background: var(--card);
   color: var(--foreground);
 }
+.title-icon-btn.close:hover {
+  background: var(--bad);
+  color: white;
+}
 
 /* Native-like minimize / maximize / close triplet. */
 .win-controls {

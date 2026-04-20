@@ -5,6 +5,9 @@ import { Button, ThemePicker } from '@/components/ui';
 import { useElectronAPI, useFfmpegStatus } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
+import { logger } from '@/lib/logger';
+
+const log = logger('settings');
 
 /**
  * Section wrapper — identical visual treatment for every block on the
@@ -71,7 +74,7 @@ export const Settings = () => {
         if (!cancelled) setAppVersion(v);
       })
       .catch(err => {
-        console.warn('[settings] app.getVersion failed', err);
+        log.warn('app.getVersion failed', err);
       });
     return () => {
       cancelled = true;
@@ -91,7 +94,7 @@ export const Settings = () => {
     try {
       await api.store.set('hasCompletedOnboarding', false);
     } catch (err) {
-      console.warn('[settings] persist hasCompletedOnboarding=false failed', err);
+      log.warn('persist hasCompletedOnboarding=false failed', err);
     }
     resetOnboarding();
     setView('onboarding');
@@ -105,7 +108,7 @@ export const Settings = () => {
       resetOnboarding();
       setView('onboarding');
     } catch (err) {
-      console.error('[settings] reinstall ffmpeg failed', err);
+      log.error('reinstall ffmpeg failed', err);
       // Refresh status so the UI reflects whatever state we ended in.
       await ffmpeg.refresh();
     } finally {
@@ -118,7 +121,7 @@ export const Settings = () => {
     try {
       await api.app.openLogsFolder();
     } catch (err) {
-      console.warn('[settings] open logs folder failed', err);
+      log.warn('open logs folder failed', err);
     } finally {
       setBusy(null);
     }
@@ -129,7 +132,7 @@ export const Settings = () => {
     try {
       await api.app.openExternal(`https://github.com/${GITHUB_REPO}`);
     } catch (err) {
-      console.warn('[settings] openExternal github failed', err);
+      log.warn('openExternal github failed', err);
     } finally {
       setBusy(null);
     }
@@ -140,8 +143,7 @@ export const Settings = () => {
       {/* Ambient watermark */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -right-16 -bottom-24 select-none font-display leading-none text-primary/[0.05]"
-        style={{ fontSize: '520px' }}
+        className="pointer-events-none absolute -right-16 -bottom-24 select-none font-display text-[520px] leading-none text-primary/[0.05]"
       >
         設
       </span>

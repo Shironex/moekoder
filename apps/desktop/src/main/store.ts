@@ -23,5 +23,3 @@ export const deleteSetting = (key: UserSettingsKey): void => {
   // electron-store's `delete` restores the default on next `get`.
   store.delete(key);
 };
-
-export const getAllSettings = (): UserSettings => store.store;

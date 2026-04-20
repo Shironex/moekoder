@@ -1,18 +1,7 @@
 import { APP_EDITION, APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { IconClose, IconHistory, IconMax, IconMin, IconSettings } from '@/components/ui/icons';
+import { useWindowControls } from '@/hooks';
 import { IS_MAC } from '@/lib/platform';
-
-/**
- * Small curried logger for window-control IPC failures. The preload returns
- * promises so the renderer can observe rejections; we log and swallow so a
- * transient IPC hiccup (e.g. focus loss during the call) never surfaces as
- * an unhandled promise rejection.
- */
-const logWinErr =
-  (action: string) =>
-  (err: unknown): void => {
-    console.warn(`[titlebar] window:${action} failed`, err);
-  };
 
 export type TitlebarRoute = 'single' | 'queue';
 
@@ -58,11 +47,10 @@ export const Titlebar = ({
   onMax,
   onClose,
 }: TitlebarProps) => {
-  const winApi = window.electronAPI?.window;
-
-  const handleMin = onMin ?? (() => void winApi?.minimize().catch(logWinErr('minimize')));
-  const handleMax = onMax ?? (() => void winApi?.maximize().catch(logWinErr('maximize')));
-  const handleClose = onClose ?? (() => void winApi?.close().catch(logWinErr('close')));
+  const controls = useWindowControls('titlebar');
+  const handleMin = onMin ?? controls.onMin;
+  const handleMax = onMax ?? controls.onMax;
+  const handleClose = onClose ?? controls.onClose;
 
   return (
     <header className={`titlebar${IS_MAC ? ' titlebar--mac' : ''}`}>

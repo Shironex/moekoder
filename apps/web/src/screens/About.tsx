@@ -5,6 +5,9 @@ import { Button } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { useAppStore } from '@/stores';
 import { cn } from '@/lib/cn';
+import { logger } from '@/lib/logger';
+
+const log = logger('about');
 
 /**
  * Shiro Suite sibling apps. The Moekoder card is marked `youAreHere` so it
@@ -83,7 +86,7 @@ export const About = () => {
       .then(v => {
         if (!cancelled) setVersion(v);
       })
-      .catch(err => console.warn('[about] app.getVersion failed', err));
+      .catch(err => log.warn('app.getVersion failed', err));
     return () => {
       cancelled = true;
     };
@@ -96,7 +99,7 @@ export const About = () => {
       try {
         await api.app.openExternal(url);
       } catch (err) {
-        console.warn('[about] openExternal failed', url, err);
+        log.warn('openExternal failed', url, err);
       }
     },
     [api]
@@ -107,8 +110,7 @@ export const About = () => {
       {/* Ambient watermark */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -right-12 -bottom-28 select-none font-display leading-none text-primary/[0.05]"
-        style={{ fontSize: '520px' }}
+        className="pointer-events-none absolute -right-12 -bottom-28 select-none font-display text-[520px] leading-none text-primary/[0.05]"
       >
         {APP_SIGIL}
       </span>

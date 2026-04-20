@@ -3,7 +3,10 @@ import type { ThemeId } from '@moekoder/shared';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { useElectronAPI, useFfmpegStatus } from '@/hooks';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
+import { logger } from '@/lib/logger';
 import type { GpuProbeResult } from '@/types/electron-api';
+
+const log = logger('onboarding');
 import { OB_STEPS } from './data';
 import { OnboardingLayout } from './OnboardingLayout';
 import { Welcome } from './steps/Welcome';
@@ -70,7 +73,7 @@ export const Onboarding = () => {
         setGpuResult(r);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.error('[onboarding] gpu probe failed', err);
+        log.error('gpu probe failed', err);
         setGpuError(message);
         setGpuResult(null);
       } finally {
@@ -135,7 +138,7 @@ export const Onboarding = () => {
         api.store.set('customSavePath', inputs.customSavePath),
       ]);
     } catch (err) {
-      console.error('[onboarding] persist failed', err);
+      log.error('persist failed', err);
       // Swallow — we don't want a store blip to block the user from using
       // the app. The onboarding store still marks complete in memory; the
       // flag reconciles on the next successful write.

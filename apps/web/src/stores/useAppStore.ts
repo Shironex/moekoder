@@ -1,10 +1,6 @@
 import { create } from 'zustand';
 import { DEFAULT_THEME_ID, type ThemeId } from '@moekoder/shared';
 
-/**
- * Top-level app view. Screens are not wired yet (Phase 4b) — the initial
- * landing view is `splash`, matching the HTML prototype's boot sequence.
- */
 export type AppView =
   | 'splash'
   | 'onboarding'
@@ -22,7 +18,6 @@ interface AppState {
   setView: (view: AppView) => void;
   setThemeId: (id: ThemeId) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  toggleSidebar: () => void;
 }
 
 /**
@@ -38,5 +33,4 @@ export const useAppStore = create<AppState>(set => ({
   setView: activeView => set({ activeView }),
   setThemeId: themeId => set({ themeId }),
   setSidebarCollapsed: sidebarCollapsed => set({ sidebarCollapsed }),
-  toggleSidebar: () => set(s => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 }));

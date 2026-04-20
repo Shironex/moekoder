@@ -3,6 +3,9 @@ import { ClipboardCopy, RefreshCw } from 'lucide-react';
 import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/cn';
+import { logger } from '@/lib/logger';
+
+const log = logger('crash');
 
 interface CrashFallbackProps {
   /** Underlying error, when available. ErrorBoundary passes this through. */
@@ -73,7 +76,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2200);
     } catch (err) {
-      console.warn('[crash] clipboard write failed', err);
+      log.warn('clipboard write failed', err);
     }
   }, [report]);
 
@@ -90,14 +93,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
       {/* Huge kanji watermark in the bottom-left, well behind everything. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute select-none font-display leading-none text-bad"
-        style={{
-          left: '-60px',
-          bottom: '-120px',
-          fontSize: '560px',
-          opacity: 0.06,
-          letterSpacing: '-0.05em',
-        }}
+        className="pointer-events-none absolute -bottom-[120px] -left-[60px] select-none font-display text-[560px] leading-none tracking-[-0.05em] text-bad opacity-[0.06]"
       >
         崩
       </span>
@@ -106,9 +102,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
       <div className="relative z-[1] flex min-h-0 flex-col overflow-y-auto px-12 py-16 lg:px-20 lg:py-24">
         {/* Eyebrow chip */}
         <div className="mb-8 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.28em] text-bad">
-          <span className="font-display text-base text-bad" style={{ letterSpacing: 0 }}>
-            崩
-          </span>
+          <span className="font-display text-base tracking-normal text-bad">崩</span>
           <span className="h-px w-8 bg-bad" />
           <span>unexpected error · hou · collapse</span>
         </div>
@@ -143,9 +137,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
 
         {/* Aux pills */}
         <div className="mt-10 flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          <span className="font-display text-base text-primary" style={{ letterSpacing: 0 }}>
-            {APP_SIGIL}
-          </span>
+          <span className="font-display text-base tracking-normal text-primary">{APP_SIGIL}</span>
           <span>{APP_NAME}</span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
           <span>session · crashed</span>

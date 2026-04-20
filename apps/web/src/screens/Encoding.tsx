@@ -17,35 +17,16 @@ import { useElectronAPI } from '@/hooks';
 import { useEncodeStore, type EncodeLogLine } from '@/stores';
 import type { PickedFile } from '@/components/chrome';
 import { cn } from '@/lib/cn';
+import { formatDuration, formatTimestamp } from '@/lib/format';
+import { logger } from '@/lib/logger';
+
+const log = logger('encoding');
 
 interface EncodingProps {
   video: PickedFile | null;
   subs: PickedFile | null;
   out: { name: string; path: string } | null;
 }
-
-/**
- * Format seconds as `m:ss` / `h:mm:ss`. Input that isn't finite collapses
- * to `--:--` so the ring / metric row never shows `NaN:NaN`.
- */
-const formatDuration = (sec: number): string => {
-  if (!Number.isFinite(sec) || sec < 0) return '--:--';
-  const s = Math.floor(sec);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const r = s % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
-  return `${m}:${String(r).padStart(2, '0')}`;
-};
-
-const formatTimestamp = (ms: number): string => {
-  const d = new Date(ms);
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
-  const s = String(d.getSeconds()).padStart(2, '0');
-  const ms3 = String(d.getMilliseconds()).padStart(3, '0');
-  return `${h}:${m}:${s}.${ms3}`;
-};
 
 interface LogPanelProps {
   logs: EncodeLogLine[];
@@ -130,7 +111,7 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
     try {
       await api.encode.cancel(jobId);
     } catch (err) {
-      console.error('[encode:cancel] failed', err);
+      log.error('encode.cancel failed', err);
     }
   };
 

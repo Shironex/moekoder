@@ -50,14 +50,6 @@ function runGated<T>(url: string, op: () => Promise<T>): Promise<T> {
 }
 
 /**
- * Gated `fetch`. Respects the per-host minimum spacing before issuing the
- * request — callers still handle the response themselves.
- */
-export async function httpFetch(url: string, init?: RequestInit): Promise<Response> {
-  return runGated(url, () => fetch(url, init));
-}
-
-/**
  * Gated file download. Composes `downloadFile` with the per-host gate so
  * sequential downloads from the same CDN space themselves correctly.
  */

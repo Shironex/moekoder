@@ -17,8 +17,21 @@ import type { InstallProgress } from '../main/ffmpeg/manager';
 import type { ProbeResult } from '../main/ffmpeg/probe';
 import type { GpuProbeResult } from '../main/ffmpeg/gpu-probe';
 import type { PreflightResult } from '../main/ffmpeg/disk-space';
-import type { EncodeProgress, EncodeResult, LogLine } from '../main/ffmpeg/processor';
+import type { EncodeProgress, LogLine } from '../main/ffmpeg/processor';
 import type { EncodeStartInput, EncodeStartResult } from '../main/encode/orchestrator';
+
+/**
+ * Wire-level encode completion payload. The handler (`handlers/encode.ts`)
+ * normalizes `FFmpegProcessor.EncodeResult` — which uses `outputPath` /
+ * `outputBytes` — into this shape before sending over IPC, so the renderer
+ * sees a stable `{ file, bytes, ... }` contract.
+ */
+export interface EncodeResultPayload {
+  file: string;
+  durationSec: number;
+  bytes: number;
+  avgFps: number;
+}
 
 interface PreflightInput {
   videoPath: string;
@@ -68,7 +81,7 @@ export interface ElectronAPI {
     getPreflight: (input: PreflightInput) => Promise<PreflightResult>;
     onProgress: (handler: (jobId: string, p: EncodeProgress) => void) => () => void;
     onLog: (handler: (jobId: string, line: LogLine) => void) => () => void;
-    onComplete: (handler: (jobId: string, result: EncodeResult) => void) => () => void;
+    onComplete: (handler: (jobId: string, result: EncodeResultPayload) => void) => () => void;
     onError: (
       handler: (jobId: string, error: { code: string; message: string }) => void
     ) => () => void;

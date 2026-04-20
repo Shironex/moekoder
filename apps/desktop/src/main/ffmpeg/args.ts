@@ -9,26 +9,28 @@
  * All paths:
  *   - Escape the subtitle path through the 3-layer Windows / POSIX escape
  *     (see `path-escape.ts`).
- *   - Emit `-progress pipe:1 -nostats` so {@link parseProgressPipe} can
- *     consume structured progress over stdout.
+ *   - Emit `-progress pipe:1 -nostats` so `parseProgressPipe` can consume
+ *     structured progress over stdout.
  *   - Write `-movflags +faststart` for MP4 so players can begin playback
  *     before the muxer has finished writing the moov atom.
  *   - Overwrite (`-y`) — the orchestrator owns output-path collision checks.
- *   - Auto-transcode incompatible audio to AAC 192k when targeting MP4
- *     (see {@link shouldTranscodeAudio}).
+ *
+ * Audio is consumed verbatim from `settings.audio`: `copy` → stream-copy,
+ * `aac-192k` → transcode. The caller (FFmpegProcessor) is responsible for
+ * applying the lossless-in-MP4 audio fallback *before* calling into the
+ * builder — keeping the decision in one place and letting the builder
+ * remain a pure settings-to-args transform.
  */
-import { shouldTranscodeAudio } from './audio-fallback';
 import { escapeSubtitlePath } from './path-escape';
 import type { EncodingSettings } from './settings';
-
-export { shouldTranscodeAudio };
 
 export interface EncodeJob {
   videoPath: string;
   subtitlePath: string;
   outputPath: string;
   settings: EncodingSettings;
-  /** Detected source audio codec — used by the audio-fallback logic. */
+  /** Detected source audio codec — informational only; the audio plan is
+   *  already settled in `settings.audio` by the processor. */
   sourceAudioCodec?: string;
 }
 
@@ -85,16 +87,8 @@ const buildVideoArgs = (settings: EncodingSettings): string[] => {
   ];
 };
 
-const buildAudioArgs = (
-  settings: EncodingSettings,
-  sourceAudioCodec: string | undefined
-): string[] => {
-  const effectiveAudio =
-    settings.audio === 'copy' && shouldTranscodeAudio(sourceAudioCodec, settings.container)
-      ? 'aac-192k'
-      : settings.audio;
-
-  if (effectiveAudio === 'copy') {
+const buildAudioArgs = (settings: EncodingSettings): string[] => {
+  if (settings.audio === 'copy') {
     return ['-c:a', 'copy'];
   }
   return ['-c:a', 'aac', '-b:a', '192k'];
@@ -107,7 +101,7 @@ const buildAudioArgs = (
  * quoting is needed around paths.
  */
 export const buildEncodeArgs = (job: EncodeJob): string[] => {
-  const { videoPath, subtitlePath, outputPath, settings, sourceAudioCodec } = job;
+  const { videoPath, subtitlePath, outputPath, settings } = job;
 
   const args: string[] = [];
 
@@ -120,8 +114,8 @@ export const buildEncodeArgs = (job: EncodeJob): string[] => {
   // Video encoder + rate control.
   args.push(...buildVideoArgs(settings));
 
-  // Audio plan (with MP4-lossless auto-transcode).
-  args.push(...buildAudioArgs(settings, sourceAudioCodec));
+  // Audio plan (pre-settled by the processor).
+  args.push(...buildAudioArgs(settings));
 
   // Container-specific flags.
   if (settings.container === 'mp4') {

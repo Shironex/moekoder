@@ -2,20 +2,10 @@ import { type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { APP_NAME } from '@moekoder/shared';
 import { Button, IconCheck, IconClose, IconMax, IconMin } from '@/components/ui';
+import { useWindowControls } from '@/hooks';
 import { cn } from '@/lib/cn';
 import { IS_MAC } from '@/lib/platform';
 import { OB_STEPS, type OnboardingStepId, type OnboardingStepMeta } from './data';
-
-/**
- * Curried logger for window-control IPC failures inside onboarding. Mirrors
- * the helper in Titlebar — we never want a stray IPC rejection to surface as
- * an unhandled error during first-launch setup.
- */
-const logWinErr =
-  (action: string) =>
-  (err: unknown): void => {
-    console.warn(`[onboarding] window:${action} failed`, err);
-  };
 
 interface OnboardingLayoutProps {
   /** Current step id — used to derive rail status + footer affordances. */
@@ -126,10 +116,11 @@ export const OnboardingLayout = ({
     nextLabel ??
     (isLast ? 'Start encoding' : idx === OB_STEPS.length - 2 ? 'Finish setup' : 'Continue');
 
-  const winApi = window.electronAPI?.window;
-  const handleMin = (): void => void winApi?.minimize().catch(logWinErr('minimize'));
-  const handleMax = (): void => void winApi?.maximize().catch(logWinErr('maximize'));
-  const handleClose = (): void => void winApi?.close().catch(logWinErr('close'));
+  const {
+    onMin: handleMin,
+    onMax: handleMax,
+    onClose: handleClose,
+  } = useWindowControls('onboarding');
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background text-foreground">
@@ -144,27 +135,12 @@ export const OnboardingLayout = ({
           50%      { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 0%, transparent); }
         }
         .ob-nodrag { -webkit-app-region: no-drag; }
-        .ob-winctl-btn {
-          width: 36px;
-          height: 32px;
-          background: transparent;
-          border: 0;
-          color: var(--muted-foreground);
-          cursor: pointer;
-          border-radius: 6px;
-          display: grid;
-          place-items: center;
-          transition: all 0.15s;
-        }
-        .ob-winctl-btn:hover { background: var(--card); color: var(--foreground); }
-        .ob-winctl-btn.close:hover { background: var(--bad); color: white; }
       `}</style>
 
       {/* Ambient watermark — huge step kanji breathing behind everything. */}
       <span
         aria-hidden="true"
-        className="moekoder-ob-breathe pointer-events-none absolute -right-32 top-1/2 z-0 -translate-y-1/2 select-none font-display leading-none text-primary"
-        style={{ fontSize: '620px' }}
+        className="moekoder-ob-breathe pointer-events-none absolute -right-32 top-1/2 z-0 -translate-y-1/2 select-none font-display text-[620px] leading-none text-primary"
       >
         {current.kanji}
       </span>
@@ -195,10 +171,10 @@ export const OnboardingLayout = ({
           </span>
         </div>
         {!IS_MAC && (
-          <div className="ob-nodrag ml-2 flex items-center">
+          <div className="ob-nodrag ml-2 flex items-center gap-0.5">
             <button
               type="button"
-              className="ob-winctl-btn"
+              className="title-icon-btn"
               onClick={handleMin}
               title="Minimize"
               aria-label="Minimize"
@@ -207,7 +183,7 @@ export const OnboardingLayout = ({
             </button>
             <button
               type="button"
-              className="ob-winctl-btn"
+              className="title-icon-btn"
               onClick={handleMax}
               title="Maximize"
               aria-label="Maximize"
@@ -216,7 +192,7 @@ export const OnboardingLayout = ({
             </button>
             <button
               type="button"
-              className="ob-winctl-btn close"
+              className="title-icon-btn close"
               onClick={handleClose}
               title="Close"
               aria-label="Close"

@@ -5,6 +5,7 @@ import { log, cleanupOldLogs } from './logger';
 import { createMainWindow } from './window';
 import { applyCsp } from './security/apply-csp';
 import { registerAllIpcHandlers, cleanupAllIpcHandlers } from './ipc/register';
+import { cancelAllEncodes } from './encode/orchestrator';
 import { initUpdater } from './updater';
 
 let mainWindow: BrowserWindow | null = null;
@@ -90,13 +91,19 @@ if (!gotLock) {
     shuttingDown = true;
 
     void (async () => {
+      // SIGTERM every in-flight ffmpeg child and wait for its `close` event
+      // before tearing down IPC — closing handlers while a processor is
+      // still emitting would surface as a dropped error on the renderer.
+      try {
+        await cancelAllEncodes();
+      } catch (err) {
+        log.warn('Failed to drain active encodes:', err);
+      }
       try {
         cleanupAllIpcHandlers();
       } catch (err) {
         log.warn('Failed to cleanup IPC handlers:', err);
       }
-      // TODO(phase-2b): await ffmpeg process termination here.
-      // TODO(phase-3): await encode worker drain + flushLogs here.
     })().finally(() => {
       cleanupDone = true;
       app.quit();

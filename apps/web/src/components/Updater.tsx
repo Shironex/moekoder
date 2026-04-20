@@ -4,6 +4,9 @@ import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { Button } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
+import { logger } from '@/lib/logger';
+
+const log = logger('updater');
 
 type UpdaterPhase =
   | 'idle'
@@ -147,7 +150,7 @@ export const Updater = () => {
         try {
           u();
         } catch (err) {
-          console.warn('[updater] unsubscribe failed', err);
+          log.warn('unsubscribe failed', err);
         }
       }
       clearHide();
@@ -158,7 +161,7 @@ export const Updater = () => {
     try {
       await api.updater.download();
     } catch (err) {
-      console.warn('[updater] download failed', err);
+      log.warn('download failed', err);
     }
   }, [api]);
 
@@ -166,7 +169,7 @@ export const Updater = () => {
     try {
       await api.updater.install();
     } catch (err) {
-      console.warn('[updater] install failed', err);
+      log.warn('install failed', err);
     }
   }, [api]);
 
@@ -191,9 +194,7 @@ export const Updater = () => {
     >
       {/* Common header pill */}
       <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-        <span className="font-display text-base text-primary" style={{ letterSpacing: 0 }}>
-          新
-        </span>
+        <span className="font-display text-base tracking-normal text-primary">新</span>
         <span>{phase === 'error' ? 'update · error' : 'update · 新 · shin'}</span>
         <div className="flex-1" />
         <button

@@ -2,7 +2,10 @@ import { useCallback } from 'react';
 import { Button, IconFolder } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
+import { logger } from '@/lib/logger';
 import { OB_SAVES, type ObSaveId } from '../data';
+
+const log = logger('onboarding/save');
 
 interface SaveStepProps {
   value: ObSaveId;
@@ -26,7 +29,7 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
       onCustomPath(res.folderPath);
       onChange('custom');
     } catch (err) {
-      console.error('[onboarding/save] dialog.openFolder failed', err);
+      log.error('dialog.openFolder failed', err);
     }
   }, [api, onChange, onCustomPath]);
 

@@ -14,53 +14,15 @@ import {
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
+import { basename, extOf, joinPath, stripExt } from '@/lib/paths';
+import { logger } from '@/lib/logger';
 import { resolveOutputDir } from '@/lib/resolve-output';
 // `applyTheme` is DOM-only — persistence happens at explicit user-action
 // callsites (onboarding Theme step, Settings) via `persistTheme`. If this
 // boot-time effect called a persisting variant, the default `themeId` would
 // clobber the user's saved choice before `useSetting` could hydrate it.
 
-/**
- * Extract a trailing filename from a path using both `/` and `\` as
- * separators so Windows and POSIX shells both work. Falls back to the input
- * when no separator is present.
- */
-const basename = (p: string): string => {
-  const segs = p.split(/[\\/]/);
-  return segs[segs.length - 1] || p;
-};
-
-/**
- * Extension (without dot), derived from the tail of the filename. Empty when
- * the filename has no extension.
- */
-const extOf = (p: string): string | undefined => {
-  const name = basename(p);
-  const dot = name.lastIndexOf('.');
-  if (dot <= 0 || dot === name.length - 1) return undefined;
-  return name.slice(dot + 1).toLowerCase();
-};
-
-/**
- * Strip the extension from a filename. Used when composing the default
- * output name from the video source.
- */
-const stripExt = (name: string): string => {
-  const dot = name.lastIndexOf('.');
-  if (dot <= 0) return name;
-  return name.slice(0, dot);
-};
-
-/**
- * Join an output directory with a filename using the platform-appropriate
- * separator (inferred from the directory itself so we don't pull `path` in).
- */
-const joinPath = (dir: string, file: string): string => {
-  if (!dir) return file;
-  const sep = dir.includes('\\') ? '\\' : '/';
-  const trimmed = dir.endsWith('/') || dir.endsWith('\\') ? dir.slice(0, -1) : dir;
-  return `${trimmed}${sep}${file}`;
-};
+const log = logger('app');
 
 const VIDEO_FILTERS = [
   { name: 'Video', extensions: ['mkv', 'mp4', 'mov', 'avi', 'webm', 'm4v'] },
@@ -170,7 +132,7 @@ export const App = () => {
     try {
       await api.store.set('sidebarCollapsed', next);
     } catch (err) {
-      console.warn('[sidebar] persist failed', err);
+      log.warn('sidebar persist failed', err);
     }
   }, [api, setSidebarCollapsed]);
 
@@ -224,7 +186,7 @@ export const App = () => {
         setOut({ name: outputName, path: outputDir });
       }
     } catch (err) {
-      console.error('[dialog.openFile video] failed', err);
+      log.error('dialog.openFile video failed', err);
     }
   }, [api, saveTarget, customSavePath]);
 
@@ -235,7 +197,7 @@ export const App = () => {
       const name = basename(res.filePath);
       setSubs({ name, path: res.filePath, ext: extOf(res.filePath) });
     } catch (err) {
-      console.error('[dialog.openFile subs] failed', err);
+      log.error('dialog.openFile subs failed', err);
     }
   }, [api]);
 
@@ -246,7 +208,7 @@ export const App = () => {
       const baseName = video ? `${stripExt(video.name)}.mp4` : 'output.mp4';
       setOut({ name: baseName, path: res.folderPath });
     } catch (err) {
-      console.error('[dialog.openFolder] failed', err);
+      log.error('dialog.openFolder failed', err);
     }
   }, [api, video]);
 
@@ -269,7 +231,7 @@ export const App = () => {
       setPhase('running');
       setView('single-encoding');
     } catch (err) {
-      console.error('[encode.start] failed', err);
+      log.error('encode.start failed', err);
     }
   }, [api, video, subs, out, phase, clearLogs, setJobId, setPhase, setView]);
 

@@ -39,17 +39,47 @@ export interface InstallProgress {
   message?: string;
 }
 
-/** ffprobe-derived media summary — mirrors `ffmpeg/probe` ProbeResult. */
-export interface ProbeResult {
-  durationSec: number;
-  bitrateKbps: number;
+/** One video stream entry from ffprobe. Mirrors `ffmpeg/probe` ProbeVideoStream. */
+export interface ProbeVideoStream {
+  index: number;
+  codec: string;
   width: number;
   height: number;
   fps: number;
+}
+
+/** One audio stream entry from ffprobe. Mirrors `ffmpeg/probe` ProbeAudioStream. */
+export interface ProbeAudioStream {
+  index: number;
   codec: string;
-  container: string;
-  hasAudio: boolean;
-  hasSubtitles: boolean;
+  sampleRate: number;
+  channels: number;
+  language?: string;
+}
+
+/** One subtitle stream entry from ffprobe. Mirrors `ffmpeg/probe` ProbeSubtitleStream. */
+export interface ProbeSubtitleStream {
+  index: number;
+  codec: string;
+  language?: string;
+  title?: string;
+}
+
+/** One attachment entry from ffprobe. Mirrors `ffmpeg/probe` ProbeAttachment. */
+export interface ProbeAttachment {
+  index: number;
+  filename?: string;
+  mimeType?: string;
+}
+
+/** ffprobe-derived media summary — mirrors `ffmpeg/probe` ProbeResult verbatim. */
+export interface ProbeResult {
+  durationSec: number;
+  format: { name: string; size: number; bitRate: number };
+  videoStreams: ProbeVideoStream[];
+  audioStreams: ProbeAudioStream[];
+  subtitleStreams: ProbeSubtitleStream[];
+  attachments: ProbeAttachment[];
 }
 
 /** Vendor identifiers the probe knows about. Mirrors `ffmpeg/gpu-probe` GpuVendor. */
@@ -65,13 +95,15 @@ export interface GpuProbeResult {
   details: Record<GpuVendor, { encoders: string[] } | null>;
 }
 
-/** Disk-space / preflight summary — mirrors `ffmpeg/disk-space` PreflightResult. */
+/** Disk-space / preflight summary — mirrors `ffmpeg/disk-space` PreflightResult verbatim. */
 export interface PreflightResult {
   ok: boolean;
   freeBytes: number;
   estimatedBytes: number;
-  marginBytes: number;
-  reason?: string;
+  /** Safety margin added on top of the estimate before checking free space. */
+  safetyMarginBytes: number;
+  /** Bytes needed beyond what's free; `0` when ok. */
+  shortfallBytes: number;
 }
 
 /** Streaming encode progress — mirrors `ffmpeg/processor` EncodeProgress. */

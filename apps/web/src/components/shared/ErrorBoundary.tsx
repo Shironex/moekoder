@@ -1,6 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, ClipboardCopy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { logger } from '@/lib/logger';
+
+const log = logger('ErrorBoundary');
 
 type ErrorBoundaryVariant = 'root' | 'view';
 
@@ -188,12 +191,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     this.setState({ error, info });
-    // Local console log — always emitted so dev-tools catch the trace.
-    console.error(
-      `[ErrorBoundary:${this.props.viewName ?? 'unknown'}]`,
-      error,
-      info.componentStack
-    );
+    // Always emit so dev-tools catch the trace.
+    log.error(`boundary:${this.props.viewName ?? 'unknown'}`, error, info.componentStack);
     // Best-effort forward to main process if the surface is already wired;
     // silently no-op otherwise so an early-boot crash still renders the card.
     const reporter = (
@@ -236,7 +235,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       await navigator.clipboard.writeText(payload);
       this.setState({ reportCopied: true });
     } catch (clipboardErr) {
-      console.warn('[ErrorBoundary] clipboard write failed', clipboardErr);
+      log.warn('clipboard write failed', clipboardErr);
     }
   };
 

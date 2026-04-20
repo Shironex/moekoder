@@ -89,7 +89,13 @@ export interface OrchestratorDeps {
   newJobId: () => string;
 }
 
-const activeJobs = new Map<string, { cancel: () => void }>();
+interface ActiveJob {
+  cancel: () => void;
+  /** Resolves when the processor run settles (complete or error — never rejects). */
+  done: Promise<void>;
+}
+
+const activeJobs = new Map<string, ActiveJob>();
 
 /** Publicly-readable active job ids (mostly for tests + diagnostics). */
 export const getActiveJobIds = (): string[] => [...activeJobs.keys()];
@@ -152,13 +158,14 @@ export const startEncode = async (
     },
   });
 
-  activeJobs.set(jobId, { cancel: () => processor.cancel() });
-
   // Fire and forget — the processor surfaces results via its callbacks.
-  void processor.run().catch(() => {
-    // Already reported through `onError`; swallow here so the unhandled
-    // rejection doesn't escape the orchestrator's process boundary.
-  });
+  // Retain the settlement promise so graceful shutdown can await it when
+  // the app is quitting mid-encode.
+  const done = processor.run().then(
+    () => undefined,
+    () => undefined
+  );
+  activeJobs.set(jobId, { cancel: () => processor.cancel(), done });
 
   return { jobId, preflight };
 };
@@ -169,6 +176,18 @@ export const cancelEncode = (jobId: string): boolean => {
   if (!entry) return false;
   entry.cancel();
   return true;
+};
+
+/**
+ * Cancel every active encode and wait for each processor to settle. Used by
+ * the `before-quit` shutdown path so the app doesn't exit while ffmpeg is
+ * still writing frames — leaving a truncated output behind. Safe to call
+ * when no jobs are running (resolves immediately).
+ */
+export const cancelAllEncodes = async (): Promise<void> => {
+  const jobs = [...activeJobs.values()];
+  for (const job of jobs) job.cancel();
+  await Promise.allSettled(jobs.map(j => j.done));
 };
 
 /** Default dependency wiring for production. */

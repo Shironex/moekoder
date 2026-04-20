@@ -140,7 +140,3 @@ export function quitAndInstall(): void {
   if (!enabled) return;
   autoUpdater.quitAndInstall();
 }
-
-export function isUpdaterEnabled(): boolean {
-  return enabled;
-}

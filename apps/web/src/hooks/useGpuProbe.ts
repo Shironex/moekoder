@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useElectronAPI } from './useElectronAPI';
+import { logger } from '@/lib/logger';
 import type { GpuProbeResult } from '@/types/electron-api';
+
+const log = logger('useGpuProbe');
 
 interface GpuProbeHook {
   result: GpuProbeResult | null;
@@ -29,7 +32,7 @@ export const useGpuProbe = (): GpuProbeHook => {
       setResult(r);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error('[useGpuProbe] probe failed', err);
+      log.error('probe failed', err);
       setError(message);
       setResult(null);
     } finally {

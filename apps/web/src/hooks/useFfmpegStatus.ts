@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useElectronAPI } from './useElectronAPI';
+import { logger } from '@/lib/logger';
+
+const log = logger('useFfmpegStatus');
 
 interface FfmpegStatus {
   installed: boolean;
@@ -29,7 +32,7 @@ export const useFfmpegStatus = (): FfmpegStatus => {
       setInstalled(isInstalled);
       setVersion(v);
     } catch (err) {
-      console.error('[useFfmpegStatus] probe failed', err);
+      log.error('probe failed', err);
       setInstalled(false);
       setVersion(null);
     } finally {

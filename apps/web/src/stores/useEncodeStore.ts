@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type EncodePhase = 'idle' | 'running' | 'paused' | 'done' | 'error' | 'cancelled';
+export type EncodePhase = 'idle' | 'running' | 'done' | 'error' | 'cancelled';
 
 export type EncodeLogLevel = 'info' | 'warn' | 'error' | 'trace';
 
