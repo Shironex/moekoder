@@ -1,6 +1,7 @@
 import { PageHead } from '@/components/ui';
 import type { PickedFile } from '@/components/chrome';
 import { cn } from '@/lib/cn';
+import mascotUrl from '@/assets/mascot.png';
 
 interface IdleProps {
   video: PickedFile | null;
@@ -72,24 +73,23 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
       />
 
       <div className="relative z-[1] flex flex-1 flex-col items-start justify-center gap-6 rounded-lg border border-dashed border-border/80 bg-card/30 p-10">
-        {/* Centered ambient overlay — kanji flanked by two soft hairlines.
-            Sits behind the left-aligned content at low opacity so it reads
-            as watermark, not chrome. Only visible on wider cards so narrow
-            layouts don't feel cluttered. */}
+        {/* Centered ambient overlay — mascot flanked by two soft hairlines.
+            Sits behind the left-aligned content with a dimmed opacity so she
+            reads as a waiting companion, not foreground chrome. Only visible
+            on wider cards so narrow layouts don't feel cluttered. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex"
         >
           <div className="flex items-center gap-5">
             <span className="h-px w-20 bg-gradient-to-r from-transparent to-primary/30" />
-            <span
-              className="select-none font-display text-[140px] leading-none text-primary/20"
-              style={{
-                textShadow: '0 0 40px color-mix(in oklab, var(--primary) 25%, transparent)',
-              }}
-            >
-              始
-            </span>
+            <img
+              src={mascotUrl}
+              alt=""
+              width={200}
+              height={200}
+              className="h-[200px] w-[200px] select-none object-contain opacity-45 drop-shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
+            />
             <span className="h-px w-20 bg-gradient-to-l from-transparent to-primary/30" />
           </div>
         </div>

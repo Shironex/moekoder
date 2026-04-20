@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 /**
  * Ambient declarations for build-time constants wired into the bundle via
  * Vite's `define` option (see `vite.config.ts`). Each entry here is replaced

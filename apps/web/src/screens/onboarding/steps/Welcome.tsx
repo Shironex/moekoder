@@ -1,3 +1,5 @@
+import mascotUrl from '@/assets/mascot.png';
+
 /**
  * Step 01 · Welcome. Static intro card — introduces the app, the three
  * things it does, and a "bring your own" disclaimer seal. No user input
@@ -30,17 +32,27 @@ export const Welcome = () => (
       <span>挨拶</span>
     </div>
 
-    {/* Title */}
-    <div className="flex flex-col gap-3">
-      <h1 className="font-display text-5xl leading-tight text-foreground">
-        Welcome. <em className="not-italic text-primary">The kettle&apos;s on.</em>
-      </h1>
-      <p className="max-w-[680px] text-base leading-relaxed text-muted-foreground">
-        MoeKoder is a tiny Windows app that burns subtitles into video files —{' '}
-        <b className="text-foreground">one MKV, one ASS, one MP4 out the other side</b>. Takes about
-        ninety seconds to set up, then it&apos;s out of your way. Here&apos;s what you&apos;re
-        getting into.
-      </p>
+    {/* Title + mascot greeting */}
+    <div className="flex items-start gap-6">
+      <img
+        src={mascotUrl}
+        alt=""
+        aria-hidden="true"
+        width={160}
+        height={160}
+        className="hidden h-[160px] w-[160px] shrink-0 object-contain drop-shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_35%,transparent)] md:block"
+      />
+      <div className="flex flex-col gap-3">
+        <h1 className="font-display text-5xl leading-tight text-foreground">
+          Welcome. <em className="not-italic text-primary">The kettle&apos;s on.</em>
+        </h1>
+        <p className="max-w-[680px] text-base leading-relaxed text-muted-foreground">
+          MoeKoder is a tiny desktop app that burns subtitles into video files —{' '}
+          <b className="text-foreground">one MKV, one ASS, one MP4 out the other side</b>. Takes
+          about ninety seconds to set up, then it&apos;s out of your way. Here&apos;s what
+          you&apos;re getting into.
+        </p>
+      </div>
     </div>
 
     {/* Three bullets + seal */}

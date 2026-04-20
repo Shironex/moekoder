@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { cn } from '@/lib/cn';
+import mascotUrl from '@/assets/mascot.png';
 
 interface SplashProps {
   /** Called once the boot sequence has finished advancing. */
@@ -183,9 +184,14 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
 
       {/* Hero */}
       <div className="relative z-[1] flex flex-1 flex-col items-center justify-center gap-5 text-center">
-        <div className="moekoder-breathe font-display text-[220px] leading-none text-primary drop-shadow-[0_0_30px_color-mix(in_oklab,var(--primary)_45%,transparent)]">
-          夜
-        </div>
+        <img
+          src={mascotUrl}
+          alt=""
+          aria-hidden="true"
+          width={240}
+          height={240}
+          className="moekoder-breathe h-[240px] w-[240px] object-contain drop-shadow-[0_0_30px_color-mix(in_oklab,var(--primary)_45%,transparent)]"
+        />
         <div className="flex flex-col items-center gap-2">
           <div className="font-display text-5xl leading-none text-foreground">
             Moe<em className="not-italic text-primary">Koder</em>
@@ -247,7 +253,7 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
             © 2026 · <b className="text-foreground">{APP_NAME}</b>
           </span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
-          <span>MIT · open source</span>
+          <span>source available</span>
         </div>
         <div className="flex items-center gap-3">
           <span>powered by ffmpeg</span>
