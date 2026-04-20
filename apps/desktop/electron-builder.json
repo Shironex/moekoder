@@ -9,6 +9,7 @@
     "buildResources": "build"
   },
   "files": ["dist/**/*", "package.json"],
+  "electronLanguages": ["en-US"],
   "publish": [
     {
       "provider": "github",
