@@ -107,8 +107,20 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
           0%, 100% { transform: scale(1); opacity: 0.92; }
           50%      { transform: scale(1.03); opacity: 1; }
         }
+        @keyframes moekoderTrackSlide {
+          from { background-position: -100% 0; }
+          to   { background-position: 100% 0; }
+        }
         .moekoder-petal { position: absolute; top: 0; animation-name: moekoderPetalFall; animation-timing-function: linear; animation-iteration-count: infinite; pointer-events: none; }
         .moekoder-breathe { animation: moekoderBreathe 6s ease-in-out infinite; }
+        .moekoder-track-fill {
+          height: 100%;
+          width: 100%;
+          border-radius: 2px;
+          background: linear-gradient(90deg, transparent, var(--primary), color-mix(in oklab, var(--primary) 60%, white), var(--primary), transparent);
+          background-size: 200% 100%;
+          animation: moekoderTrackSlide 1.6s linear infinite;
+        }
       `}</style>
 
       {/* Ambient corner watermarks */}
@@ -238,11 +250,12 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
             </div>
           );
         })}
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-card">
-          <div
-            className="h-full bg-primary transition-[width] duration-500"
-            style={{ width: `${Math.min(100, (stepIdx / BOOT_STEPS.length) * 100)}%` }}
-          />
+        {/* Indeterminate track — step rows above already carry "how far"
+            information via their DONE/RUNNING/WAIT status, so this slider is
+            purely a "still working" cue. Ports the prototype's `.sp-track` /
+            `trackSlide` sweep from docs/Moekoder/MoeKoder Splash.html. */}
+        <div className="relative mt-3 h-[2px] overflow-hidden rounded-sm bg-border">
+          <div className="moekoder-track-fill" aria-hidden />
         </div>
       </div>
 
