@@ -161,6 +161,9 @@ export const App = () => {
       onPickOut={onPickOut}
       onStart={onStart}
       encoding={phase === 'running'}
+      saveTarget={saveTarget}
+      hwChoice={hwChoice}
+      container={container}
       collapsed={sidebarCollapsed}
       onToggleCollapsed={onToggleSidebar}
     />

@@ -14,7 +14,12 @@ body {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  background: oklch(0.05 0.01 300);
+  /* Theme-reactive. Literal fallback matches Plum (the default `DEFAULT_THEME_ID`)
+     so first-paint and the rare no-theme state (crash boundary, etc.) read right
+     instead of showing a dead dark-purple behind translucent chrome — which was
+     bleeding through `bg-popover/40` surfaces on the onboarding rail whenever a
+     light theme (Paper) was active. */
+  background: var(--background, oklch(0.12 0.018 300));
 }
 
 body {

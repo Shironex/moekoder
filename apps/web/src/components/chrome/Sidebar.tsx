@@ -1,4 +1,5 @@
 import type { MouseEventHandler } from 'react';
+import type { ContainerChoice, HwChoice, SaveTarget } from '@moekoder/shared';
 import { IconChevron, IconPlay } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
@@ -33,12 +34,15 @@ export interface SidebarProps {
    * the UI should never invite the click in the first place).
    */
   encoding?: boolean;
-  /** GPU availability summary — e.g. `{ label: 'NVENC', detail: 'gpu · ready' }`. */
-  gpu?: { label: string; detail: string } | null;
-  /** Human-readable free-space value — e.g. `"3.16 TB"`. */
-  freeBytesLabel?: string | null;
-  /** Disk identifier for the value (e.g. `"D:"`). */
-  freeBytesDisk?: string | null;
+  /**
+   * User's onboarding picks, surfaced on the rail-bottom stat row so the user
+   * can see their encoding profile at a glance without opening Settings.
+   * Each is nullable because `useSetting` hydrates asynchronously — the
+   * stat falls back to `—` while the store read is in flight.
+   */
+  saveTarget?: SaveTarget | null;
+  hwChoice?: HwChoice | null;
+  container?: ContainerChoice | null;
   /**
    * When true, the sidebar renders as a ~64px kanji rail: header shrinks to
    * the sigil tile, stages keep only the numeral + identity kanji, the CTA
@@ -226,9 +230,9 @@ export const Sidebar = ({
   onPickOut,
   onStart,
   encoding = false,
-  gpu,
-  freeBytesLabel,
-  freeBytesDisk,
+  saveTarget,
+  hwChoice,
+  container,
   collapsed = false,
   onToggleCollapsed,
 }: SidebarProps) => {
@@ -385,18 +389,22 @@ export const Sidebar = ({
         <div className="flex items-stretch gap-3 border-t border-border pt-4">
           <RailStat
             kanji="貯"
-            value={freeBytesLabel ?? '—'}
-            sublabel={freeBytesDisk ? `free · ${freeBytesDisk}` : 'free · —'}
+            value={saveTarget ? saveTarget.toUpperCase() : '—'}
+            sublabel="save · folder"
           />
           <div className="w-px self-stretch bg-border" />
           <RailStat
             kanji="核"
-            tone={gpu ? 'good' : 'default'}
-            value={gpu?.label ?? '—'}
-            sublabel={gpu?.detail ?? 'gpu · probing'}
+            tone={hwChoice && hwChoice !== 'cpu' ? 'good' : 'default'}
+            value={hwChoice ? hwChoice.toUpperCase() : '—'}
+            sublabel="gpu · encoder"
           />
           <div className="w-px self-stretch bg-border" />
-          <RailStat kanji="符" value="h264" sublabel="codec · nvenc" />
+          <RailStat
+            kanji="符"
+            value="h264"
+            sublabel={container ? `codec · ${container}` : 'codec · —'}
+          />
         </div>
       )}
 
