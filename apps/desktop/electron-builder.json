@@ -28,6 +28,17 @@
     "target": ["nsis"],
     "icon": "build/icon.ico"
   },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Moekoder",
+    "uninstallDisplayName": "Moekoder",
+    "deleteAppDataOnUninstall": false
+  },
   "mac": {
     "target": ["dmg"],
     "category": "public.app-category.video",

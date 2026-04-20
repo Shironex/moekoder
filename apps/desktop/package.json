@@ -2,6 +2,11 @@
   "name": "@moekoder/desktop",
   "version": "0.0.0",
   "private": true,
+  "description": "Moekoder — burn subtitles into video, cutely.",
+  "author": {
+    "name": "Shironex",
+    "url": "https://moekoder.app"
+  },
   "main": "./dist/main/index.js",
   "scripts": {
     "build": "node esbuild.config.mjs && node scripts/copy-renderer.mjs",
