@@ -103,6 +103,7 @@ export const App = () => {
   const setPhase = useEncodeStore(s => s.setPhase);
   const setJobId = useEncodeStore(s => s.setJobId);
   const clearLogs = useEncodeStore(s => s.clearLogs);
+  const resetEncode = useEncodeStore(s => s.reset);
   const phase = useEncodeStore(s => s.phase);
 
   const [persistedTheme] = useSetting('themeId');
@@ -146,10 +147,16 @@ export const App = () => {
   // the transition here (rather than inside useEncodeEvents) keeps the
   // event hook purely "IPC → store" and leaves route control on App.
   useEffect(() => {
-    if (phase === 'done' && activeView === 'single-encoding') {
+    if (activeView !== 'single-encoding') return;
+    if (phase === 'done') {
       setView('single-done');
+    } else if (phase === 'cancelled') {
+      // User-initiated cancel: wipe encode state and slide back to idle so
+      // the pipeline is immediately ready for the next job.
+      resetEncode();
+      setView('single-idle');
     }
-  }, [phase, activeView, setView]);
+  }, [phase, activeView, setView, resetEncode]);
 
   const onPickVideo = useCallback(async (): Promise<void> => {
     try {

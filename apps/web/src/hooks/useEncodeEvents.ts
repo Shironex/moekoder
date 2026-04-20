@@ -36,6 +36,14 @@ export const useEncodeEvents = (): void => {
       setPhase('done');
     });
     const offError = api.encode.onError((_jobId, error) => {
+      // User-initiated cancel is not a failure — the orchestrator flags it
+      // with code 'CANCELLED'. Route it to a dedicated phase so App.tsx can
+      // return to the idle view instead of leaving the Encoding screen stuck
+      // on a zero-progress ring.
+      if (error.code === 'CANCELLED') {
+        setPhase('cancelled');
+        return;
+      }
       setError(error);
       setPhase('error');
     });
