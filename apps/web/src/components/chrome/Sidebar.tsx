@@ -236,7 +236,9 @@ export const Sidebar = ({
           'group mt-1 flex h-[72px] items-center gap-3 rounded-md border px-4 text-left transition',
           armed
             ? 'border-primary bg-[color-mix(in_oklab,var(--primary)_14%,transparent)] text-foreground hover:bg-[color-mix(in_oklab,var(--primary)_22%,transparent)]'
-            : 'cursor-not-allowed border-border bg-card/40 text-muted opacity-70'
+            : encoding
+              ? 'cursor-not-allowed border-transparent bg-card/40 text-muted'
+              : 'cursor-not-allowed border-border bg-card/40 text-muted opacity-70'
         )}
       >
         <span

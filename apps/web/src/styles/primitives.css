@@ -138,23 +138,23 @@
    Ring — circular SVG progress with center readout.
    ============================================================ */
 
-.ring {
+.progress-ring {
   width: 180px;
   height: 180px;
   position: relative;
   flex-shrink: 0;
 }
-.ring svg {
+.progress-ring svg {
   transform: rotate(-90deg);
 }
-.ring circle {
+.progress-ring circle {
   fill: none;
   stroke-width: 6;
 }
-.ring .ring-track {
+.progress-ring .ring-track {
   stroke: var(--border);
 }
-.ring .ring-fill {
+.progress-ring .ring-fill {
   stroke: var(--primary);
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s ease;
