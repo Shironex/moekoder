@@ -15,7 +15,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "electron-store": "^11.0.2",
+    "electron-store": "^8.2.0",
     "electron-updater": "^6.3.9",
     "yauzl": "^3.2.0",
     "zod": "^3.24.1"
