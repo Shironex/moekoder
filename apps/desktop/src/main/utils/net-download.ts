@@ -2,11 +2,25 @@ import * as fs from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { Readable, Writable } from 'node:stream';
 
+export interface DownloadProgress {
+  /** Integer 0-100. */
+  percent: number;
+  /** Bytes written to disk so far. */
+  downloaded: number;
+  /**
+   * Total bytes to download, from the `Content-Length` header. `0` when the
+   * server didn't advertise a length (chunked transfer) — callers should
+   * treat 0 as "unknown" and fall back to the percent-only display.
+   */
+  total: number;
+}
+
 /**
  * Download a URL to a file using Node 22's native `fetch`. Streams the
  * response body to disk through a `Writable`, so memory use stays flat
  * regardless of payload size. Reports progress via the optional callback
- * when `Content-Length` is known.
+ * when `Content-Length` is known — bytes and percent travel together so
+ * UIs can render an "X / Y MB" counter without re-deriving the total.
  *
  * The write stream is created eagerly and closed on any error path so a
  * half-written file is never left behind by the pipeline — callers are
@@ -15,7 +29,7 @@ import { Readable, Writable } from 'node:stream';
 export async function downloadFile(
   url: string,
   destPath: string,
-  onProgress?: (percent: number) => void
+  onProgress?: (p: DownloadProgress) => void
 ): Promise<void> {
   const response = await fetch(url, { redirect: 'follow' });
 
@@ -45,7 +59,7 @@ export async function downloadFile(
         const pct = Math.min(100, Math.round((downloaded / contentLength) * 100));
         if (pct !== lastReportedPct) {
           lastReportedPct = pct;
-          onProgress(pct);
+          onProgress({ percent: pct, downloaded, total: contentLength });
         }
       }
       fileStream.write(chunk, err => {

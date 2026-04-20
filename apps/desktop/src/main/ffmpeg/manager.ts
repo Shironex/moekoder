@@ -130,11 +130,13 @@ async function downloadArchive(
   });
 
   try {
-    await downloadToFile(cfg.url, tmpPath, pct => {
+    await downloadToFile(cfg.url, tmpPath, dl => {
       onProgress({
         stage: 'downloading',
-        pct: slotBase + (pct / 100) * slotSize * PER_ARCHIVE_WEIGHTS.downloading,
-        message: `Downloading ${label} (${pct}%)`,
+        pct: slotBase + (dl.percent / 100) * slotSize * PER_ARCHIVE_WEIGHTS.downloading,
+        message: `Downloading ${label} (${dl.percent}%)`,
+        downloadedBytes: dl.downloaded,
+        totalBytes: dl.total,
       });
     });
   } catch (err) {

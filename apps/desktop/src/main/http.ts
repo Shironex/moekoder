@@ -1,6 +1,8 @@
 import { createMainLogger } from './logger';
 import { MinIntervalGate } from './utils/min-interval-gate';
-import { downloadFile } from './utils/net-download';
+import { downloadFile, type DownloadProgress } from './utils/net-download';
+
+export type { DownloadProgress };
 
 const log = createMainLogger('http');
 
@@ -56,7 +58,7 @@ function runGated<T>(url: string, op: () => Promise<T>): Promise<T> {
 export async function downloadToFile(
   url: string,
   dest: string,
-  onProgress?: (percent: number) => void
+  onProgress?: (p: DownloadProgress) => void
 ): Promise<void> {
   log.debug(`download ${url} -> ${dest}`);
   await runGated(url, () => downloadFile(url, dest, onProgress));
