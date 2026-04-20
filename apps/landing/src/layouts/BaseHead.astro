@@ -24,6 +24,22 @@ const ogImage = new URL(image, Astro.site ?? Astro.url);
 <link rel="icon" type="image/png" href="/favicon.png" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 
+{/*
+  Shippori Mincho lives on Google Fonts — a full Japanese serif subset is
+  ~5 MB per weight, so self-hosting all three shipped weights would balloon
+  the landing payload by ~25 MB. Google auto-subsets the response to the
+  glyphs the page actually renders (a handful of kanji on headings), which
+  for us is well under 50 KB total. `preconnect` warms the TLS handshake
+  before the CSS import needs it. DM Sans + JetBrains Mono are self-hosted
+  in `styles/fonts.css` — this link is only for Shippori Mincho.
+*/}
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&display=swap"
+/>
+
 <meta property="og:type" content="website" />
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />

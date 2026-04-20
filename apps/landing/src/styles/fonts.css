@@ -1,11 +1,15 @@
 /* ============================================================
- * FONTS — self-hosted + local() fallback chains
+ * FONTS
  *
- * DM Sans: shipped as woff2 (latin + latin-ext).
- * Shippori Mincho + JetBrains Mono: declared with local() only,
- *   so the browser picks up the user's installed copy (or falls
- *   back to the generic family listed in --font-display / --font-mono).
- *   TODO: ship woff2 files for Shippori Mincho + JetBrains Mono.
+ * DM Sans         — self-hosted woff2 (latin + latin-ext).
+ * JetBrains Mono  — self-hosted variable woff2 (covers the full
+ *                   wght axis; one file for every 400–700 callsite).
+ * Shippori Mincho — loaded from Google Fonts via BaseHead (see
+ *                   `layouts/BaseHead.astro`). Google auto-subsets the
+ *                   response to the glyphs the landing actually renders,
+ *                   which is a handful of kanji on a few headings — a
+ *                   self-hosted full Japanese subset would be ~5 MB+ per
+ *                   weight, three weights, not worth it for a landing.
  * ============================================================ */
 
 /* DM Sans — variable weight ranges covered by a single file.
@@ -32,22 +36,13 @@
     U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Shippori Mincho — display/serif. Relies on local install or serif fallback.
- * TODO: ship woff2 when available. */
-@font-face {
-  font-family: 'Shippori Mincho';
-  font-style: normal;
-  font-weight: 500 800;
-  font-display: swap;
-  src: local('Shippori Mincho'), local('Shippori Mincho B1'), local('ShipporiMincho-Regular');
-}
-
-/* JetBrains Mono — mono. Relies on local install or mono fallback.
- * TODO: ship woff2 when available. */
+/* JetBrains Mono — single variable woff2 from the upstream release
+ * (`JetBrainsMono[wght].woff2`). Covers the whole wght axis, so a single
+ * file handles every 400–700 callsite on the landing. */
 @font-face {
   font-family: 'JetBrains Mono';
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: local('JetBrains Mono'), local('JetBrainsMono-Regular');
+  src: url('/fonts/jetbrains-mono-variable.woff2') format('woff2-variations');
 }
