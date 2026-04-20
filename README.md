@@ -91,7 +91,7 @@ Grab the latest build from [Releases](https://github.com/Shironex/moekoder/relea
 | Encoding | FFmpeg (auto-downloaded, not bundled) + libass         |
 | Store    | electron-store                                         |
 | Updater  | electron-updater                                       |
-| Logging  | electron-log                                           |
+| Logging  | @moekoder/shared logger (file transport in main)       |
 | Archives | yauzl (zip extraction for the ffmpeg install pipeline) |
 | Schemas  | zod (IPC boundary validation)                          |
 | Quality  | ESLint, Prettier, Husky                                |
