@@ -27,10 +27,10 @@ import { Done } from './steps/Done';
  * `single-idle`. The theme is already persisted per-pick through
  * `persistTheme` in `onThemePick`, so `finish()` doesn't need to re-save it.
  *
- * Wizard inputs that don't yet have a matching `UserSettings` key (preset,
- * save target, container, custom save path, hardware choice) are kept only
- * in the in-memory onboarding store — TODOs tracked for v0.2 once those
- * settings surfaces land.
+ * Every wizard input has a matching `UserSettings` key — `finish()` flushes
+ * the full picked set to electron-store so App.tsx can translate them into
+ * encode-start overrides on the next session (and a Settings-panel editor
+ * can surface them in v0.2 without a schema change).
  */
 export const Onboarding = () => {
   const api = useElectronAPI();
@@ -128,14 +128,16 @@ export const Onboarding = () => {
 
   const finish = useCallback(async (): Promise<void> => {
     try {
-      // `themeId` is persisted per-pick in `onThemePick`. The save
-      // preference is settled at finish so App.tsx can read it via
-      // `useSetting` on the next mount and derive the default output
-      // path when the user picks a video.
+      // `themeId` is persisted per-pick in `onThemePick`. Everything else
+      // settles here so App.tsx can read the full pick set via `useSetting`
+      // on the next mount and translate it into encode-start overrides.
       await Promise.all([
         api.store.set('hasCompletedOnboarding', true),
         api.store.set('saveTarget', inputs.saveTarget),
         api.store.set('customSavePath', inputs.customSavePath),
+        api.store.set('hwChoice', inputs.hwChoice),
+        api.store.set('preset', inputs.presetChoice),
+        api.store.set('container', inputs.container),
       ]);
     } catch (err) {
       log.error('persist failed', err);
@@ -145,7 +147,16 @@ export const Onboarding = () => {
     }
     markCompleted();
     setView('single-idle');
-  }, [api, inputs.saveTarget, inputs.customSavePath, markCompleted, setView]);
+  }, [
+    api,
+    inputs.saveTarget,
+    inputs.customSavePath,
+    inputs.hwChoice,
+    inputs.presetChoice,
+    inputs.container,
+    markCompleted,
+    setView,
+  ]);
 
   const handleNext = useCallback((): void => {
     if (currentStep.id === 'done') {

@@ -14,6 +14,7 @@ import {
 import { useAppStore, useEncodeStore } from '@/stores';
 import { useElectronAPI, useEncodeEvents, useSetting } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
+import { buildEncodingOverrides } from '@/lib/encoding-overrides';
 import { basename, extOf, joinPath, stripExt } from '@/lib/paths';
 import { logger } from '@/lib/logger';
 import { resolveOutputDir } from '@/lib/resolve-output';
@@ -78,7 +79,19 @@ export const App = () => {
   // electron-store; the pick handler gates on that.
   const [saveTarget] = useSetting('saveTarget');
   const [customSavePath] = useSetting('customSavePath');
+  // Encode picks from onboarding — consumed by `onStart` to shape the
+  // `encode:start` settings override, and by the file-pick handlers to
+  // derive the correct output filename extension.
+  const [hwChoice] = useSetting('hwChoice');
+  const [preset] = useSetting('preset');
+  const [container] = useSetting('container');
   const [persistedSidebarCollapsed] = useSetting('sidebarCollapsed');
+
+  // Output filename extension. Follows the picked container with one
+  // exception: `webm` falls back to `.mp4` because the backend pipeline
+  // silently re-routes WebM to the MP4 muxer until v0.4 lands proper
+  // VP9/AV1 support (see `buildEncodingOverrides`).
+  const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -182,13 +195,13 @@ export const App = () => {
       // stale default on first paint.
       if (saveTarget) {
         const outputDir = resolveOutputDir(saveTarget, res.filePath, customSavePath);
-        const outputName = `${stripExt(name)}.mp4`;
+        const outputName = `${stripExt(name)}.${outputExt}`;
         setOut({ name: outputName, path: outputDir });
       }
     } catch (err) {
       log.error('dialog.openFile video failed', err);
     }
-  }, [api, saveTarget, customSavePath]);
+  }, [api, saveTarget, customSavePath, outputExt]);
 
   const onPickSubs = useCallback(async (): Promise<void> => {
     try {
@@ -205,12 +218,12 @@ export const App = () => {
     try {
       const res = await api.dialog.openFolder({});
       if (res.canceled || !res.folderPath) return;
-      const baseName = video ? `${stripExt(video.name)}.mp4` : 'output.mp4';
+      const baseName = video ? `${stripExt(video.name)}.${outputExt}` : `output.${outputExt}`;
       setOut({ name: baseName, path: res.folderPath });
     } catch (err) {
       log.error('dialog.openFolder failed', err);
     }
-  }, [api, video]);
+  }, [api, video, outputExt]);
 
   const onStart = useCallback(async (): Promise<void> => {
     if (!video || !subs || !out) return;
@@ -220,12 +233,18 @@ export const App = () => {
     // from the orchestrator. Short-circuit here.
     if (phase === 'running') return;
     const outputPath = joinPath(out.path, out.name);
+    // `settings` at the IPC boundary is typed as a loose `Record<string,
+    // unknown>` so the renderer bundle never imports the backend's
+    // `EncodingSettings`. `buildEncodingOverrides` returns a narrowly typed
+    // subset; cast is safe because the handler's zod schema re-validates.
+    const settings = buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>;
     try {
       clearLogs();
       const res = await api.encode.start({
         videoPath: video.path,
         subtitlePath: subs.path,
         outputPath,
+        settings,
       });
       setJobId(res.jobId);
       setPhase('running');
@@ -233,7 +252,20 @@ export const App = () => {
     } catch (err) {
       log.error('encode.start failed', err);
     }
-  }, [api, video, subs, out, phase, clearLogs, setJobId, setPhase, setView]);
+  }, [
+    api,
+    video,
+    subs,
+    out,
+    phase,
+    hwChoice,
+    preset,
+    container,
+    clearLogs,
+    setJobId,
+    setPhase,
+    setView,
+  ]);
 
   const onEncodeAnother = useCallback((): void => {
     // Reset the picks so the user truly starts fresh. The encode store is

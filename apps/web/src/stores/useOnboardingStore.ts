@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SaveTarget } from '@moekoder/shared';
+import type { ContainerChoice, HwChoice, PresetChoice, SaveTarget } from '@moekoder/shared';
 
 /**
  * Ordered onboarding steps. The wizard walks them 1 -> 1 with no branching;
@@ -17,11 +17,11 @@ export type OnboardingStep =
   | 'privacy'
   | 'done';
 
-export type HwChoice = 'nvenc' | 'qsv' | 'amf' | 'cpu';
-export type PresetChoice = 'fast' | 'balanced' | 'pristine';
-export type Container = 'mp4' | 'mkv' | 'webm';
-
-export type { SaveTarget };
+// Re-exported for screens that used to import these types from the store
+// before they became canonical in @moekoder/shared.
+export type { ContainerChoice, HwChoice, PresetChoice, SaveTarget };
+/** @deprecated use ContainerChoice from @moekoder/shared */
+export type Container = ContainerChoice;
 
 /**
  * Wizard-only inputs. `themeId` intentionally does NOT live here — the
@@ -35,7 +35,7 @@ interface OnboardingInputs {
   presetChoice: PresetChoice;
   saveTarget: SaveTarget;
   customSavePath: string | null;
-  container: Container;
+  container: ContainerChoice;
 }
 
 interface OnboardingState {
