@@ -106,6 +106,9 @@ export const App = () => {
   const resetEncode = useEncodeStore(s => s.reset);
   const phase = useEncodeStore(s => s.phase);
 
+  const sidebarCollapsed = useAppStore(s => s.sidebarCollapsed);
+  const setSidebarCollapsed = useAppStore(s => s.setSidebarCollapsed);
+
   const [persistedTheme] = useSetting('themeId');
   const [hasCompletedOnboarding] = useSetting('hasCompletedOnboarding');
   // Save preference chosen in onboarding — drives the auto-populated output
@@ -113,6 +116,7 @@ export const App = () => {
   // electron-store; the pick handler gates on that.
   const [saveTarget] = useSetting('saveTarget');
   const [customSavePath] = useSetting('customSavePath');
+  const [persistedSidebarCollapsed] = useSetting('sidebarCollapsed');
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -142,6 +146,51 @@ export const App = () => {
   useEffect(() => {
     applyTheme(themeId);
   }, [themeId]);
+
+  // Mirror of the themeId hydration pattern: one-shot sync from electron-store
+  // into the in-memory store, guarded by a ref so subsequent user toggles
+  // aren't clobbered by the stale initial read that `useSetting` keeps around
+  // for the rest of the session.
+  const hydratedSidebarRef = useRef(false);
+  useEffect(() => {
+    if (hydratedSidebarRef.current) return;
+    if (persistedSidebarCollapsed === null) return;
+    hydratedSidebarRef.current = true;
+    if (persistedSidebarCollapsed !== sidebarCollapsed) {
+      setSidebarCollapsed(persistedSidebarCollapsed);
+    }
+  }, [persistedSidebarCollapsed, sidebarCollapsed, setSidebarCollapsed]);
+
+  const onToggleSidebar = useCallback(async (): Promise<void> => {
+    // Read from the store directly so concurrent toggles (edge handle click
+    // landing in the same frame as the hotkey) don't both flip off the same
+    // stale snapshot value.
+    const next = !useAppStore.getState().sidebarCollapsed;
+    setSidebarCollapsed(next);
+    try {
+      await api.store.set('sidebarCollapsed', next);
+    } catch (err) {
+      console.warn('[sidebar] persist failed', err);
+    }
+  }, [api, setSidebarCollapsed]);
+
+  // Ctrl/Cmd+B hotkey. Suppressed while the user is typing into a form control
+  // and on shell views that don't render a sidebar at all (splash/onboarding/
+  // crash) so the keypress stays a normal `b` character everywhere else.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== 'b') return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (activeView === 'splash' || activeView === 'onboarding' || activeView === 'crash') return;
+      e.preventDefault();
+      void onToggleSidebar();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeView, onToggleSidebar]);
 
   // Advance the shell view when the encode reaches a terminal phase. Running
   // the transition here (rather than inside useEncodeEvents) keeps the
@@ -243,6 +292,8 @@ export const App = () => {
       onPickOut={onPickOut}
       onStart={onStart}
       encoding={phase === 'running'}
+      collapsed={sidebarCollapsed}
+      onToggleCollapsed={onToggleSidebar}
     />
   );
 

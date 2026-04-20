@@ -34,6 +34,8 @@ export interface UserSettings {
   lastOutputDir: string | null;
   /** Encoding preset last chosen (v0.1 ships Balanced only). */
   lastPreset: 'balanced';
+  /** Whether the pipeline sidebar is collapsed to the kanji rail. */
+  sidebarCollapsed: boolean;
 }
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
@@ -43,6 +45,7 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   customSavePath: null,
   lastOutputDir: null,
   lastPreset: 'balanced',
+  sidebarCollapsed: false,
 };
 
 export type UserSettingsKey = keyof UserSettings;
