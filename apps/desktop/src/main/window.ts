@@ -45,7 +45,10 @@ export function createMainWindow(): BrowserWindow {
     frame: isMac ? undefined : false,
     titleBarStyle: isMac ? 'hidden' : undefined,
     trafficLightPosition: isMac ? { x: 16, y: 14 } : undefined,
-    backgroundColor: '#0b1224',
+    // Plum background, matches the default theme's `oklch(0.12 0.018 300)` —
+    // shown briefly while the renderer bundle loads. Keeping this in sync
+    // with the default theme prevents a flash of the wrong color on launch.
+    backgroundColor: '#1a1421',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

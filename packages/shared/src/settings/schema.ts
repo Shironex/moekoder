@@ -38,7 +38,7 @@ export interface UserSettings {
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
   hasCompletedOnboarding: false,
-  themeId: 'midnight',
+  themeId: 'plum',
   saveTarget: 'moekoder',
   customSavePath: null,
   lastOutputDir: null,
