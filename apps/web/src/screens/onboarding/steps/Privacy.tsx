@@ -28,7 +28,7 @@ const ITEMS: PledgeItem[] = [
     k: '否',
     tone: 'no',
     title: 'No update nags',
-    body: 'MoeKoder checks for updates only when you click Settings → About → Check. It will never pop up on its own.',
+    body: 'Background update checks are off by default. Click Settings → Updates → Check to look for a new version, or flip the toggle there if you want the app to check on its own.',
   },
   {
     k: '自',

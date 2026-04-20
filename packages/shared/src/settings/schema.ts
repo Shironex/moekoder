@@ -61,6 +61,9 @@ export interface UserSettings {
   container: ContainerChoice;
   /** Whether the pipeline sidebar is collapsed to the kanji rail. */
   sidebarCollapsed: boolean;
+  /** Whether the app runs background update checks. Default `false` per the
+   *  onboarding Privacy pledge — users must opt in from Settings → Updates. */
+  autoCheckUpdates: boolean;
 }
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
@@ -72,6 +75,7 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   preset: 'balanced',
   container: 'mp4',
   sidebarCollapsed: false,
+  autoCheckUpdates: false,
 };
 
 export type UserSettingsKey = keyof UserSettings;

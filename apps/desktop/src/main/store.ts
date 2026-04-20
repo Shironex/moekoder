@@ -23,3 +23,14 @@ export const deleteSetting = (key: UserSettingsKey): void => {
   // electron-store's `delete` restores the default on next `get`.
   store.delete(key);
 };
+
+/**
+ * Subscribe to changes for a single settings key. Wraps electron-store's
+ * `onDidChange` so other main-process modules can react to renderer-driven
+ * setting writes without threading a new IPC channel. Returns an unsubscribe
+ * function.
+ */
+export const onSettingChange = <K extends UserSettingsKey>(
+  key: K,
+  handler: (next: UserSettings[K] | undefined, prev: UserSettings[K] | undefined) => void
+): (() => void) => store.onDidChange(key, handler);

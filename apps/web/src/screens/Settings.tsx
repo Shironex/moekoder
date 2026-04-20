@@ -1,13 +1,45 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ExternalLink, FolderOpen, Info, RefreshCw, RotateCcw } from 'lucide-react';
-import { APP_NAME, GITHUB_REPO, type ThemeId } from '@moekoder/shared';
+import { APP_NAME, GITHUB_REPO, UPDATER_EVENT_CHANNELS, type ThemeId } from '@moekoder/shared';
 import { Button, ThemePicker } from '@/components/ui';
-import { useElectronAPI, useFfmpegStatus } from '@/hooks';
+import { useElectronAPI, useFfmpegStatus, useSetting } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
 import { logger } from '@/lib/logger';
 
 const log = logger('settings');
+
+/**
+ * Compact updater state machine that mirrors a subset of the bottom-right
+ * `Updater` panel's phases so the Settings "Updates" section can show a
+ * status chip alongside its toggle + check button. Intentionally duplicated
+ * rather than hoisted to a shared store — it's a handful of lines and keeps
+ * Settings self-contained.
+ */
+type UpdaterChipState =
+  | { kind: 'idle' }
+  | { kind: 'checking' }
+  | { kind: 'up-to-date' }
+  | { kind: 'available'; version: string | null }
+  | { kind: 'downloaded'; version: string | null }
+  | { kind: 'error' };
+
+const updaterChipLabel = (s: UpdaterChipState): string => {
+  switch (s.kind) {
+    case 'idle':
+      return 'no checks yet this session';
+    case 'checking':
+      return 'checking…';
+    case 'up-to-date':
+      return `you're on the latest version`;
+    case 'available':
+      return s.version ? `update available · v${s.version}` : 'update available';
+    case 'downloaded':
+      return s.version ? `ready to install · v${s.version}` : 'ready to install';
+    case 'error':
+      return 'last check failed';
+  }
+};
 
 /**
  * Section wrapper — identical visual treatment for every block on the
@@ -64,7 +96,9 @@ export const Settings = () => {
   const ffmpeg = useFfmpegStatus();
 
   const [appVersion, setAppVersion] = useState<string | null>(null);
-  const [busy, setBusy] = useState<null | 'logs' | 'ffmpeg' | 'github'>(null);
+  const [busy, setBusy] = useState<null | 'logs' | 'ffmpeg' | 'github' | 'update-check'>(null);
+  const [autoCheck, setAutoCheck] = useSetting('autoCheckUpdates');
+  const [updaterChip, setUpdaterChip] = useState<UpdaterChipState>({ kind: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +113,66 @@ export const Settings = () => {
     return () => {
       cancelled = true;
     };
+  }, [api]);
+
+  useEffect(() => {
+    const unsubs: Array<() => void> = [];
+    unsubs.push(
+      api.updater.on(UPDATER_EVENT_CHANNELS.CHECKING, () => setUpdaterChip({ kind: 'checking' }))
+    );
+    unsubs.push(
+      api.updater.on(UPDATER_EVENT_CHANNELS.NOT_AVAILABLE, () =>
+        setUpdaterChip({ kind: 'up-to-date' })
+      )
+    );
+    unsubs.push(
+      api.updater.on(UPDATER_EVENT_CHANNELS.AVAILABLE, payload => {
+        const v =
+          payload && typeof payload === 'object' ? (payload as { version?: string }).version : null;
+        setUpdaterChip({ kind: 'available', version: v ?? null });
+      })
+    );
+    unsubs.push(
+      api.updater.on(UPDATER_EVENT_CHANNELS.DOWNLOADED, payload => {
+        const v =
+          payload && typeof payload === 'object' ? (payload as { version?: string }).version : null;
+        setUpdaterChip({ kind: 'downloaded', version: v ?? null });
+      })
+    );
+    unsubs.push(
+      api.updater.on(UPDATER_EVENT_CHANNELS.ERROR, () => setUpdaterChip({ kind: 'error' }))
+    );
+    return () => {
+      for (const u of unsubs) {
+        try {
+          u();
+        } catch (err) {
+          log.warn('updater unsubscribe failed', err);
+        }
+      }
+    };
+  }, [api]);
+
+  const onToggleAutoCheck = useCallback(
+    async (next: boolean): Promise<void> => {
+      try {
+        await setAutoCheck(next);
+      } catch (err) {
+        log.warn('persist autoCheckUpdates failed', err);
+      }
+    },
+    [setAutoCheck]
+  );
+
+  const onCheckForUpdates = useCallback(async (): Promise<void> => {
+    setBusy('update-check');
+    try {
+      await api.updater.check();
+    } catch (err) {
+      log.warn('updater.check failed', err);
+    } finally {
+      setBusy(null);
+    }
   }, [api]);
 
   const onThemePick = useCallback(
@@ -233,6 +327,61 @@ export const Settings = () => {
               <FolderOpen size={14} />
               Open logs folder
             </Button>
+          </Section>
+
+          <Section
+            kanji="新"
+            mono="updates · 新 · shin"
+            title="Updates"
+            description="MoeKoder never phones home unless you click Check — that's the pledge. Opt in below if you'd rather the app check in the background (once 5 s after launch, then hourly)."
+          >
+            <div className="flex flex-col gap-4">
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={autoCheck ?? false}
+                  onChange={e => void onToggleAutoCheck(e.target.checked)}
+                />
+                <span className="flex flex-col leading-tight">
+                  <b className="font-display text-sm text-foreground">
+                    Check for updates automatically
+                  </b>
+                  <span className="text-[12px] text-muted-foreground">
+                    Off by default. When on, MoeKoder queries GitHub Releases on launch + once per
+                    hour. Updates are never installed without your click.
+                  </span>
+                </span>
+              </label>
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3 font-mono text-[11px]">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    updaterChip.kind === 'available' || updaterChip.kind === 'downloaded'
+                      ? 'bg-primary'
+                      : updaterChip.kind === 'error'
+                        ? 'bg-bad'
+                        : updaterChip.kind === 'up-to-date'
+                          ? 'bg-good'
+                          : 'bg-muted'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="uppercase tracking-[0.18em] text-muted">status</span>
+                <span className="text-muted">·</span>
+                <span className="text-foreground">{updaterChipLabel(updaterChip)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onCheckForUpdates}
+                  disabled={busy === 'update-check'}
+                >
+                  <RefreshCw size={14} />
+                  {busy === 'update-check' ? 'Checking…' : 'Check for updates now'}
+                </Button>
+              </div>
+            </div>
           </Section>
 
           <Section

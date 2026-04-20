@@ -2,10 +2,11 @@ import type { BrowserWindow } from 'electron';
 import { autoUpdater, type UpdateInfo, type ProgressInfo } from 'electron-updater';
 import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { createMainLogger } from './logger';
+import { getSetting, onSettingChange } from './store';
 
 const log = createMainLogger('updater');
 
-/** Initial check delay after `whenReady` fires. */
+/** Initial check delay after `whenReady` fires when auto-check is enabled. */
 const INITIAL_CHECK_DELAY_MS = 5_000;
 /** Periodic check interval after the initial check. */
 const PERIODIC_CHECK_INTERVAL_MS = 60 * 60 * 1_000;
@@ -13,6 +14,8 @@ const PERIODIC_CHECK_INTERVAL_MS = 60 * 60 * 1_000;
 let mainWindowRef: BrowserWindow | null = null;
 let initialized = false;
 let enabled = false;
+let initialTimer: ReturnType<typeof setTimeout> | null = null;
+let periodicTimer: ReturnType<typeof setInterval> | null = null;
 
 function parseReleaseNotes(notes: UpdateInfo['releaseNotes']): string | null {
   if (!notes) return null;
@@ -29,6 +32,36 @@ function sendToRenderer(channel: string, payload?: unknown): void {
   }
 }
 
+function startAutoCheckTimers(): void {
+  if (initialTimer || periodicTimer) return;
+  log.info('Enabling background update checks');
+  initialTimer = setTimeout(() => {
+    void runCheck();
+  }, INITIAL_CHECK_DELAY_MS);
+  if (typeof initialTimer === 'object' && 'unref' in initialTimer) {
+    initialTimer.unref();
+  }
+  periodicTimer = setInterval(() => {
+    void runCheck();
+  }, PERIODIC_CHECK_INTERVAL_MS);
+  if (typeof periodicTimer === 'object' && 'unref' in periodicTimer) {
+    periodicTimer.unref();
+  }
+}
+
+function stopAutoCheckTimers(): void {
+  if (!initialTimer && !periodicTimer) return;
+  log.info('Disabling background update checks');
+  if (initialTimer) {
+    clearTimeout(initialTimer);
+    initialTimer = null;
+  }
+  if (periodicTimer) {
+    clearInterval(periodicTimer);
+    periodicTimer = null;
+  }
+}
+
 /**
  * Wires `electron-updater` to the renderer.
  *
@@ -38,6 +71,12 @@ function sendToRenderer(channel: string, payload?: unknown): void {
  *   `updater:download`.
  * - `autoInstallOnAppQuit` is on so a downloaded update installs silently at
  *   the next graceful shutdown.
+ *
+ * Background checks (5s + hourly) only run when `autoCheckUpdates === true`
+ * in user settings — default `false` per the onboarding Privacy pledge. The
+ * manual `updater:check` IPC always works regardless of the toggle. We
+ * subscribe to store changes so flipping the toggle in Settings takes
+ * effect immediately, no restart required.
  *
  * Event forwarding: the six native updater events map 1:1 onto the
  * `UPDATER_EVENT_CHANNELS` set in `@moekoder/shared`. Renderer code subscribes
@@ -102,19 +141,14 @@ export function initUpdater(mainWindow: BrowserWindow): void {
     sendToRenderer(UPDATER_EVENT_CHANNELS.ERROR, error.message);
   });
 
-  const initialTimer = setTimeout(() => {
-    void runCheck();
-  }, INITIAL_CHECK_DELAY_MS);
-  if (typeof initialTimer === 'object' && 'unref' in initialTimer) {
-    initialTimer.unref();
+  if (getSetting('autoCheckUpdates')) {
+    startAutoCheckTimers();
   }
 
-  const periodicTimer = setInterval(() => {
-    void runCheck();
-  }, PERIODIC_CHECK_INTERVAL_MS);
-  if (typeof periodicTimer === 'object' && 'unref' in periodicTimer) {
-    periodicTimer.unref();
-  }
+  onSettingChange('autoCheckUpdates', next => {
+    if (next) startAutoCheckTimers();
+    else stopAutoCheckTimers();
+  });
 }
 
 async function runCheck(): Promise<void> {
