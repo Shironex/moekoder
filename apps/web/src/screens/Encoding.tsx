@@ -6,8 +6,6 @@ import {
   IconClose,
   IconFilm,
   IconGauge,
-  IconPause,
-  IconPlay,
   IconTerminal,
   LogLine,
   Metric,
@@ -108,27 +106,24 @@ const LogPanel = ({ logs, open, onToggle }: LogPanelProps) => {
 };
 
 /**
- * Encoding screen. Driven entirely by `useEncodeStore`. Pause toggles phase
- * locally (the main-process orchestrator treats `paused` as informational
- * until v0.2 adds real process-level pause). Cancel aborts via IPC.
+ * Encoding screen. Driven entirely by `useEncodeStore`. Cancel aborts via IPC.
+ *
+ * No pause button: Node's `child_process.kill()` on Windows ignores any
+ * signal other than SIGKILL/SIGTERM/SIGINT/SIGQUIT — every one of those
+ * terminates the process outright. The POSIX `SIGSTOP` / `SIGCONT` pause
+ * pattern only works on macOS/Linux, and Moekoder targets Windows first,
+ * so a cross-platform pause needs a native suspend binding (future work).
  */
 export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
   const api = useElectronAPI();
-  const phase = useEncodeStore(s => s.phase);
   const progress = useEncodeStore(s => s.progress);
   const logs = useEncodeStore(s => s.logs);
   const jobId = useEncodeStore(s => s.jobId);
-  const setPhase = useEncodeStore(s => s.setPhase);
 
   const [logOpen, setLogOpen] = useState(true);
 
-  const paused = phase === 'paused';
   const elapsed = formatDuration(progress.outTimeSec);
   const eta = formatDuration(progress.etaSec);
-
-  const handlePauseToggle = (): void => {
-    setPhase(paused ? 'running' : 'paused');
-  };
 
   const handleCancel = async (): Promise<void> => {
     if (!jobId) return;
@@ -147,9 +142,7 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
         title="Encoding. Stay cozy."
         right={
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-            <span className={paused ? 'text-warn' : 'text-good'}>
-              {paused ? 'paused' : 'live'} · ffmpeg
-            </span>
+            <span className="text-good">live · ffmpeg</span>
             <span className="text-foreground">
               <b>{video?.name ?? '—'}</b>
             </span>
@@ -163,32 +156,14 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
         <div className="flex min-w-0 flex-1 flex-col gap-5 rounded-lg border border-border bg-card/30 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-sm border border-border bg-popover px-2.5 py-1">
-              <span
-                className={cn(
-                  'h-1.5 w-1.5 rounded-full',
-                  paused ? 'bg-warn' : 'animate-pulse bg-good'
-                )}
-              />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-good" />
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
-                {paused ? 'paused' : 'transcoding'}
+                transcoding
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handlePauseToggle}>
-                {paused ? (
-                  <>
-                    <IconPlay size={12} /> Resume
-                  </>
-                ) : (
-                  <>
-                    <IconPause size={12} /> Pause
-                  </>
-                )}
-              </Button>
-              <Button variant="danger" size="sm" onClick={handleCancel}>
-                <IconClose size={12} /> Cancel
-              </Button>
-            </div>
+            <Button variant="danger" size="sm" onClick={handleCancel}>
+              <IconClose size={12} /> Cancel
+            </Button>
           </div>
 
           <div className="flex items-start gap-8">
