@@ -21,16 +21,20 @@ const MOOD: Record<ThemeId, string> = {
   plum: 'plum · murasaki — warm, purple, cozy',
   matcha: 'green · midori — quiet, grounded',
   paper: 'light · kami — bright, spare, honest',
+  cosmic: 'purple · sora — electric, vast, dreaming',
+  void: 'violet · kyo — dense, hollow, magnetic',
 };
 
 /**
- * Reusable theme picker. Renders all four shipped themes as preview cards;
+ * Reusable theme picker. Renders every shipped theme as a preview card;
  * clicking a card fires `onChange` with the new id. The card's inline styles
  * are driven by each theme's tokens so the preview shows the final look
- * against the current chrome before the caller persists + applies.
+ * against the current chrome before the caller persists + applies. Grid
+ * collapses to 3-wide at `lg` so the current 6 themes land as a clean 2x3
+ * rather than a 4+2 remainder row.
  */
 export const ThemePicker = ({ value, onChange, className }: ThemePickerProps) => (
-  <div className={cn('grid gap-4 sm:grid-cols-2 lg:grid-cols-4', className)}>
+  <div className={cn('grid gap-4 sm:grid-cols-2 lg:grid-cols-3', className)}>
     {THEMES.map(t => {
       const selected = value === t.id;
       const tokens = t.tokens;

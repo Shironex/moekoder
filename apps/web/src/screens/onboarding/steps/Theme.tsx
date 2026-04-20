@@ -9,7 +9,7 @@ interface ThemeStepProps {
 }
 
 /**
- * Step 04 · Theme. Shows all four shipped themes as preview cards. Selecting
+ * Step 04 · Theme. Shows all six shipped themes as preview cards. Selecting
  * a card flips the live app theme immediately (parent handles both `applyTheme`
  * and the onboarding-store mirror) so the user sees the change against the
  * onboarding chrome before committing.
@@ -29,9 +29,9 @@ export const Theme = ({ value, onChange }: ThemeStepProps) => {
           Pick a <em className="not-italic text-primary">mood.</em>
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          Four themes, all borrowing their kanji from Japanese color names.{' '}
-          <b className="text-foreground">Midnight</b> is the default — deep, calm, late. Changes
-          apply immediately so you can feel them against the wizard.
+          Six themes, all borrowing their kanji from Japanese color names.{' '}
+          <b className="text-foreground">Plum</b> is the default — warm, purple, cozy. Changes apply
+          immediately so you can feel them against the wizard.
         </p>
       </div>
 

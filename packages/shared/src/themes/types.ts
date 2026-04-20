@@ -6,7 +6,7 @@
  * web app both consume the same shape, so tokens are authored once here.
  */
 
-export type ThemeId = 'midnight' | 'plum' | 'matcha' | 'paper';
+export type ThemeId = 'midnight' | 'plum' | 'matcha' | 'paper' | 'cosmic' | 'void';
 
 export type ThemeMode = 'dark' | 'light';
 

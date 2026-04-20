@@ -3,8 +3,10 @@ import { midnight } from './midnight';
 import { plum } from './plum';
 import { matcha } from './matcha';
 import { paper } from './paper';
+import { cosmic } from './cosmic';
+import { voidTheme } from './void';
 
-export const THEMES: Theme[] = [plum, midnight, matcha, paper];
+export const THEMES: Theme[] = [plum, midnight, matcha, cosmic, voidTheme, paper];
 export const DEFAULT_THEME_ID: ThemeId = 'plum';
 export const THEMES_BY_ID = Object.fromEntries(THEMES.map(t => [t.id, t])) as Record<
   ThemeId,
@@ -12,4 +14,4 @@ export const THEMES_BY_ID = Object.fromEntries(THEMES.map(t => [t.id, t])) as Re
 >;
 
 export * from './types';
-export { midnight, plum, matcha, paper };
+export { midnight, plum, matcha, paper, cosmic, voidTheme };

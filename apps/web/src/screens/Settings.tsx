@@ -172,7 +172,7 @@ export const Settings = () => {
             kanji="色"
             mono="look · 色 · appearance"
             title="Appearance"
-            description="Four themes, all borrowing their kanji from Japanese color names. Changes apply immediately."
+            description="Six themes, all borrowing their kanji from Japanese color names. Changes apply immediately."
           >
             <ThemePicker value={themeId} onChange={onThemePick} />
           </Section>
