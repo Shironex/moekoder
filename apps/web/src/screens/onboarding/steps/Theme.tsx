@@ -19,7 +19,7 @@ export const Theme = ({ value, onChange }: ThemeStepProps) => {
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <span className="font-display text-lg text-primary">色</span>
-        <span>step 04 · theme</span>
+        <span>step 02 · theme</span>
         <span className="h-1 w-1 rounded-full bg-muted/50" />
         <span>look · 色</span>
       </div>

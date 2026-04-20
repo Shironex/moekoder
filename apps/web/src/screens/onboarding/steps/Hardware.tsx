@@ -178,7 +178,7 @@ export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) =>
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <span className="font-display text-lg text-primary">核</span>
-        <span>step 03 · hardware</span>
+        <span>step 04 · hardware</span>
         <span className="h-1 w-1 rounded-full bg-muted/50" />
         <span>gpu · 核</span>
       </div>

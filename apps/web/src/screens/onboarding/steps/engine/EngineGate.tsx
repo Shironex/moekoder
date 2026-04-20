@@ -16,7 +16,7 @@ export const EngineGate = ({ probing, onInstall }: EngineGateProps) => (
   <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6">
     <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
       <span className="font-display text-lg text-primary">引</span>
-      <span>step 02 · engine</span>
+      <span>step 03 · engine</span>
       <span className="h-1 w-1 rounded-full bg-muted/50" />
       <span>ffmpeg + ffprobe</span>
     </div>

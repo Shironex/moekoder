@@ -49,7 +49,7 @@ Part of the **Shiro Suite** alongside [ShiroAni](https://github.com/Shironex/shi
 | **FFmpeg manager**         | Auto-downloads the ffmpeg engine on first run (BtbN on Windows, evermeet.cx on macOS), verifies SHA-256, installs to your user-data directory — no manual setup |
 | **Hardware encoder probe** | Detects NVENC / QSV / AMF on your machine and recommends the fastest option; CPU (libx264) is always a guaranteed fallback                                      |
 | **Disk-space preflight**   | Bitrate-driven size estimate + safety margin checks your free space before the job starts                                                                       |
-| **9-step onboarding**      | First launch walks you through engine install, GPU detection, theme, preset, save location, container, and privacy                                              |
+| **9-step onboarding**      | First launch walks you through theme, engine install, GPU detection, preset, save location, container, and privacy                                              |
 | **Save targets**           | Sibling `moekoder/` folder, same folder as source, a dedicated "subbed" folder, or a custom path                                                                |
 | **Six themes**             | Plum (default), Midnight, Matcha, Cosmic, Void, Paper — 11 more drip-fed across v0.2–v0.6                                                                       |
 | **Live progress**          | Ring + filmstrip + rolling log with fps, speed, bitrate, and ETA                                                                                                |

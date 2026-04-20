@@ -34,11 +34,16 @@ export interface OnboardingStepMeta {
   skippable: boolean;
 }
 
+// Theme comes first after Welcome so the user dresses the wizard in the
+// look they want *before* sitting through the ffmpeg download on Engine —
+// the 180 MB fetch feels shorter against your own palette. Engine + Hardware
+// still run ffmpeg/GPU probes on mount, so shifting them right doesn't
+// change the timing of either IPC roundtrip.
 export const OB_STEPS: readonly OnboardingStepMeta[] = [
   { id: 'welcome', n: '壱', kanji: '迎', label: 'Welcome', mono: 'intro · 挨拶', skippable: false },
-  { id: 'engine', n: '弐', kanji: '引', label: 'Engine', mono: 'ffmpeg · 引擎', skippable: false },
-  { id: 'hw', n: '参', kanji: '核', label: 'Hardware', mono: 'gpu · 核', skippable: false },
-  { id: 'theme', n: '肆', kanji: '色', label: 'Theme', mono: 'look · 色', skippable: true },
+  { id: 'theme', n: '弐', kanji: '色', label: 'Theme', mono: 'look · 色', skippable: true },
+  { id: 'engine', n: '参', kanji: '引', label: 'Engine', mono: 'ffmpeg · 引擎', skippable: false },
+  { id: 'hw', n: '肆', kanji: '核', label: 'Hardware', mono: 'gpu · 核', skippable: false },
   { id: 'preset', n: '伍', kanji: '設', label: 'Preset', mono: 'quality · 設', skippable: true },
   { id: 'save', n: '陸', kanji: '箱', label: 'Save to', mono: 'output · 保存', skippable: true },
   { id: 'cont', n: '漆', kanji: '器', label: 'Container', mono: 'format · 器', skippable: true },
