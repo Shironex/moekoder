@@ -35,24 +35,28 @@ export interface FFmpegSource {
 }
 
 /**
- * BtbN's `latest` tag is a rolling pointer. It stays stable enough to ship
- * v0.1.0 as a trust-on-first-use source; before v0.1.0 GA we pin a specific
- * release + SHA below so we aren't vulnerable to silent upstream churn.
+ * BtbN's `autobuild-YYYY-MM-DD-HH-MM` tags are immutable snapshots of a
+ * single daily build. Unlike the rolling `latest` tag, they never get
+ * force-pushed, so the archive behind the URL stays byte-stable and we can
+ * safely pin its SHA-256.
  *
- * TODO(phase-6-polish): pin to a specific BtbN release + sha256 before
- * v0.1.0 ships.
+ * Currently pinned to FFmpeg 8.1 (release-branch) from the 2026-04-19 build
+ * — the newest stable branch at ship time. Bumping to a newer autobuild is a
+ * three-line change: swap the tag in the URL, replace the archive filename
+ * prefix in `entries`, and update `sha256` to the GitHub-reported digest of
+ * the new asset.
  */
 export const WINDOWS_SOURCE: FFmpegSource = {
   platform: 'win32',
-  version: 'master-latest',
+  version: 'n8.1 (2026-04-19)',
   downloads: [
     {
-      url: 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip',
-      sha256: null,
+      url: 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-04-19-13-03/ffmpeg-n8.1-10-g7f5c90f77e-win64-gpl-8.1.zip',
+      sha256: '9759051bbf773199987908bfd630a20db74773c04ab9e3b0e84cd2da89764d9c',
       archive: 'zip',
       entries: {
-        ffmpeg: 'ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe',
-        ffprobe: 'ffmpeg-master-latest-win64-gpl/bin/ffprobe.exe',
+        ffmpeg: 'ffmpeg-n8.1-10-g7f5c90f77e-win64-gpl-8.1/bin/ffmpeg.exe',
+        ffprobe: 'ffmpeg-n8.1-10-g7f5c90f77e-win64-gpl-8.1/bin/ffprobe.exe',
       },
     },
   ],
