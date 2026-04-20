@@ -1,2 +1,5 @@
 dist/
 .astro/
+
+# OG generator — fonts auto-fetched on first run
+assets/fonts

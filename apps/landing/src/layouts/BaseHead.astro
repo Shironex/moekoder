@@ -7,8 +7,8 @@ interface Props {
 
 const {
   title,
-  description = 'Moekoder — Burn subtitles into video, cutely. A tiny, GPU-accelerated desktop hardsub tool. No cloud. No account. MIT.',
-  image = '/assets/app-preview.png',
+  description = 'Moekoder — Burn subtitles into anime, cutely. A tiny, GPU-accelerated desktop hardsub tool. No cloud. No account. Source available.',
+  image = '/og-default.png',
 } = Astro.props;
 
 const ogImage = new URL(image, Astro.site ?? Astro.url);
