@@ -1,5 +1,11 @@
 ---
 import '../styles/components/hero.css';
+import { loadLatestRelease } from '../lib/release';
+import { formatBytes, formatDate } from '../lib/site';
+
+const release = await loadLatestRelease();
+const primaryHref = release.windows?.url ?? release.htmlUrl;
+const primarySize = release.windows ? formatBytes(release.windows.size) : null;
 ---
 
 <section class="hero">
@@ -7,11 +13,11 @@ import '../styles/components/hero.css';
   <div class="container">
     <div class="hero-meta">
       <span class="dot"></span>
-      <span>v0.1 · released 2026/04</span>
+      <span>v{release.version} · released {formatDate(release.publishedAt)}</span>
       <span>·</span>
       <span><span class="num">無</span> free forever</span>
       <span>·</span>
-      <span>MIT license</span>
+      <span>source-available license</span>
     </div>
 
     <h1 class="hero-title">
@@ -22,17 +28,17 @@ import '../styles/components/hero.css';
     </h1>
 
     <p class="hero-kicker">
-      MoeKoder is a <b>tiny desktop app</b> that hardsubs your MKV with its ASS — and then gets out
-      of your way. GPU-accelerated, preset-driven, <b>no cloud, no account, no pop-ups</b>. The
-      kettle boils; your episode is ready.
+      MoeKoder is a <b>tiny desktop app</b> that hardsubs your MKV with its ASS. Then gets out of
+      your way. GPU-accelerated, preset-driven, <b>no cloud, no account, no pop-ups</b>. The kettle
+      boils; your episode is ready.
     </p>
 
     <div class="hero-ctas">
-      <a class="btn-primary" href="/download">
+      <a class="btn-primary" href={primaryHref} target="_blank" rel="noopener">
         <span class="k">↓</span>
         <span class="t">
-          <span>Download for Windows</span>
-          <em>14 mb · win 10 &amp; 11 · free</em>
+          <span>{release.windows ? 'Download for Windows' : 'Open latest on GitHub'}</span>
+          <em>{primarySize ? `${primarySize} · win 10 & 11 · free` : 'win 10 & 11 · free'}</em>
         </span>
       </a>
       <a
@@ -51,11 +57,11 @@ import '../styles/components/hero.css';
     </div>
 
     <div class="hero-stats">
-      <div class="s"><b>~14 MB</b>installer size</div>
+      <div class="s"><b>{primarySize ?? '~14 MB'}</b>installer size</div>
       <div class="s"><b>GPU</b>NVENC · QSV · AMF</div>
       <div class="s"><b>Win</b>10 · 11 · x64</div>
       <div class="s"><b>0</b>trackers · telemetry</div>
-      <div class="s"><b>MIT</b>open-source forever</div>
+      <div class="s"><b>Source Available</b>fork-friendly forever</div>
     </div>
   </div>
 </section>

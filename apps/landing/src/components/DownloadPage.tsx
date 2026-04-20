@@ -92,7 +92,7 @@ export function DownloadPage() {
     return (
       <>
         <span className="tag">● v{version}</span>
-        released {formatDate(release.published_at)} · mit
+        released {formatDate(release.published_at)} · source available
       </>
     );
   };
@@ -159,8 +159,8 @@ export function DownloadPage() {
           <div className="download-note">
             <span className="k">窓</span>
             <span>
-              Windows is the primary target — macOS builds ship when they stabilise. Linux builds
-              are on the roadmap.{' '}
+              Windows is the primary target. macOS builds ship when they stabilise. Linux builds are
+              on the roadmap.{' '}
               <a
                 href="https://github.com/Shironex/moekoder"
                 target="_blank"

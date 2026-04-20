@@ -44,3 +44,19 @@ footer {
 .foot-links a:hover {
   color: var(--fg);
 }
+
+.foot-gh {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+
+.foot-gh:hover {
+  color: var(--fg);
+}
+
+.foot-gh svg {
+  width: 18px;
+  height: 18px;
+}
