@@ -1,12 +1,20 @@
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { build } from 'esbuild';
 
-// Bundle everything except `electron` itself. Several of our deps
-// (electron-store, electron-updater) ship ESM-only, which Electron's CJS
-// main cannot `require()` at runtime. Letting esbuild bundle them resolves
-// the ESM→CJS interop at build time. Workspace deps (e.g. @moekoder/shared)
-// bundle through naturally.
-const external = ['electron'];
+// Externalize every runtime dep except workspace packages (@moekoder/*).
+// electron-builder copies them from node_modules into the asar at package
+// time based on apps/desktop/package.json's `dependencies`. This keeps the
+// main bundle small (parse/eval cost on cold start) and avoids shipping a
+// second, bundled copy of each dep alongside the node_modules one.
+//
+// Prerequisite: every externalized dep must be CJS-resolvable at runtime.
+// electron-store is pinned to ^8.2.0 (last CJS release) so `require()`
+// works from Electron's CJS main; v9+ is ESM-only.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
+const external = [
+  'electron',
+  ...Object.keys(pkg.dependencies ?? {}).filter(d => !d.startsWith('@moekoder/')),
+];
 
 const result = await build({
   entryPoints: ['src/main/index.ts', 'src/main/preload.ts'],
