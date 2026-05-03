@@ -8,32 +8,32 @@ import '../styles/components/feature-grid.css';
     <div class="feat-label">Hardware</div>
     <h3>GPU-accelerated <em>hardburn</em></h3>
     <p>
-      Uses your NVIDIA NVENC, Intel QSV, or AMD AMF to burn subs at 6–12× real-time. Your CPU stays
-      free for other things.
+      Uses your NVIDIA NVENC, Intel QSV, or AMD AMF to burn subs at 6–12× real-time. CPU
+      libx264 is the always-available fallback so machines without a supported GPU still ship.
     </p>
-    <span class="feat-tag"><span class="ok">●</span> NVENC · QSV · AMF · VAAPI</span>
+    <span class="feat-tag"><span class="ok">●</span> NVENC · QSV · AMF · libx264</span>
   </div>
 
   <div class="feat">
     <div class="feat-k">設</div>
-    <div class="feat-label">Presets</div>
-    <h3>Three knobs. <em>Zero</em> knob-turning.</h3>
+    <div class="feat-label">Preset</div>
+    <h3>One knob. <em>Zero</em> knob-turning.</h3>
     <p>
-      Fast · Balanced · Pristine. The preset picks the encoder preset, CQ, and tune. Power users
-      can edit the ffmpeg command directly.
+      The Balanced preset picks the encoder preset, CQ, and tune that match your hardware. Fast
+      and Pristine variants land in v0.2 — for v0.1 there's one good default and no fiddle bar.
     </p>
-    <span class="feat-tag">速 · 均 · 極 · three ways to burn</span>
+    <span class="feat-tag">均 · balanced · sensible defaults</span>
   </div>
 
   <div class="feat">
-    <div class="feat-k">列</div>
-    <div class="feat-label">Queue</div>
-    <h3>Drop a cour. <em>Walk away.</em></h3>
+    <div class="feat-k">単</div>
+    <div class="feat-label">Single-file</div>
+    <h3>One MKV. <em>One ASS.</em> Done.</h3>
     <p>
-      Drag a whole folder in, MoeKoder pairs MKVs with their matching ASS files and chews through
-      them one by one. Sleeps the machine when done.
+      Drop a video, drop the subtitle file, hit go. Live progress with fps, speed, bitrate, and
+      ETA. Folder queue + cour batching land in v0.3 — v0.1 is the sharp single-file edition.
     </p>
-    <span class="feat-tag">12 episodes → one dinner</span>
+    <span class="feat-tag">ass · ssa · srt · libass</span>
   </div>
 
   <div class="feat">
@@ -42,29 +42,29 @@ import '../styles/components/feature-grid.css';
     <h3>Full ffmpeg <em>stderr.</em></h3>
     <p>
       No black boxes. Every frame, every warning, every bitrate line is right there in the side
-      panel. Copy the command, paste it into a script, we don't mind.
+      panel. The bundled ffmpeg is the upstream BtbN build, unmodified — pinned by SHA-256.
     </p>
-    <span class="feat-tag">ffmpeg 7.0.1 · unmodified</span>
+    <span class="feat-tag">ffmpeg 8.1 · sha-256 pinned</span>
   </div>
 
-  <div class="feat">
+  <div class="feat" id="privacy">
     <div class="feat-k">夜</div>
     <div class="feat-label">Quiet</div>
     <h3>No cloud. <em>No account.</em></h3>
     <p>
-      No sign-in, no update nag, no ping home. Launches into a quiet dark window and does one job
-      well. Your files never leave your disk.
+      No sign-in, no telemetry, no analytics. ffmpeg fetches once at install, then never again.
+      Auto-update checks are off by default — flip the toggle in Settings if you want them.
     </p>
-    <span class="feat-tag"><span class="ok">●</span> 0 outbound connections</span>
+    <span class="feat-tag"><span class="ok">●</span> 0 telemetry · auto-update opt-in</span>
   </div>
 
   <div class="feat">
     <div class="feat-k">無</div>
     <div class="feat-label">Free</div>
-    <h3>Free. <em>Open.</em> Forever.</h3>
+    <h3>Free. <em>Source-available.</em></h3>
     <p>
-      Source-available. Fork it, re-skin it, ship it (per LICENSE). No pro tier, no "upgrade to
-      unlock", no paid codecs. Pay with a star on GitHub if you feel like it.
+      Read it, audit it, file issues — see the LICENSE for redistribution terms. No pro tier,
+      no "upgrade to unlock", no paid codecs. Pay with a star on GitHub if you feel like it.
     </p>
     <span class="feat-tag">source available · github.com/Shironex/moekoder</span>
   </div>

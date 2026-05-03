@@ -37,6 +37,34 @@ export interface ParsedChangelog {
   releases: ChangelogRelease[];
 }
 
+/**
+ * Tiny inline-markdown pass for changelog text. Handles only the two
+ * constructs that show up in this repo's CHANGELOG: `[label](url)` links
+ * and `` `code spans` ``. Everything else passes through untouched. We
+ * escape the source HTML first so an entry like `<script>` doesn't end
+ * up live in the rendered page.
+ *
+ * Exported for unit tests and consumers (`changelog.astro`) that need to
+ * emit pre-rendered HTML via `set:html`.
+ */
+export function renderInlineMarkdown(input: string): string {
+  const escaped = input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  // Code spans first so a `[foo](bar)` inside backticks survives literally.
+  const withCode = escaped.replace(/`([^`]+)`/g, (_m, code: string) => `<code>${code}</code>`);
+
+  // [label](url) — only allow http(s) hrefs to avoid javascript: smuggling.
+  return withCode.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+    (_m, label: string, url: string) =>
+      `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
+  );
+}
+
 const RELEASE_HEADING_RE = /^##\s+(.*)$/;
 const SECTION_HEADING_RE = /^###\s+(.*)$/;
 const LIST_ITEM_RE = /^[-*]\s+(.*)$/;
@@ -115,7 +143,13 @@ export function parseChangelog(markdown: string): ParsedChangelog {
   }
 
   pushRelease();
-  return { intro, releases };
+  // Drop empty `## [Unreleased]` placeholders so the page doesn't render an
+  // orphan dashed card while there's no in-flight work to show. Real
+  // releases always carry at least an intro paragraph or one section.
+  const filtered = releases.filter(
+    r => !(r.isUnreleased && r.intro.length === 0 && r.sections.length === 0)
+  );
+  return { intro, releases: filtered };
 }
 
 export async function loadChangelog(path: string = CHANGELOG_PATH): Promise<ParsedChangelog> {
