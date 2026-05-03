@@ -36,5 +36,3 @@ First public release. Moekoder is a tiny desktop app that hardsubs your MKV with
 - Auto-updater is Windows-only for now; macOS is waiting on a Developer ID certificate.
 - Single-file encode only. Queue mode is planned for v0.3.
 - No pause mid-encode on Windows. Cancel and restart instead.
-
-## [Unreleased]

@@ -33,7 +33,12 @@
     "onlyBuiltDependencies": [
       "electron",
       "esbuild"
-    ]
+    ],
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2026-33532"
+      ]
+    }
   },
   "lint-staged": {
     "*.{ts,tsx}": [

@@ -5,7 +5,7 @@
   "description": "Moekoder — burn subtitles into video, cutely.",
   "author": {
     "name": "Shironex",
-    "url": "https://moekoder.app"
+    "url": "https://github.com/Shironex/moekoder"
   },
   "main": "./dist/main/index.js",
   "scripts": {

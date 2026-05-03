@@ -23,8 +23,6 @@
   <p>
     <a href="https://github.com/Shironex/moekoder/releases/latest"><strong>Download</strong></a>
     &nbsp;·&nbsp;
-    <a href="https://moekoder.app"><strong>Website</strong></a>
-    &nbsp;·&nbsp;
     <a href="CHANGELOG.md"><strong>Changelog</strong></a>
   </p>
 
