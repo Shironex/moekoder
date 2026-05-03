@@ -1,4 +1,4 @@
-import { PageHead } from '@/components/ui';
+import { DropOverlay, PageHead } from '@/components/ui';
 import type { PickedFile } from '@/components/chrome';
 import { cn } from '@/lib/cn';
 import mascotUrl from '@/assets/mascot.png';
@@ -9,6 +9,12 @@ interface IdleProps {
   out: { name: string; path: string } | null;
   /** Optional ffmpeg build string for the top-right meta slot. */
   ffmpegVersion?: string | null;
+  /**
+   * Drop handler — receives auto-categorised path lists for files and
+   * folders. The Idle screen wraps its content in `<DropOverlay>` so the
+   * affordance covers the whole screen, not just the inner card.
+   */
+  onDropFiles?: (payload: { paths: string[]; folderPaths: string[] }) => void;
 }
 
 interface StepPillProps {
@@ -47,14 +53,14 @@ const StepPill = ({ n, label, done }: StepPillProps) => (
  * Pure Tailwind composition. The `PageHead` + `Button` primitives are
  * reused from `@/components/ui`.
  */
-export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
+export const IdleScreen = ({ video, subs, out, ffmpegVersion, onDropFiles }: IdleProps) => {
   const today = new Date().toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   });
 
-  return (
+  const content = (
     <section className="relative flex flex-1 flex-col gap-8 overflow-hidden px-10 py-8">
       <PageHead
         screen="idle"
@@ -102,8 +108,9 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
             Ready when <em className="not-italic text-primary">you</em> are.
           </h2>
           <p className="max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-            Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
-            them up and wait for your go-ahead. No drag-and-drop surprises, no preview popups.
+            Pick a video, a subtitle file, and a save location in the left rail — or drop them on
+            the window and MoeKoder will line them up. Nothing leaves your machine, no preview
+            popups.
           </p>
         </div>
 
@@ -126,4 +133,9 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
       </div>
     </section>
   );
+
+  // Wrap in the drop overlay only when a handler is supplied — keeps the
+  // screen renderable in isolation (e.g. future Storybook / visual tests).
+  if (!onDropFiles) return content;
+  return <DropOverlay onFiles={onDropFiles}>{content}</DropOverlay>;
 };

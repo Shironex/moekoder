@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron';
 import {
   THEMES,
   DEFAULT_THEME_ID,
@@ -106,6 +106,15 @@ const electronAPI = {
         [input],
         300_000
       ),
+    openFiles: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }): Promise<{ canceled: boolean; filePaths: string[] }> =>
+      invokeWithTimeout<{ canceled: boolean; filePaths: string[] }>(
+        IPC_CHANNELS.DIALOG_OPEN_FILES,
+        [input],
+        300_000
+      ),
     saveFile: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
@@ -122,6 +131,32 @@ const electronAPI = {
         IPC_CHANNELS.DIALOG_OPEN_FOLDER,
         [input],
         300_000
+      ),
+  },
+  fileSystem: {
+    /**
+     * Returns the absolute filesystem path for a `File` object that arrived
+     * via a drag-and-drop event. Electron 32+ removed the legacy `file.path`
+     * property under contextIsolation; `webUtils.getPathForFile` is the
+     * supported replacement and must be reached through the preload bridge
+     * because `webUtils` itself is not available in the renderer realm.
+     */
+    getPathForFile: (file: File): string => webUtils.getPathForFile(file),
+    /**
+     * Enumerate the immediate children of a folder, returning files whose
+     * extension matches the supplied video / subtitle whitelists. Used by
+     * the drop overlay so dropped folders surface their media for auto-pair
+     * without re-implementing fs in the renderer.
+     */
+    listFolder: (input: {
+      folderPath: string;
+      videoExtensions: string[];
+      subtitleExtensions: string[];
+    }): Promise<{ videos: string[]; subtitles: string[] }> =>
+      invokeWithTimeout<{ videos: string[]; subtitles: string[] }>(
+        IPC_CHANNELS.FS_LIST_FOLDER,
+        [input],
+        15_000
       ),
   },
   store: {

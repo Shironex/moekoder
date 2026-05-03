@@ -180,6 +180,12 @@ export interface DialogFileResult {
   filePath: string | null;
 }
 
+/** `dialog:open-files` result — multi-select variant. */
+export interface DialogFilesResult {
+  canceled: boolean;
+  filePaths: string[];
+}
+
 /** `dialog:open-folder` result. */
 export interface DialogFolderResult {
   canceled: boolean;
@@ -195,8 +201,23 @@ export interface ElectronAPI {
   };
   dialog: {
     openFile: (input: DialogFileInput) => Promise<DialogFileResult>;
+    openFiles: (input: DialogFileInput) => Promise<DialogFilesResult>;
     saveFile: (input: DialogFileInput) => Promise<DialogFileResult>;
     openFolder: (input: DialogOpenFolderInput) => Promise<DialogFolderResult>;
+  };
+  fileSystem: {
+    /** Resolve an absolute path for a `File` object originating from a drop event. */
+    getPathForFile: (file: File) => string;
+    /**
+     * List the immediate children of a folder, filtered by the supplied
+     * extension whitelists. Non-recursive. Used by the drop overlay to
+     * resolve dropped folders into their media contents.
+     */
+    listFolder: (input: {
+      folderPath: string;
+      videoExtensions: string[];
+      subtitleExtensions: string[];
+    }) => Promise<{ videos: string[]; subtitles: string[] }>;
   };
   store: {
     get: <K extends UserSettingsKey>(key: K) => Promise<UserSettings[K]>;

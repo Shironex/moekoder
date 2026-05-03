@@ -107,9 +107,14 @@ export const App = () => {
     video,
     subs,
     out,
+    subsCandidates,
+    videosCandidates,
     onPickVideo,
     onPickSubs,
     onPickOut,
+    selectSubCandidate,
+    selectVideoCandidate,
+    applyDroppedFiles,
     reset: resetPicks,
   } = useFilePicks({ saveTarget, customSavePath, outputExt });
 
@@ -176,6 +181,10 @@ export const App = () => {
       container={container}
       collapsed={sidebarCollapsed}
       onToggleCollapsed={onToggleSidebar}
+      subsCandidates={subsCandidates}
+      onSelectSubCandidate={selectSubCandidate}
+      videosCandidates={videosCandidates}
+      onSelectVideoCandidate={selectVideoCandidate}
     />
   );
 
@@ -190,7 +199,13 @@ export const App = () => {
       case 'single-idle':
         return (
           <AppShell sidebar={sidebar}>
-            <IdleScreen video={video} subs={subs} out={out} ffmpegVersion={ffmpegVersion} />
+            <IdleScreen
+              video={video}
+              subs={subs}
+              out={out}
+              ffmpegVersion={ffmpegVersion}
+              onDropFiles={applyDroppedFiles}
+            />
           </AppShell>
         );
       case 'single-encoding':
