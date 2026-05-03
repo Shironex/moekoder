@@ -191,27 +191,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     this.setState({ error, info });
-    // Always emit so dev-tools catch the trace.
+    // The renderer console forwarder (window.ts) already pipes this through
+    // to the main-process logger, so a single `log.error` here is enough —
+    // no IPC reporter needed. The "Copy report" button below gives users a
+    // structured payload to paste into a GitHub issue if they want to.
     log.error(`boundary:${this.props.viewName ?? 'unknown'}`, error, info.componentStack);
-    // Best-effort forward to main process if the surface is already wired;
-    // silently no-op otherwise so an early-boot crash still renders the card.
-    const reporter = (
-      window as unknown as {
-        electronAPI?: { app?: { reportRendererError?: (p: unknown) => void } };
-      }
-    ).electronAPI?.app?.reportRendererError;
-    if (typeof reporter === 'function') {
-      try {
-        reporter({
-          viewName: this.props.viewName ?? 'unknown',
-          message: error.message,
-          stack: error.stack ?? null,
-          componentStack: info.componentStack ?? null,
-        });
-      } catch {
-        // Reporting must never itself throw. Swallow.
-      }
-    }
   }
 
   reset = (): void => {

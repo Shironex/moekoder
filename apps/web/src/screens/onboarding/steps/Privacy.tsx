@@ -39,8 +39,8 @@ const ITEMS: PledgeItem[] = [
   {
     k: '源',
     tone: 'yes',
-    title: 'Open source · MIT',
-    body: "Every line of what you're running is on GitHub. Audit it, fork it, strip it for parts.",
+    title: 'Source-available · auditable',
+    body: "Every line of what you're running is on GitHub. Read it, audit it, file issues — see the LICENSE for redistribution terms.",
   },
 ];
 

@@ -67,8 +67,8 @@ export interface DlStage {
 
 export const DL_STAGES: readonly DlStage[] = [
   { id: 'resolve', k: '尋', label: 'Resolve mirror', sub: 'github releases', size: null },
-  { id: 'ffmpeg', k: '録', label: 'Download ffmpeg.exe', sub: 'BtbN · 7.0.1', size: 88.4 },
-  { id: 'ffprobe', k: '測', label: 'Download ffprobe.exe', sub: 'BtbN · 7.0.1', size: 88.1 },
+  { id: 'ffmpeg', k: '録', label: 'Download ffmpeg.exe', sub: 'BtbN · n8.1', size: 88.4 },
+  { id: 'ffprobe', k: '測', label: 'Download ffprobe.exe', sub: 'BtbN · n8.1', size: 88.1 },
   { id: 'verify', k: '印', label: 'Verify SHA-256', sub: 'tamper check', size: null },
   {
     id: 'install',

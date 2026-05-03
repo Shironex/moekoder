@@ -65,7 +65,7 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion }: IdleProps) => {
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
             <span>— · {today}</span>
             <span className="text-foreground">
-              <b>{ffmpegVersion ?? 'ffmpeg 7.0.1'}</b> · NVENC
+              <b>{ffmpegVersion ?? 'ffmpeg n8.1'}</b> · NVENC
             </span>
             <span>session 0001</span>
           </div>

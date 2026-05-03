@@ -75,7 +75,7 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
         </h1>
         <p className="max-w-[780px] text-sm leading-relaxed text-muted-foreground">
           MoeKoder is ffmpeg wearing a yukata — and it needs the binaries. We download the official{' '}
-          <b className="text-foreground">BtbN ffmpeg 7.0.1</b> build, verify its SHA-256 against the
+          <b className="text-foreground">BtbN ffmpeg n8.1</b> build, verify its SHA-256 against the
           manifest, and drop it in your AppData.{' '}
           <b className="text-foreground">One-time, ~180 MB, then never again.</b>
         </p>

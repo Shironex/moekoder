@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
+import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
 import mascotUrl from '@/assets/mascot.png';
 
@@ -67,10 +68,33 @@ const buildPetals = (count: number): Petal[] =>
  * the whole screen ships as one component bundle.
  */
 export const SplashScreen = ({ onComplete }: SplashProps) => {
+  const api = useElectronAPI();
   const [stepIdx, setStepIdx] = useState(0);
   const [outgoing, setOutgoing] = useState(false);
+  const [appVersion, setAppVersion] = useState<string | null>(null);
   const petals = useMemo(() => buildPetals(30), []);
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // Pull the real packaged-app version once at mount so the splash + edition
+  // line don't lie after the next bump. Falls back gracefully if the IPC
+  // surface isn't available (e.g. running the renderer in a plain browser).
+  useEffect(() => {
+    let cancelled = false;
+    void api.app
+      .getVersion()
+      .then(v => {
+        if (!cancelled) setAppVersion(v);
+      })
+      .catch(() => {
+        // Best-effort — leave the version null and the UI falls back to the
+        // edition-only label below.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  const versionLabel = appVersion ? `v${appVersion}` : 'v—';
 
   useEffect(() => {
     if (stepIdx >= BOOT_STEPS.length) return;
@@ -189,7 +213,7 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
       {/* Top-right build info */}
       <div className="absolute right-6 top-16 flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <div className="text-foreground">
-          <b>v0.1.0</b> <span className="text-muted/70">· moekoder</span>
+          <b>{versionLabel}</b> <span className="text-muted/70">· moekoder</span>
         </div>
         <div>build {today}</div>
       </div>
@@ -209,7 +233,7 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
             Moe<em className="not-italic text-primary">Koder</em>
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            <b className="text-foreground">v0.1.0</b> · yoru edition
+            <b className="text-foreground">{versionLabel}</b> · yoru edition
           </div>
         </div>
         <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">

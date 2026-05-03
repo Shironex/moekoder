@@ -21,8 +21,19 @@ export interface PickedFile {
 export interface SidebarProps {
   video: PickedFile | null;
   subs: PickedFile | null;
-  /** Output uses a folder + filename pair; no ext chip — always `.mp4`. */
+  /**
+   * Output uses a folder + filename pair. The extension chip on the output
+   * stage is driven by the `outputExt` prop below (which mirrors the user's
+   * onboarding container pick), so the rail tells the truth even when the
+   * filename itself doesn't carry an extension yet.
+   */
   out: { name: string; path: string } | null;
+  /**
+   * Lowercase output extension (e.g. `'mp4'` / `'mkv'`) — surfaces on the
+   * output stage's chip. Defaults to `'mp4'` to match the legacy behaviour
+   * for callers that haven't been threaded yet.
+   */
+  outputExt?: string;
   onPickVideo: () => void;
   onPickSubs: () => void;
   onPickOut: () => void;
@@ -60,7 +71,7 @@ interface StageProps {
   label: string;
   placeholder: string;
   data: PickedFile | { name: string; path: string } | null;
-  /** Override for the extension chip — used by output to always show `mp4`. */
+  /** Override for the extension chip — used by output to surface the picked container. */
   ext?: string;
   onPick: () => void;
   /** When true, renders the compact kanji-rail variant (numeral + glyph only). */
@@ -225,6 +236,7 @@ export const Sidebar = ({
   video,
   subs,
   out,
+  outputExt = 'mp4',
   onPickVideo,
   onPickSubs,
   onPickOut,
@@ -305,7 +317,7 @@ export const Sidebar = ({
           label="Output file"
           placeholder="Save location"
           data={out}
-          ext="mp4"
+          ext={outputExt}
           onPick={onPickOut}
           collapsed={collapsed}
         />

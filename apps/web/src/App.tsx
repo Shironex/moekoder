@@ -18,6 +18,7 @@ import {
   useElectronAPI,
   useEncodeEvents,
   useEncodeTransitions,
+  useFfmpegStatus,
   useFilePicks,
   useHydratedSetting,
   useSetting,
@@ -72,6 +73,12 @@ export const App = () => {
   const [hwChoice] = useSetting('hwChoice');
   const [preset] = useSetting('preset');
   const [container] = useSetting('container');
+
+  // Best-effort ffmpeg version — surfaces in the Idle screen meta and in the
+  // future Settings "Engine" panel. The probe runs once at mount; if it
+  // fails (binary missing, ffmpeg -version times out) the screen falls back
+  // to the pinned BtbN label.
+  const { version: ffmpegVersion } = useFfmpegStatus();
 
   // Output filename extension. Follows the picked container with one
   // exception: `webm` falls back to `.mp4` because the backend pipeline
@@ -158,6 +165,7 @@ export const App = () => {
       video={video}
       subs={subs}
       out={out}
+      outputExt={outputExt}
       onPickVideo={onPickVideo}
       onPickSubs={onPickSubs}
       onPickOut={onPickOut}
@@ -182,7 +190,7 @@ export const App = () => {
       case 'single-idle':
         return (
           <AppShell sidebar={sidebar}>
-            <IdleScreen video={video} subs={subs} out={out} />
+            <IdleScreen video={video} subs={subs} out={out} ffmpegVersion={ffmpegVersion} />
           </AppShell>
         );
       case 'single-encoding':
