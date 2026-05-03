@@ -3,6 +3,7 @@ import { IPC_CHANNELS } from '@moekoder/shared';
 import { handle } from '../with-ipc-handler';
 import {
   dialogOpenFileSchema,
+  dialogOpenFilesSchema,
   dialogOpenFolderSchema,
   dialogSaveFileSchema,
 } from '../schemas/dialog.schemas';
@@ -25,6 +26,11 @@ interface DialogOpenFolderInput {
 interface DialogOpenFileResult {
   canceled: boolean;
   filePath: string | null;
+}
+
+interface DialogOpenFilesResult {
+  canceled: boolean;
+  filePaths: string[];
 }
 
 interface DialogSaveFileResult {
@@ -71,6 +77,30 @@ export function registerDialogHandlers(ctx: IpcContext): void {
       return {
         canceled: result.canceled,
         filePath: result.canceled || !filePath ? null : filePath,
+      };
+    }
+  );
+
+  handle<[DialogFileInput], DialogOpenFilesResult>(
+    IPC_CHANNELS.DIALOG_OPEN_FILES,
+    dialogOpenFilesSchema,
+    async (_event, input) => {
+      const parent = getFocusedOrMain(ctx);
+      const result = parent
+        ? await dialog.showOpenDialog(parent, {
+            properties: ['openFile', 'multiSelections'],
+            filters: input.filters,
+            defaultPath: input.defaultPath,
+          })
+        : await dialog.showOpenDialog({
+            properties: ['openFile', 'multiSelections'],
+            filters: input.filters,
+            defaultPath: input.defaultPath,
+          });
+
+      return {
+        canceled: result.canceled,
+        filePaths: result.canceled ? [] : result.filePaths,
       };
     }
   );
@@ -123,6 +153,7 @@ export function registerDialogHandlers(ctx: IpcContext): void {
 
 export function cleanupDialogHandlers(): void {
   ipcMain.removeHandler(IPC_CHANNELS.DIALOG_OPEN_FILE);
+  ipcMain.removeHandler(IPC_CHANNELS.DIALOG_OPEN_FILES);
   ipcMain.removeHandler(IPC_CHANNELS.DIALOG_SAVE_FILE);
   ipcMain.removeHandler(IPC_CHANNELS.DIALOG_OPEN_FOLDER);
 }

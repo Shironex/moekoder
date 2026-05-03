@@ -26,6 +26,17 @@ export const dialogOpenFileSchema = z.tuple([
 ]);
 
 /**
+ * `dialog:open-files` — multi-select variant of `open-file`. Returns
+ * `filePaths: string[]` (possibly empty when the user cancels).
+ */
+export const dialogOpenFilesSchema = z.tuple([
+  z.object({
+    filters: z.array(fileFilterSchema),
+    defaultPath: z.string().optional(),
+  }),
+]);
+
+/**
  * `dialog:save-file` — identical input shape to `open-file`; the handler
  * dispatches to `dialog.showSaveDialog` instead.
  */

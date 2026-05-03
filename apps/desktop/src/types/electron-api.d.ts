@@ -49,8 +49,17 @@ export interface ElectronAPI {
   };
   dialog: {
     openFile: () => Promise<string | null>;
+    openFiles: () => Promise<string[]>;
     saveFile: () => Promise<string | null>;
     openFolder: () => Promise<string | null>;
+  };
+  fileSystem: {
+    getPathForFile: (file: File) => string;
+    listFolder: (input: {
+      folderPath: string;
+      videoExtensions: string[];
+      subtitleExtensions: string[];
+    }) => Promise<{ videos: string[]; subtitles: string[] }>;
   };
   store: {
     get: <K extends UserSettingsKey>(key: K) => Promise<UserSettings[K]>;

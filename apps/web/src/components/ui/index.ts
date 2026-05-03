@@ -6,3 +6,4 @@ export * from './Metric';
 export * from './PageHead';
 export * from './Button';
 export * from './ThemePicker';
+export * from './DropOverlay';

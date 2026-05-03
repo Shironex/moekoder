@@ -1,6 +1,8 @@
-import type { MouseEventHandler } from 'react';
+import { useState, type MouseEventHandler } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import type { ContainerChoice, HwChoice, SaveTarget } from '@moekoder/shared';
 import { IconChevron, IconPlay } from '@/components/ui';
+import { basename } from '@/lib/paths';
 import { cn } from '@/lib/cn';
 
 /**
@@ -63,6 +65,21 @@ export interface SidebarProps {
   collapsed?: boolean;
   /** Handler invoked from the edge handle. Required when `collapsed` is wired. */
   onToggleCollapsed?: () => void;
+  /**
+   * Subtitle candidates surfaced by a multi-sub drop. When present (and >1),
+   * the subs Stage exposes a dropdown to swap the active pick for any of the
+   * other candidates. Empty in the common single-sub case.
+   */
+  subsCandidates?: string[];
+  /** Swap the active subtitle pick to one of `subsCandidates`. */
+  onSelectSubCandidate?: (path: string) => void;
+  /**
+   * Video candidates surfaced by a multi-video drop. When present (and >1),
+   * the video Stage exposes a dropdown to swap the active pick.
+   */
+  videosCandidates?: string[];
+  /** Swap the active video pick to one of `videosCandidates`. */
+  onSelectVideoCandidate?: (path: string) => void;
 }
 
 interface StageProps {
@@ -76,7 +93,138 @@ interface StageProps {
   onPick: () => void;
   /** When true, renders the compact kanji-rail variant (numeral + glyph only). */
   collapsed?: boolean;
+  /**
+   * Optional list of swap candidates. When `>1`, the stage renders a small
+   * chevron next to the ext chip; clicking opens an inline menu so the user
+   * can switch the active pick without re-running the picker dialog.
+   */
+  candidates?: string[];
+  /** Called when the user picks one of `candidates` from the dropdown. */
+  onSelectCandidate?: (path: string) => void;
+  /** Passed through to `CandidatesMenu` to drive copy and ARIA labels. */
+  candidatesKind?: 'subtitle' | 'video';
 }
+
+interface CandidatesMenuProps {
+  candidates: string[];
+  selected?: string;
+  onSelect: (path: string) => void;
+  /** Controls trigger title, aria-label, and header copy. Defaults to 'subtitle'. */
+  kind?: 'subtitle' | 'video';
+  /** Called when the menu opens or closes so the parent can gate pointer events. */
+  onOpenChange?: (open: boolean) => void;
+}
+
+/**
+ * Inline menu listing alternate file candidates for a stage. Built on
+ * `@radix-ui/react-popover` so the floating panel renders into a portal at
+ * `document.body` — escapes the sidebar's stacking context so opaque surfaces
+ * paint over the viewport instead of fighting the rail's translucent washes.
+ * Outside-click, Escape, and focus return are handled by Radix.
+ */
+const CandidatesMenu = ({
+  candidates,
+  selected,
+  onSelect,
+  kind = 'subtitle',
+  onOpenChange,
+}: CandidatesMenuProps) => {
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (next: boolean): void => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
+
+  const isVideo = kind === 'video';
+  const trackLabel = isVideo ? 'Swap video source' : 'Swap subtitle track';
+  const triggerTitle = isVideo
+    ? `Swap video (${candidates.length} candidates)`
+    : `Swap subtitle (${candidates.length} candidates)`;
+  const headerKanji = isVideo ? '映像' : '字幕';
+
+  return (
+    <Popover.Root open={open} onOpenChange={handleOpenChange}>
+      <Popover.Trigger asChild>
+        <button
+          type="button"
+          onClick={e => e.stopPropagation()}
+          aria-label={trackLabel}
+          title={triggerTitle}
+          className={cn(
+            'flex h-5 w-5 items-center justify-center rounded-sm border border-border text-muted transition',
+            'hover:border-primary/50 hover:text-primary',
+            open && 'border-primary/60 text-primary'
+          )}
+        >
+          <IconChevron size={10} className={cn('transition-transform', open && 'rotate-180')} />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align="end"
+          side="bottom"
+          sideOffset={6}
+          collisionPadding={12}
+          aria-label={trackLabel}
+          className={cn(
+            'z-50 flex max-h-[min(420px,var(--radix-popover-content-available-height))] w-[320px] flex-col rounded-md border border-border bg-card p-1',
+            'shadow-[0_18px_44px_-12px_color-mix(in_oklab,black_75%,transparent),0_0_0_1px_color-mix(in_oklab,var(--primary)_22%,transparent)]',
+            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95'
+          )}
+        >
+          <div className="mb-1 shrink-0 border-b border-border/60 px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
+            {candidates.length} candidates · {headerKanji}
+          </div>
+          <div
+            role="listbox"
+            aria-label={trackLabel}
+            className={cn(
+              'flex min-h-0 flex-1 flex-col divide-y divide-border/60 overflow-y-auto',
+              '[scrollbar-width:thin] [scrollbar-color:color-mix(in_oklab,var(--primary)_30%,transparent)_transparent]'
+            )}
+          >
+            {candidates.map(path => {
+              const isActive = path === selected;
+              return (
+                <button
+                  key={path}
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    onSelect(path);
+                    handleOpenChange(false);
+                  }}
+                  className={cn(
+                    'flex flex-col items-start gap-0.5 px-2 py-1.5 text-left transition',
+                    'hover:bg-[color-mix(in_oklab,var(--primary)_8%,transparent)]',
+                    isActive && [
+                      'border-l-2 border-primary pl-[6px]',
+                      'bg-[color-mix(in_oklab,var(--primary)_12%,transparent)]',
+                    ]
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'flex w-full items-center gap-2 truncate font-display text-sm',
+                      isActive ? 'text-primary' : 'text-foreground'
+                    )}
+                    title={basename(path)}
+                  >
+                    <span className="truncate">{basename(path)}</span>
+                  </span>
+                  <span className="w-full truncate font-mono text-[9px] text-muted">{path}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+};
 
 /**
  * Tailwind-authored stage card. Visually matches the design's `.stage`
@@ -89,13 +237,30 @@ interface StageProps {
  * states apply — no separate component — so expanding mid-encode doesn't
  * reset any DOM state.
  */
-const Stage = ({ n, kanji, label, placeholder, data, ext, onPick, collapsed }: StageProps) => {
+const Stage = ({
+  n,
+  kanji,
+  label,
+  placeholder,
+  data,
+  ext,
+  onPick,
+  collapsed,
+  candidates,
+  onSelectCandidate,
+  candidatesKind,
+}: StageProps) => {
   const filled = !!data;
   const resolvedExt = filled ? (ext ?? ('ext' in data! ? data!.ext : undefined)) : undefined;
   const handleClick: MouseEventHandler<HTMLButtonElement> = () => onPick();
+  const showCandidates =
+    !collapsed && filled && !!candidates && candidates.length > 1 && !!onSelectCandidate;
   // The native title shows the full filename on hover — critical in the
   // collapsed rail where the label text isn't visible at all.
   const tooltip = filled ? `${label}: ${data!.name}` : `${label} — ${placeholder}`;
+  // Gate underlay pointer events while the candidates menu is open so an
+  // outside-click that closes the menu doesn't also fire the picker dialog.
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (collapsed) {
     return (
@@ -137,16 +302,23 @@ const Stage = ({ n, kanji, label, placeholder, data, ext, onPick, collapsed }: S
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <div
       className={cn(
-        'group grid w-full grid-cols-[44px_1fr] items-stretch gap-3 rounded-md border border-border bg-transparent p-3 text-left transition',
+        'group relative grid w-full grid-cols-[44px_1fr] items-stretch gap-3 rounded-md border border-border bg-transparent p-3 transition',
         'hover:border-primary/40 hover:bg-[color-mix(in_oklab,var(--primary)_6%,transparent)]',
         filled && 'border-primary/30 bg-[color-mix(in_oklab,var(--primary)_5%,transparent)]'
       )}
     >
-      <div className="flex flex-col items-center justify-center gap-2 border-r border-border/60 pr-2">
+      <button
+        type="button"
+        onClick={handleClick}
+        className={cn(
+          'absolute inset-0 z-0 cursor-pointer rounded-md',
+          menuOpen && 'pointer-events-none'
+        )}
+        aria-label={filled ? `Change ${label}: ${data!.name}` : `Pick ${label}`}
+      />
+      <div className="pointer-events-none relative z-[1] flex flex-col items-center justify-center gap-2 border-r border-border/60 pr-2">
         <div
           className={cn(
             'flex h-7 w-7 items-center justify-center rounded-sm border border-border font-mono text-[11px] tracking-[0.15em] transition',
@@ -166,19 +338,30 @@ const Stage = ({ n, kanji, label, placeholder, data, ext, onPick, collapsed }: S
           {kanji}
         </div>
       </div>
-      <div className="flex min-w-0 flex-col gap-1">
+      <div className="pointer-events-none relative z-[1] flex min-w-0 flex-col gap-1 text-left">
         <div className="flex items-center justify-between gap-2">
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
             {label}
           </span>
-          <span
-            className={cn(
-              'rounded-sm border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em]',
-              filled ? 'text-foreground' : 'text-muted/70'
+          <div className="pointer-events-auto flex items-center gap-1.5">
+            <span
+              className={cn(
+                'rounded-sm border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em]',
+                filled ? 'text-foreground' : 'text-muted/70'
+              )}
+            >
+              {filled && resolvedExt ? resolvedExt : '—'}
+            </span>
+            {showCandidates && (
+              <CandidatesMenu
+                candidates={candidates!}
+                selected={data && 'path' in data ? data.path : undefined}
+                onSelect={onSelectCandidate!}
+                kind={candidatesKind}
+                onOpenChange={setMenuOpen}
+              />
             )}
-          >
-            {filled && resolvedExt ? resolvedExt : '—'}
-          </span>
+          </div>
         </div>
         <div
           className={cn(
@@ -193,7 +376,7 @@ const Stage = ({ n, kanji, label, placeholder, data, ext, onPick, collapsed }: S
           {filled ? data!.path : <em className="not-italic text-muted/80">click to pick</em>}
         </div>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -247,6 +430,10 @@ export const Sidebar = ({
   container,
   collapsed = false,
   onToggleCollapsed,
+  subsCandidates,
+  onSelectSubCandidate,
+  videosCandidates,
+  onSelectVideoCandidate,
 }: SidebarProps) => {
   const filledCount = [video, subs, out].filter(Boolean).length;
   const armed = filledCount === 3 && !encoding;
@@ -301,6 +488,9 @@ export const Sidebar = ({
           data={video}
           onPick={onPickVideo}
           collapsed={collapsed}
+          candidates={videosCandidates}
+          onSelectCandidate={onSelectVideoCandidate}
+          candidatesKind="video"
         />
         <Stage
           n="弐"
@@ -310,6 +500,9 @@ export const Sidebar = ({
           data={subs}
           onPick={onPickSubs}
           collapsed={collapsed}
+          candidates={subsCandidates}
+          onSelectCandidate={onSelectSubCandidate}
+          candidatesKind="subtitle"
         />
         <Stage
           n="参"
