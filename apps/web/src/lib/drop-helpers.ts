@@ -123,6 +123,28 @@ function getBaseName(filePath: string): string {
 }
 
 /**
+ * Whether `needle` appears in `haystack` at a position bordered by a
+ * non-alphanumeric character (or string boundary) on either side. Prevents
+ * `'ep10'.includes('ep1')` style false positives in the auto-pair `includes`
+ * strategies — the bare substring would silently mispair `ep10.mkv` with
+ * `ep1.ass` whenever the matching `ep10.ass` is missing.
+ */
+function includesOnWordBoundary(haystack: string, needle: string): boolean {
+  if (needle.length === 0) return false;
+  let from = 0;
+  while (from <= haystack.length - needle.length) {
+    const idx = haystack.indexOf(needle, from);
+    if (idx === -1) return false;
+    const before = idx === 0 ? '' : haystack[idx - 1];
+    const after = idx + needle.length >= haystack.length ? '' : haystack[idx + needle.length];
+    const isBoundary = (ch: string): boolean => ch === '' || /[^a-z0-9]/.test(ch);
+    if (isBoundary(before) && isBoundary(after)) return true;
+    from = idx + 1;
+  }
+  return false;
+}
+
+/**
  * Pair videos with subtitles using a three-stage filename heuristic:
  *
  *   1. Exact base-name match (lowercased, extension stripped).
@@ -156,11 +178,11 @@ export function autoPairFiles(
         matchedSubtitle = subtitle;
         break;
       }
-      if (videoBase.includes(subBase)) {
+      if (includesOnWordBoundary(videoBase, subBase)) {
         matchedSubtitle = subtitle;
         break;
       }
-      if (subBase.includes(videoBase)) {
+      if (includesOnWordBoundary(subBase, videoBase)) {
         matchedSubtitle = subtitle;
         break;
       }

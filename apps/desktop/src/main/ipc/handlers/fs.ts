@@ -58,8 +58,13 @@ export function registerFsHandlers(_ctx: IpcContext): void {
         else if (subExts.has(ext)) subtitles.push(full);
       }
 
-      videos.sort((a, b) => a.localeCompare(b));
-      subtitles.sort((a, b) => a.localeCompare(b));
+      // Numeric-aware sort so `ep2.mkv` comes before `ep10.mkv` in the
+      // candidates dropdown — the default lexicographic order would put
+      // `ep10` first and feel broken on episode lists.
+      videos.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+      subtitles.sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      );
 
       return { videos, subtitles };
     }

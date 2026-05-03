@@ -131,5 +131,28 @@ describe('drop-helpers', () => {
 
       expect(result.paired).toHaveLength(1);
     });
+
+    it('should not pair numeric-prefix collisions like ep10.mkv with ep1.ass', () => {
+      const videos = ['/a/ep10.mkv'];
+      const subtitles = ['/a/ep1.ass'];
+
+      const result = autoPairFiles(videos, subtitles);
+
+      expect(result.paired).toHaveLength(0);
+      expect(result.unpaired).toEqual(['/a/ep10.mkv']);
+    });
+
+    it('should still pair exact numeric matches like ep1.mkv with ep1.ass', () => {
+      const videos = ['/a/ep1.mkv'];
+      const subtitles = ['/a/ep1.ass'];
+
+      const result = autoPairFiles(videos, subtitles);
+
+      expect(result.paired).toHaveLength(1);
+      expect(result.paired[0]).toEqual({
+        video: '/a/ep1.mkv',
+        subtitle: '/a/ep1.ass',
+      });
+    });
   });
 });

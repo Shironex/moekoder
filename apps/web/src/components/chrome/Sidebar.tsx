@@ -177,9 +177,11 @@ const CandidatesMenu = ({
           <div className="mb-1 shrink-0 border-b border-border/60 px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
             {candidates.length} candidates · {headerKanji}
           </div>
+          {/* Plain button list — keyboard nav (roving tabindex / arrow keys)
+              is deferred to a P2 follow-up, so the listbox/option ARIA is
+              intentionally absent. Half-implemented listbox semantics
+              announce worse than native button semantics in screen readers. */}
           <div
-            role="listbox"
-            aria-label={trackLabel}
             className={cn(
               'flex min-h-0 flex-1 flex-col divide-y divide-border/60 overflow-y-auto',
               '[scrollbar-width:thin] [scrollbar-color:color-mix(in_oklab,var(--primary)_30%,transparent)_transparent]'
@@ -191,8 +193,6 @@ const CandidatesMenu = ({
                 <button
                   key={path}
                   type="button"
-                  role="option"
-                  aria-selected={isActive}
                   onClick={() => {
                     onSelect(path);
                     handleOpenChange(false);
@@ -312,6 +312,7 @@ const Stage = ({
       <button
         type="button"
         onClick={handleClick}
+        title={tooltip}
         className={cn(
           'absolute inset-0 z-0 cursor-pointer rounded-md',
           menuOpen && 'pointer-events-none'

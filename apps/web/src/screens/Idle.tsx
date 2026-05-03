@@ -108,8 +108,9 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion, onDropFiles }: Idl
             Ready when <em className="not-italic text-primary">you</em> are.
           </h2>
           <p className="max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-            Pick a video, a subtitle file, and a save location in the left rail — MoeKoder will line
-            them up and wait for your go-ahead. No drag-and-drop surprises, no preview popups.
+            Pick a video, a subtitle file, and a save location in the left rail — or drop them on
+            the window and MoeKoder will line them up. Nothing leaves your machine, no preview
+            popups.
           </p>
         </div>
 

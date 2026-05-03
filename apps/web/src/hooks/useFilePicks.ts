@@ -179,8 +179,12 @@ export const useFilePicks = ({
 
   const applyDroppedFiles = useCallback(
     (input: { paths: string[]; folderPaths?: string[] }): void => {
-      setOutUserDirty(false);
       const folderPath = input.folderPaths?.[0];
+      // A folder drop is itself an explicit output pick that should win over
+      // any prior manual selection; in every other branch we preserve the
+      // user's deliberate `onPickOut` choice (`outUserDirty === true`) so a
+      // file-only drop never silently overwrites it.
+      const preserveManualOut = outUserDirty && !folderPath;
 
       const { videos, subtitles, other } = categorizePaths(input.paths);
       log.info('apply dropped files', {
@@ -200,14 +204,21 @@ export const useFilePicks = ({
 
       const firstPaired = paired[0];
       let videoForOutput: string | null = null;
+      // Skip the per-video output derivation when either the user already
+      // committed to a manual output (preserve it) or the folder branch
+      // below will own the output write (avoids a wasted intermediate set).
+      const skipOutDerive = preserveManualOut || !!folderPath;
 
       if (firstPaired) {
-        setVideoFromPath(firstPaired.video);
+        setVideoFromPath(firstPaired.video, skipOutDerive);
         setSubsFromPath(firstPaired.subtitle);
         videoForOutput = firstPaired.video;
       } else if (unpaired.length > 0) {
-        setVideoFromPath(unpaired[0]);
+        setVideoFromPath(unpaired[0], skipOutDerive);
         videoForOutput = unpaired[0];
+        // Clear stale subs so a previous drop's subtitle doesn't ride along
+        // with the newly dropped video and silently get encoded.
+        setSubs(null);
         if (subtitles.length > 0) {
           log.warn('video did not name-match any subtitle — subtitle slot left empty', {
             video: unpaired[0],
@@ -243,14 +254,22 @@ export const useFilePicks = ({
         // hasn't flushed yet within this callback.
         const fallbackName = videoForOutput ? basename(videoForOutput) : undefined;
         setOutFromFolder(folderPath, fallbackName);
-      } else if (videoForOutput && !saveTarget) {
+        // The dropped folder is a deliberate output target — mark dirty so a
+        // later video-candidate swap doesn't re-derive output from saveTarget
+        // and silently clobber the dropped folder.
+        setOutUserDirty(true);
+      } else if (videoForOutput && !saveTarget && !preserveManualOut) {
         // Edge case: no folder dropped and `saveTarget` hasn't hydrated.
-        // Fall back to the video's directory so the slot still fills.
+        // Fall back to the video's directory so the slot still fills, but
+        // never clobber a manual `onPickOut` selection.
         const dir = dirnameOf(videoForOutput);
-        if (dir) setOutFromFolder(dir, basename(videoForOutput));
+        if (dir) {
+          setOutFromFolder(dir, basename(videoForOutput));
+          setOutUserDirty(true);
+        }
       }
     },
-    [setVideoFromPath, setSubsFromPath, setOutFromFolder, saveTarget]
+    [setVideoFromPath, setSubsFromPath, setOutFromFolder, saveTarget, outUserDirty]
   );
 
   const reset = useCallback((): void => {

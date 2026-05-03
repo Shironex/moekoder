@@ -48,10 +48,21 @@ export interface ElectronAPI {
     openLogsFolder: () => Promise<void>;
   };
   dialog: {
-    openFile: () => Promise<string | null>;
-    openFiles: () => Promise<string[]>;
-    saveFile: () => Promise<string | null>;
-    openFolder: () => Promise<string | null>;
+    openFile: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }) => Promise<{ canceled: boolean; filePath: string | null }>;
+    openFiles: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }) => Promise<{ canceled: boolean; filePaths: string[] }>;
+    saveFile: (input: {
+      filters: Electron.FileFilter[];
+      defaultPath?: string;
+    }) => Promise<{ canceled: boolean; filePath: string | null }>;
+    openFolder: (input: {
+      defaultPath?: string;
+    }) => Promise<{ canceled: boolean; folderPath: string | null }>;
   };
   fileSystem: {
     getPathForFile: (file: File) => string;
