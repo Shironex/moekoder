@@ -1,8 +1,11 @@
-import type { BrowserWindow } from 'electron';
+import { shell, type BrowserWindow } from 'electron';
 import { autoUpdater, type UpdateInfo, type ProgressInfo } from 'electron-updater';
 import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { createMainLogger } from './logger';
 import { getSetting, onSettingChange } from './store';
+
+/** GitHub releases page used as the macOS "check now" target until code-signing lands. */
+const GITHUB_RELEASES_URL = 'https://github.com/Shironex/moekoder/releases';
 
 const log = createMainLogger('updater');
 
@@ -161,6 +164,15 @@ async function runCheck(): Promise<void> {
 }
 
 export async function checkForUpdates(): Promise<void> {
+  // On macOS the auto-updater is intentionally disabled (no code signing),
+  // so the renderer's "Check for updates" button would otherwise no-op
+  // silently. Hand the user off to the GitHub releases page instead — they
+  // can decide whether the published version is worth fetching manually.
+  if (!enabled && process.platform === 'darwin') {
+    log.info('Updater disabled on darwin — opening releases page');
+    await shell.openExternal(GITHUB_RELEASES_URL);
+    return;
+  }
   if (!enabled) return;
   await autoUpdater.checkForUpdates();
 }

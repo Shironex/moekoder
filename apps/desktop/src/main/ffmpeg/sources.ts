@@ -68,26 +68,26 @@ export const WINDOWS_SOURCE: FFmpegSource = {
  * are published as separate zip archives, each containing only the matching
  * binary at the archive root.
  *
- * The `/getrelease/<name>/zip` endpoint 302s to the current release; our
- * `downloadToFile` helper follows redirects, so no extra resolve step is
- * needed.
- *
- * TODO(phase-6-polish): pin to a specific evermeet release + sha256 before
- * v0.1.0 ships — same trust-on-first-use caveat as WINDOWS_SOURCE.
+ * Pinned to ffmpeg/ffprobe 8.1 — the immutable per-version URLs are taken
+ * from `https://evermeet.cx/ffmpeg/info/{ffmpeg,ffprobe}/release` (the
+ * `download.zip.url` field), so the archive behind the URL stays
+ * byte-stable. SHA-256s are computed over the downloaded `.zip` artifacts
+ * because evermeet's JSON ships a PGP `.sig` only (not a hex digest); to
+ * bump, download the new versioned zip and run `sha256sum` against it.
  */
 export const MACOS_SOURCE: FFmpegSource = {
   platform: 'darwin',
-  version: 'latest',
+  version: '8.1',
   downloads: [
     {
-      url: 'https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip',
-      sha256: null,
+      url: 'https://evermeet.cx/ffmpeg/ffmpeg-8.1.zip',
+      sha256: 'd67db25908eff64b7d0eaa73784f0c55728d9e036a96931095fcf8e8968eefab',
       archive: 'zip',
       entries: { ffmpeg: 'ffmpeg' },
     },
     {
-      url: 'https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip',
-      sha256: null,
+      url: 'https://evermeet.cx/ffmpeg/ffprobe-8.1.zip',
+      sha256: 'b6e9bf4f4ab2992dace205498d99d9e2ede684e3e8ae89485cadd3b91711ea04',
       archive: 'zip',
       entries: { ffprobe: 'ffprobe' },
     },

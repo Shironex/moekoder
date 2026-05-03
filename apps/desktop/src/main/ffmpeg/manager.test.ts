@@ -55,6 +55,22 @@ describe('getSourceForPlatform', () => {
   it('WINDOWS_SOURCE points at a BtbN release URL', () => {
     expect(WINDOWS_SOURCE.downloads[0].url).toMatch(/BtbN\/FFmpeg-Builds/);
   });
+
+  it('MACOS_SOURCE pins a SHA-256 for every archive', () => {
+    for (const dl of MACOS_SOURCE.downloads) {
+      expect(dl.sha256).toMatch(/^[a-f0-9]{64}$/);
+    }
+  });
+
+  it('MACOS_SOURCE points at immutable evermeet per-version URLs', () => {
+    for (const dl of MACOS_SOURCE.downloads) {
+      // The rolling `getrelease/<name>/zip` endpoint must not be used —
+      // it 302s to whatever build evermeet currently considers "latest"
+      // and breaks the SHA-256 pin.
+      expect(dl.url).not.toMatch(/getrelease/);
+      expect(dl.url).toMatch(/evermeet\.cx\/ffmpeg\/(ffmpeg|ffprobe)-\d+\.\d+(\.\d+)?\.zip$/);
+    }
+  });
 });
 
 describe('hashFileSha256', () => {

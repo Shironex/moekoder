@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, shell } from 'electron';
 import * as path from 'node:path';
 import { log } from './logger';
 
@@ -31,6 +31,66 @@ function isNoisy(message: string): boolean {
 const VITE_DEV_URL = process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:15180';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+/**
+ * Decide what to do when the renderer tries to open a new window
+ * (`window.open`, target=_blank, popups). External http(s) URLs are handed
+ * off to the OS via `shell.openExternal`; everything else (including
+ * `javascript:`, `file:`, `data:`, unparseable strings) is dropped on the
+ * floor. The packaged window itself never opens a child BrowserWindow.
+ *
+ * Exported (and pure on inputs) so the unit test can exercise the decision
+ * without spinning up Electron.
+ */
+export function decideWindowOpen(url: string): {
+  action: 'deny';
+  externalUrl: string | null;
+} {
+  let externalUrl: string | null = null;
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'http:' || u.protocol === 'https:') {
+      externalUrl = u.toString();
+    }
+  } catch {
+    // Unparseable URL — drop on the floor.
+  }
+  return { action: 'deny', externalUrl };
+}
+
+/**
+ * Decide whether an in-window navigation should be allowed. In dev we only
+ * trust the Vite dev URL; in prod we only trust the local `file://` bundle.
+ * Anything else (a stray `location.href = 'https://attacker'`) is blocked
+ * before the navigation commits.
+ */
+export function isAllowedNavigation(url: string, isDev: boolean, devUrl: string): boolean {
+  return isDev ? url.startsWith(devUrl) : url.startsWith('file://');
+}
+
+/**
+ * Deny-by-default navigation hardening. Anything that tries to leave the
+ * packaged renderer is blocked at the Electron layer instead of trusting
+ * the renderer's intent. The legitimate "open this URL in the browser"
+ * path runs through the `app:open-external` IPC, which has its own
+ * protocol allow-list.
+ */
+function attachNavigationGuards(win: BrowserWindow): void {
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    const decision = decideWindowOpen(url);
+    if (decision.externalUrl) {
+      void shell.openExternal(decision.externalUrl);
+    }
+    return { action: decision.action };
+  });
+
+  win.webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedNavigation(url, IS_DEV, VITE_DEV_URL)) {
+      log.warn(`[nav-guard] blocked navigation to ${url}`);
+      event.preventDefault();
+    }
+  });
+}
+
 export function createMainWindow(): BrowserWindow {
   // Platform-dependent chrome config:
   //   · macOS keeps native traffic lights (`titleBarStyle: 'hidden'`) and
@@ -56,6 +116,8 @@ export function createMainWindow(): BrowserWindow {
       sandbox: true,
     },
   });
+
+  attachNavigationGuards(win);
 
   // Forward renderer console messages to the main-process log file.
   // Electron 40+ uses the single-object signature — pluck fields off the event.

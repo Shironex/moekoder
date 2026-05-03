@@ -160,11 +160,11 @@ export async function hashFileSha256(filePath: string): Promise<string> {
 
 /**
  * Verify the downloaded archive against the pinned SHA-256 from the source
- * config. Mismatches throw so the caller can discard the archive. When the
- * archive's `sha256` is `null` (trust-on-first-use), verify is skipped with a
- * warning — BtbN's `latest` tag and evermeet.cx's `getrelease` endpoint are
- * rolling pointers we can't pin yet; we'll swap them for tagged releases
- * before v0.1.0 GA.
+ * config. Mismatches throw so the caller can discard the archive. When an
+ * archive's `sha256` is `null` (trust-on-first-use), verify is skipped with
+ * a warning — kept as a fallback for any future source we can't pin, but
+ * both currently-shipped archives (BtbN Windows tagged build and evermeet
+ * macOS per-version zips) carry pinned digests.
  */
 async function verifyArchive(
   archivePath: string,

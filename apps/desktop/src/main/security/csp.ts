@@ -11,8 +11,11 @@ export const IS_DEV = process.env.NODE_ENV === 'development';
  *
  * Dev mode is intentionally relaxed to let Vite inject HMR code
  * (`'unsafe-eval'`, `'unsafe-inline'`, the dev-server origin on the
- * script/connect directives). Production is strict: script/style/connect are
- * locked to the packaged assets plus GitHub's API for `electron-updater`.
+ * script/connect directives). Production is strict: script/style/connect
+ * are locked to the packaged assets. The renderer never calls
+ * `api.github.com` directly — release-info fetches happen in the main
+ * process (electron-updater + the landing's Astro build path), so there's
+ * no need to widen `connect-src` for them.
  */
 export function buildCsp(isDev: boolean): string {
   if (isDev) {
@@ -31,7 +34,7 @@ export function buildCsp(isDev: boolean): string {
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "connect-src 'self' https://api.github.com",
+    "connect-src 'self'",
     "img-src 'self' data:",
   ].join('; ');
 }
