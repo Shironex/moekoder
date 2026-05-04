@@ -1,8 +1,15 @@
 import { lazy, Suspense, useCallback, useEffect } from 'react';
 import { AppShell, Sidebar, Titlebar } from '@/components/chrome';
+import { QueueSidebar } from '@/components/chrome/QueueSidebar';
 import { CrashFallback, ErrorBoundary } from '@/components/shared';
 import { Updater } from '@/components/Updater';
 import { DoneScreen, EncodingScreen, IdleScreen, SplashScreen } from '@/screens';
+import { QueueScreenContainer } from '@/screens/Queue';
+import { useQueueStore, selectStats } from '@/stores/useQueueStore';
+import { useQueueEvents } from '@/hooks/useQueueEvents';
+import { autoPairFiles, categorizePaths } from '@/lib/drop-helpers';
+import { resolveOutputDir } from '@/lib/resolve-output';
+import { stripExt } from '@/lib/paths';
 
 // Route-level code splitting for screens outside the hot encode path.
 // Onboarding runs exactly once, Settings/About are rarely opened — keeping
@@ -57,10 +64,19 @@ export const App = () => {
   const api = useElectronAPI();
   const activeView = useAppStore(s => s.activeView);
   const setView = useAppStore(s => s.setView);
+  const route = useAppStore(s => s.route);
+  const setRoute = useAppStore(s => s.setRoute);
   const themeId = useAppStore(s => s.themeId);
   const setThemeId = useAppStore(s => s.setThemeId);
   const sidebarCollapsed = useAppStore(s => s.sidebarCollapsed);
   const setSidebarCollapsed = useAppStore(s => s.setSidebarCollapsed);
+
+  // Queue store + event subscription (single mount point for `queue:*` IPC).
+  const queueStats = useQueueStore(selectStats);
+  const queueRunning = useQueueStore(s => s.running);
+  const queuePaused = useQueueStore(s => s.paused);
+  const queueSettings = useQueueStore(s => s.settings);
+  useQueueEvents();
 
   const setPhase = useEncodeStore(s => s.setPhase);
   const setJobId = useEncodeStore(s => s.setJobId);
@@ -73,6 +89,7 @@ export const App = () => {
   const [hwChoice] = useSetting('hwChoice');
   const [preset] = useSetting('preset');
   const [container] = useSetting('container');
+  const [queueDefaultRoute] = useSetting('queueDefaultRoute');
 
   // Best-effort ffmpeg version — surfaces in the Idle screen meta and in the
   // future Settings "Engine" panel. The probe runs once at mount; if it
@@ -97,9 +114,36 @@ export const App = () => {
   // before hydration completed.
   useHydratedSetting('themeId', themeId, setThemeId);
   useHydratedSetting('sidebarCollapsed', sidebarCollapsed, setSidebarCollapsed);
+  useHydratedSetting('queueDefaultRoute', route, setRoute);
   useEffect(() => {
     applyTheme(themeId);
   }, [themeId]);
+
+  // After splash, honour the persisted default route — first-run boots into
+  // single-idle (the v0.2 default); a power-user who flipped
+  // queueDefaultRoute to 'queue' boots straight into the queue screen.
+  useEffect(() => {
+    if (activeView === 'single-idle' && queueDefaultRoute === 'queue') {
+      setRoute('queue');
+      setView('queue');
+    }
+  }, [activeView, queueDefaultRoute, setRoute, setView]);
+
+  // Keep activeView and route in sync. The user can flip route via the
+  // Titlebar tabs; activeView follows. This is split from the initial
+  // splash → idle flow because mid-app tab clicks need to leave settings /
+  // about screens reachable from either route.
+  const onRouteChange = useCallback(
+    (next: 'single' | 'queue'): void => {
+      setRoute(next);
+      if (next === 'queue') {
+        setView('queue');
+      } else if (activeView === 'queue') {
+        setView('single-idle');
+      }
+    },
+    [activeView, setRoute, setView]
+  );
 
   const onToggleSidebar = useSidebarToggle();
 
@@ -165,6 +209,86 @@ export const App = () => {
     setView('single-idle');
   }, [resetPicks, setView]);
 
+  // Drag-and-drop into the QueueSidebar enqueues fresh pairs through the
+  // same auto-pair pipeline as the screen-level drop overlay. Lives on the
+  // App level so the rail doesn't need to import drop-helpers itself —
+  // keeps the chrome layer presentation-only.
+  const enqueueDroppedFiles = useCallback(
+    (input: { paths: string[]; folderPaths?: string[] }): void => {
+      const folderPath = input.folderPaths?.[0];
+      const { videos, subtitles } = categorizePaths(input.paths);
+      const { paired } = autoPairFiles(videos, subtitles);
+      if (paired.length === 0) {
+        log.warn('queue rail drop produced no auto-pairs');
+        return;
+      }
+      const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
+      const newItems = paired.map(pair => {
+        const videoName = pair.video.split(/[\\/]/).pop() ?? pair.video;
+        const subtitleName = pair.subtitle.split(/[\\/]/).pop() ?? pair.subtitle;
+        const dir =
+          folderPath ?? resolveOutputDir(saveTarget ?? 'moekoder', pair.video, customSavePath);
+        const outputPath = joinPath(dir, `${stripExt(videoName)}.${outputExt}`);
+        return {
+          videoPath: pair.video,
+          videoName,
+          subtitlePath: pair.subtitle,
+          subtitleName,
+          outputPath,
+        };
+      });
+      api.queue.addItems(newItems).catch(err => log.warn('queue.addItems (rail) failed', err));
+    },
+    [api, saveTarget, customSavePath, container]
+  );
+
+  const onQueueAddPair = useCallback(async (): Promise<void> => {
+    try {
+      const res = await api.dialog.openFiles({
+        filters: [
+          {
+            name: 'Video + subtitle',
+            extensions: [
+              'mkv',
+              'mp4',
+              'm4v',
+              'webm',
+              'avi',
+              'mov',
+              'ts',
+              'm2ts',
+              'ass',
+              'ssa',
+              'srt',
+              'vtt',
+            ],
+          },
+        ],
+      });
+      if (res.canceled || res.filePaths.length === 0) return;
+      enqueueDroppedFiles({ paths: res.filePaths });
+    } catch (err) {
+      log.warn('queue add-pair failed', err);
+    }
+  }, [api, enqueueDroppedFiles]);
+
+  const queueSidebar = (
+    <QueueSidebar
+      stats={queueStats}
+      running={queueRunning}
+      paused={queuePaused}
+      singleEncodeActive={phase === 'running'}
+      concurrency={queueSettings.concurrency}
+      onStart={() => api.queue.start().catch(err => log.warn('queue.start failed', err))}
+      onPause={() => api.queue.pause().catch(err => log.warn('queue.pause failed', err))}
+      onResume={() => api.queue.resume().catch(err => log.warn('queue.resume failed', err))}
+      onAddPair={onQueueAddPair}
+      onDropFiles={enqueueDroppedFiles}
+      collapsed={sidebarCollapsed}
+      onToggleCollapsed={onToggleSidebar}
+    />
+  );
+
   const sidebar = (
     <Sidebar
       video={video}
@@ -220,6 +344,12 @@ export const App = () => {
             <DoneScreen onReset={onEncodeAnother} />
           </AppShell>
         );
+      case 'queue':
+        return (
+          <AppShell sidebar={queueSidebar}>
+            <QueueScreenContainer />
+          </AppShell>
+        );
       case 'onboarding':
         return <Onboarding />;
       case 'settings':
@@ -241,7 +371,11 @@ export const App = () => {
     >
       <div className="app-root">
         {activeView !== 'splash' && activeView !== 'crash' && (
-          <Titlebar route="single" onSettings={() => setView('settings')} />
+          <Titlebar
+            route={route}
+            onRouteChange={onRouteChange}
+            onSettings={() => setView('settings')}
+          />
         )}
         <Suspense fallback={null}>{renderView()}</Suspense>
         <Updater />
