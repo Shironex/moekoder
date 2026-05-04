@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PreflightResult } from '../ffmpeg/disk-space';
 import type { EncodeProgress, EncodeResult, LogLine } from '../ffmpeg/processor';
-import { cancelEncode, getActiveJobIds, startEncode, type OrchestratorDeps } from './orchestrator';
+import {
+  cancelEncode,
+  getActiveJobIds,
+  getConcurrencyCap,
+  setConcurrencyCap,
+  startEncode,
+  type OrchestratorDeps,
+} from './orchestrator';
 import { isIpcError } from '../ipc/errors';
 
 interface StubProcessor {
@@ -101,6 +108,8 @@ afterEach(async () => {
     proc?.__fail(Object.assign(new Error('test cleanup'), { code: 'CANCELLED' }));
   }
   await drainActive();
+  // Restore the default cap so concurrency-changing tests don't leak state.
+  setConcurrencyCap(1);
 });
 
 describe('startEncode — happy path', () => {
@@ -326,6 +335,62 @@ describe('cancelEncode', () => {
 
   it('returns false for an unknown jobId', () => {
     expect(cancelEncode('does-not-exist')).toBe(false);
+  });
+});
+
+describe('concurrency cap', () => {
+  it('defaults to 1', () => {
+    expect(getConcurrencyCap()).toBe(1);
+  });
+
+  it('allows N concurrent encodes when the cap is raised to N', async () => {
+    setConcurrencyCap(2);
+    const deps = makeDeps();
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/a.mkv', subtitlePath: '/in/a.ass', outputPath: '/out/a.mp4' },
+      events,
+      deps
+    );
+    await startEncode(
+      { videoPath: '/in/b.mkv', subtitlePath: '/in/b.ass', outputPath: '/out/b.mp4' },
+      events,
+      deps
+    );
+    expect(getActiveJobIds()).toHaveLength(2);
+
+    // A third start at cap=2 must reject.
+    await expect(
+      startEncode(
+        { videoPath: '/in/c.mkv', subtitlePath: '/in/c.ass', outputPath: '/out/c.mp4' },
+        events,
+        deps
+      )
+    ).rejects.toMatchObject({ code: 'UNAVAILABLE' });
+
+    // Drain.
+    processors[0]!.__finish({
+      outputPath: '/out/a.mp4',
+      durationSec: 60,
+      avgFps: 48,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    processors[1]!.__finish({
+      outputPath: '/out/b.mp4',
+      durationSec: 60,
+      avgFps: 48,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+  });
+
+  it('rejects non-positive integer caps', () => {
+    expect(() => setConcurrencyCap(0)).toThrow();
+    expect(() => setConcurrencyCap(-1)).toThrow();
+    expect(() => setConcurrencyCap(1.5)).toThrow();
   });
 });
 
