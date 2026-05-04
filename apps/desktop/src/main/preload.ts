@@ -8,7 +8,13 @@ import {
   ENCODE_EVENT_CHANNELS,
   FFMPEG_EVENT_CHANNELS,
   IPC_CHANNELS,
+  QUEUE_EVENT_CHANNELS,
   UPDATER_EVENT_CHANNELS,
+  type NewQueueItem,
+  type QueueItemLogEvent,
+  type QueueItemProgressEvent,
+  type QueueSettings,
+  type QueueSnapshot,
   type UpdaterEventChannel,
   type UserSettings,
   type UserSettingsKey,
@@ -270,6 +276,53 @@ const electronAPI = {
   },
   /** Enumerated encode event channel names, re-exposed for renderer convenience. */
   encodeEvents: ENCODE_EVENT_CHANNELS,
+  queue: {
+    getSnapshot: (): Promise<QueueSnapshot> =>
+      invokeWithTimeout<QueueSnapshot>(IPC_CHANNELS.QUEUE_GET_SNAPSHOT, []),
+    addItems: (items: NewQueueItem[]): Promise<string[]> =>
+      invokeWithTimeout<string[]>(IPC_CHANNELS.QUEUE_ADD_ITEMS, [items]),
+    removeItem: (id: string): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.QUEUE_REMOVE_ITEM, [id]),
+    reorder: (fromIndex: number, toIndex: number): Promise<void> =>
+      invokeWithTimeout<void>(IPC_CHANNELS.QUEUE_REORDER, [fromIndex, toIndex]),
+    updateOutput: (id: string, newOutputPath: string): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.QUEUE_UPDATE_OUTPUT, [id, newOutputPath]),
+    start: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.QUEUE_START, []),
+    pause: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.QUEUE_PAUSE, []),
+    resume: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.QUEUE_RESUME, []),
+    clearDone: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.QUEUE_CLEAR_DONE, []),
+    cancelItem: (id: string): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.QUEUE_CANCEL_ITEM, [id]),
+    retryItem: (id: string): Promise<boolean> =>
+      invokeWithTimeout<boolean>(IPC_CHANNELS.QUEUE_RETRY_ITEM, [id]),
+    setSettings: (partial: Partial<QueueSettings>): Promise<QueueSettings> =>
+      invokeWithTimeout<QueueSettings>(IPC_CHANNELS.QUEUE_SET_SETTINGS, [partial]),
+    onChanged: (handler: (snapshot: QueueSnapshot) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: QueueSnapshot): void => handler(payload);
+      ipcRenderer.on(QUEUE_EVENT_CHANNELS.CHANGED, listener);
+      return () => {
+        ipcRenderer.removeListener(QUEUE_EVENT_CHANNELS.CHANGED, listener);
+      };
+    },
+    onItemProgress: (handler: (payload: QueueItemProgressEvent) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: QueueItemProgressEvent): void =>
+        handler(payload);
+      ipcRenderer.on(QUEUE_EVENT_CHANNELS.ITEM_PROGRESS, listener);
+      return () => {
+        ipcRenderer.removeListener(QUEUE_EVENT_CHANNELS.ITEM_PROGRESS, listener);
+      };
+    },
+    onItemLog: (handler: (payload: QueueItemLogEvent) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: QueueItemLogEvent): void =>
+        handler(payload);
+      ipcRenderer.on(QUEUE_EVENT_CHANNELS.ITEM_LOG, listener);
+      return () => {
+        ipcRenderer.removeListener(QUEUE_EVENT_CHANNELS.ITEM_LOG, listener);
+      };
+    },
+  },
+  /** Enumerated queue event channel names, re-exposed for renderer convenience. */
+  queueEvents: QUEUE_EVENT_CHANNELS,
   window: {
     minimize: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.WINDOW_MINIMIZE, []),
     maximize: (): Promise<void> => invokeWithTimeout<void>(IPC_CHANNELS.WINDOW_MAXIMIZE, []),

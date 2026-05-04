@@ -15,6 +15,12 @@ import type {
   UpdaterEventChannel,
   UPDATER_EVENT_CHANNELS,
   ENCODE_EVENT_CHANNELS,
+  QUEUE_EVENT_CHANNELS,
+  NewQueueItem,
+  QueueItemLogEvent,
+  QueueItemProgressEvent,
+  QueueSettings,
+  QueueSnapshot,
 } from '@moekoder/shared';
 
 /**
@@ -254,6 +260,24 @@ export interface ElectronAPI {
     ) => () => void;
   };
   encodeEvents: typeof ENCODE_EVENT_CHANNELS;
+  queue: {
+    getSnapshot: () => Promise<QueueSnapshot>;
+    addItems: (items: NewQueueItem[]) => Promise<string[]>;
+    removeItem: (id: string) => Promise<boolean>;
+    reorder: (fromIndex: number, toIndex: number) => Promise<void>;
+    updateOutput: (id: string, newOutputPath: string) => Promise<boolean>;
+    start: () => Promise<void>;
+    pause: () => Promise<void>;
+    resume: () => Promise<void>;
+    clearDone: () => Promise<void>;
+    cancelItem: (id: string) => Promise<boolean>;
+    retryItem: (id: string) => Promise<boolean>;
+    setSettings: (partial: Partial<QueueSettings>) => Promise<QueueSettings>;
+    onChanged: (handler: (snapshot: QueueSnapshot) => void) => () => void;
+    onItemProgress: (handler: (payload: QueueItemProgressEvent) => void) => () => void;
+    onItemLog: (handler: (payload: QueueItemLogEvent) => void) => () => void;
+  };
+  queueEvents: typeof QUEUE_EVENT_CHANNELS;
   window: {
     minimize: () => Promise<void>;
     maximize: () => Promise<void>;
