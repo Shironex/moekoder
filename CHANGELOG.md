@@ -21,7 +21,10 @@ Batch queue release. The Queue tab in the titlebar — dormant since v0.1 — no
 - "Add pair" multi-file picker on both the Queue screen and the QueueSidebar — runs through the same auto-pair pipeline as drag-and-drop, so a 12-episode batch is one dialog open.
 - Desktop notification when the queue drains — opt-out via the new `queueNotifyOnComplete` setting (default on).
 - New `queueDefaultRoute` setting routes the app straight into the Queue screen on boot for power-users; default stays `single`.
-- 23 new vitest tests across `queue/manager.test.ts`, `queue/persistence.test.ts`, and `ipc/handlers/queue.test.ts` — concurrency dispatch, soft-pause, retries with fake backoff timers, atomic writes, boot recovery, queue-complete notification opt-out.
+- Per-item log viewer: every queue card has a chevron that drops an inline `ffmpeg · stderr` panel below the card. Auto-scrolls on append, ships a Copy button that pastes `[ts] text` lines into the clipboard for bug reports, and uses the same `LogLine` highlighter as the Single route. Session-scoped — closing the screen drops the expand state, matching the manager's policy of never persisting per-item logs to `queue.json`.
+- Settings → Queue section: surfaces the persisted prefs that previously could only be poked from devtools — concurrency (mirrors the segmented control on the Queue screen), max retries (0–10), retry backoff (1–60s with the doubling sequence visible in the help text), notify-on-complete toggle, and default screen on launch (Single / Queue).
+- Total-queue disk-space preflight at `Start queue`: sums estimated output bytes across every `wait` item grouped by output dir, surveys each unique dir for free space, throws `IpcError('UNAVAILABLE', …)` listing every shortfall in one go. Catches the "drop 12 episodes onto a 5 GiB partition and walk away" failure at the click instead of after the first 30-minute encode burns its time.
+- 31 new vitest tests across `queue/manager.test.ts`, `queue/persistence.test.ts`, `queue/preflight.test.ts`, and `ipc/handlers/queue.test.ts` — concurrency dispatch, soft-pause, retries with fake backoff timers, atomic writes, boot recovery, queue-complete notification opt-out, total-queue preflight (empty queue / wait-only filtering / dir grouping / shortfall reporting / probe-failure tolerance).
 
 ### Changed
 
@@ -32,7 +35,7 @@ Batch queue release. The Queue tab in the titlebar — dormant since v0.1 — no
 
 - Queue logs are session-scoped (memory only, capped at 500 lines per item). Not persisted to disk — relaunching loses the per-item log buffer. By design.
 - Per-item encoding overrides aren't supported — the whole queue uses the current global preset. Per-item editing lands in v0.4.0 with the advanced preset editor.
-- Total-queue disk-space preflight is still v0.3.1 polish; each item runs the existing single-encode preflight at dispatch time.
+- Preflight rejection is surfaced today as a structured `console.error` in devtools. A user-facing toast / dialog lands in v0.3.1 — the renderer call sites already point at `lib/queue-errors.ts:reportQueueStartError` so the upgrade is a single-file swap.
 - Embedded-font extraction from MKV attachments still TODO — v0.5.0.
 
 ## [0.2.0] - 2026-05-03
