@@ -5,6 +5,7 @@ import { CrashFallback, ErrorBoundary } from '@/components/shared';
 import { Updater } from '@/components/Updater';
 import { DoneScreen, EncodingScreen, IdleScreen, SplashScreen } from '@/screens';
 import { QueueScreenContainer } from '@/screens/Queue';
+import { useShallow } from 'zustand/react/shallow';
 import { useQueueStore, selectStats } from '@/stores/useQueueStore';
 import { useQueueEvents } from '@/hooks/useQueueEvents';
 import { autoPairFiles, categorizePaths } from '@/lib/drop-helpers';
@@ -72,7 +73,7 @@ export const App = () => {
   const setSidebarCollapsed = useAppStore(s => s.setSidebarCollapsed);
 
   // Queue store + event subscription (single mount point for `queue:*` IPC).
-  const queueStats = useQueueStore(selectStats);
+  const queueStats = useQueueStore(useShallow(selectStats));
   const queueRunning = useQueueStore(s => s.running);
   const queuePaused = useQueueStore(s => s.paused);
   const queueSettings = useQueueStore(s => s.settings);

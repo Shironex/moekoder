@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useQueueStore, selectStats } from '@/stores/useQueueStore';
 import { useElectronAPI, useFilePicks, useQueueDrag, useSetting } from '@/hooks';
 import { useEncodeStore } from '@/stores';
@@ -32,7 +33,7 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
   const running = useQueueStore(s => s.running);
   const paused = useQueueStore(s => s.paused);
   const settings = useQueueStore(s => s.settings);
-  const stats = useQueueStore(selectStats);
+  const stats = useQueueStore(useShallow(selectStats));
 
   // Reflect the Single-route encode state so the Start CTA can be locked
   // when there's a Single-route encode in flight (the manager throws on

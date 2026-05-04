@@ -83,9 +83,10 @@ export const selectItemProgress =
     s.items.find(i => i.id === itemId)?.progress ?? null;
 
 /**
- * Aggregate counters derived once per snapshot mutation. Cheap because the
- * queue is bounded (<50 items in normal use); deriving outside the store
- * keeps the state shape minimal.
+ * Aggregate counters derived from items. Returns a fresh object each call,
+ * so consumers MUST wrap with `useShallow` from `zustand/react/shallow` —
+ * raw `useQueueStore(selectStats)` will infinite-loop under Zustand v5's
+ * Object.is snapshot equality.
  */
 export const selectStats = (s: QueueState) => {
   let wait = 0;
