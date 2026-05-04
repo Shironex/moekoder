@@ -4,6 +4,37 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Batch queue release. The Queue tab in the titlebar — dormant since v0.1 — now drives a real, persistent batch pipeline. Drop a folder of episodes, click Start, walk away.
+
+### Added
+
+- Queue screen with status pills (Wait / Live / Done / Error / Stopped), per-card mini progress bars, kanji-numbered positions, and a whole-screen drop overlay that auto-pairs every match it finds in one shot.
+- Persistent queue at `<userData>/queue.json`. Atomic `writeFile(tmp) → rename` survives force-kill; the in-memory state debounce-flushes every 200ms and synchronously on `before-quit`.
+- Boot recovery: items that were `active` at shutdown demote to `wait` and have their attempts counter reset; items whose source video or subtitle vanished off disk demote to `error` with `Source file missing`. The queue does not auto-resume — Start is always a deliberate user action.
+- Soft-pause: clicking Pause halts the dispatcher and lets in-flight encodes finish naturally. The CTA reads `Pausing… (N item finishing)` while the drain is in progress, then `Paused` once everything settles. Resume picks up from the next waiting item.
+- Concurrency cap (1–4 parallel encodes) wired through electron-store. Segmented control on the Queue screen mirrors the same setting; the orchestrator's cap follows the queue while it's running and reverts to 1 when the queue drains so the Single route's "another encode is already running" guarantee comes back unchanged.
+- Per-item retry budget with exponential backoff: `queueMaxRetries` failed attempts (default 2) before an item flips to `error` and the queue moves on. Each retry waits `queueBackoffMs * 2^attempts` (default 4s base → 8s → 16s).
+- Per-card actions: Force stop on `active` items (SIGTERM via the existing orchestrator path), Retry on `error` / `cancelled` items, Remove on anything else (with a click-twice-to-confirm guard).
+- Native HTML5 drag-reorder. Active items have their drag handle suppressed so a mid-encode drop can't shuffle the running job.
+- "Add pair" multi-file picker on both the Queue screen and the QueueSidebar — runs through the same auto-pair pipeline as drag-and-drop, so a 12-episode batch is one dialog open.
+- Desktop notification when the queue drains — opt-out via the new `queueNotifyOnComplete` setting (default on).
+- New `queueDefaultRoute` setting routes the app straight into the Queue screen on boot for power-users; default stays `single`.
+- 23 new vitest tests across `queue/manager.test.ts`, `queue/persistence.test.ts`, and `ipc/handlers/queue.test.ts` — concurrency dispatch, soft-pause, retries with fake backoff timers, atomic writes, boot recovery, queue-complete notification opt-out.
+
+### Changed
+
+- The encode orchestrator's single-job lock at `startEncode` is now a configurable concurrency cap (`setConcurrencyCap`, default 1). Single-route behaviour is unchanged because the cap only rises while the queue manager is actively dispatching.
+- The Single / Queue route switcher in the titlebar is finally wired — the markup has been there since v0.1, but the renderer never passed an `onRouteChange` callback.
+
+### Known Limitations
+
+- Queue logs are session-scoped (memory only, capped at 500 lines per item). Not persisted to disk — relaunching loses the per-item log buffer. By design.
+- Per-item encoding overrides aren't supported — the whole queue uses the current global preset. Per-item editing lands in v0.4.0 with the advanced preset editor.
+- Total-queue disk-space preflight is still v0.3.1 polish; each item runs the existing single-encode preflight at dispatch time.
+- Embedded-font extraction from MKV attachments still TODO — v0.5.0.
+
 ## [0.2.0] - 2026-05-03
 
 Drop-it-in release. The whole Idle screen is now a target — drag a video and a subtitle file (or a folder containing them) onto the window and Moekoder pre-fills the three ingredients without a single dialog.
