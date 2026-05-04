@@ -83,6 +83,26 @@ export const selectItemProgress =
     s.items.find(i => i.id === itemId)?.progress ?? null;
 
 /**
+ * Stable empty-array reference returned by `selectItemLogs` when an item
+ * has no logs yet. Without this, the selector would synthesize a fresh
+ * `[]` on every call and Zustand v5's Object.is snapshot equality would
+ * loop forever — the same trap that bit `selectStats` (commit `e505721`).
+ * The cast keeps the type readable at consumer sites.
+ */
+const EMPTY_LOGS: QueueItemLogLine[] = [];
+
+/**
+ * Targeted selector for the per-item log buffer. Like `selectItemProgress`,
+ * subscribers re-render only when the matched item's logs change. The
+ * stable `EMPTY_LOGS` constant guards against the missing-item / empty-buffer
+ * case so React doesn't loop on identity churn.
+ */
+export const selectItemLogs =
+  (itemId: string) =>
+  (s: QueueState): QueueItemLogLine[] =>
+    s.items.find(i => i.id === itemId)?.logs ?? EMPTY_LOGS;
+
+/**
  * Aggregate counters derived from items. Returns a fresh object each call,
  * so consumers MUST wrap with `useShallow` from `zustand/react/shallow` —
  * raw `useQueueStore(selectStats)` will infinite-loop under Zustand v5's

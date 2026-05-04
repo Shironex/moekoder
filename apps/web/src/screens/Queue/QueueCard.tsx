@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { QueueItem } from '@moekoder/shared';
-import { IconClose, IconPlay, IconStop } from '@/components/ui/icons';
+import { IconChevronDown, IconClose, IconPlay, IconStop } from '@/components/ui/icons';
 import { useQueueStore, selectItemProgress } from '@/stores/useQueueStore';
 import { cn } from '@/lib/cn';
+import { QueueLogPanel } from './QueueLogPanel';
 
 /**
  * Numeric position formatted with kanji digits 壱..拾弐 for the first 12
@@ -32,6 +33,10 @@ interface QueueCardProps {
   onCancel: (id: string) => void;
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
+  /** Whether the inline log panel is open for this card. Owned by
+   *  `Queue.tsx` so toggling one card doesn't re-render its siblings. */
+  expanded: boolean;
+  onToggleExpand: (id: string) => void;
 }
 
 const STATUS_LABEL: Record<QueueItem['status'], string> = {
@@ -63,6 +68,8 @@ export const QueueCard = ({
   onCancel,
   onRemove,
   onRetry,
+  expanded,
+  onToggleExpand,
 }: QueueCardProps) => {
   // Subscribe to this item's progress with a TARGETED selector so a tick on
   // item B doesn't re-render item A's card. Same pattern that v0.1 added
@@ -95,7 +102,7 @@ export const QueueCard = ({
       {...dragProps}
       data-item-id={item.id}
       className={cn(
-        'group relative flex items-center gap-4 rounded-md border bg-card/30 px-4 py-3 transition',
+        'group relative flex flex-col rounded-md border bg-card/30 transition',
         'hover:border-primary/40 hover:bg-[color-mix(in_oklab,var(--primary)_4%,transparent)]',
         isActive && 'border-primary/40 bg-[color-mix(in_oklab,var(--primary)_8%,transparent)]',
         isDone && 'border-good/30 opacity-80',
@@ -104,123 +111,151 @@ export const QueueCard = ({
         dragProps?.isDragOver && 'border-primary ring-2 ring-primary/40 ring-offset-0'
       )}
     >
-      {/* Position kanji */}
-      <div
-        className={cn(
-          'flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-border font-display text-xl',
-          isActive ? 'border-primary/50 text-primary' : 'text-foreground/70'
-        )}
-        title={`Item ${index + 1}`}
-      >
-        {formatPosition(index)}
-      </div>
-
-      {/* Body */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex min-w-0 items-baseline gap-2">
-          <span className="truncate font-display text-base text-foreground" title={item.videoName}>
-            {item.videoName}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-          <span className="truncate" title={item.subtitleName}>
-            {item.subtitleName}
-          </span>
-          {progress && isActive && (
-            <>
-              <span className="text-muted/50">·</span>
-              <span>{progress.pct.toFixed(1)}%</span>
-              <span className="text-muted/50">·</span>
-              <span>{progress.fps.toFixed(0)} fps</span>
-              <span className="text-muted/50">·</span>
-              <span>{progress.speed.toFixed(2)}x</span>
-            </>
+      <div className="flex items-center gap-4 px-4 py-3">
+        {/* Position kanji */}
+        <div
+          className={cn(
+            'flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-border font-display text-xl',
+            isActive ? 'border-primary/50 text-primary' : 'text-foreground/70'
           )}
-          {item.lastError && (isError || isCancelled || item.attempts > 0) && (
-            <>
-              <span className="text-muted/50">·</span>
-              <span
-                className={cn('truncate', isError ? 'text-destructive' : 'text-muted')}
-                title={item.lastError}
-              >
-                {item.lastError}
-              </span>
-            </>
-          )}
+          title={`Item ${index + 1}`}
+        >
+          {formatPosition(index)}
         </div>
 
-        {/* Mini progress bar */}
-        <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-border/40">
-          <div
-            ref={fillRef}
-            className={cn(
-              'h-full transition-[width] duration-300 ease-out',
-              isDone ? 'bg-good' : 'bg-primary'
+        {/* Body */}
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span
+              className="truncate font-display text-base text-foreground"
+              title={item.videoName}
+            >
+              {item.videoName}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+            <span className="truncate" title={item.subtitleName}>
+              {item.subtitleName}
+            </span>
+            {progress && isActive && (
+              <>
+                <span className="text-muted/50">·</span>
+                <span>{progress.pct.toFixed(1)}%</span>
+                <span className="text-muted/50">·</span>
+                <span>{progress.fps.toFixed(0)} fps</span>
+                <span className="text-muted/50">·</span>
+                <span>{progress.speed.toFixed(2)}x</span>
+              </>
             )}
-            style={{ width: `${pct}%` }}
-          />
+            {item.lastError && (isError || isCancelled || item.attempts > 0) && (
+              <>
+                <span className="text-muted/50">·</span>
+                <span
+                  className={cn('truncate', isError ? 'text-destructive' : 'text-muted')}
+                  title={item.lastError}
+                >
+                  {item.lastError}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Mini progress bar */}
+          <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-border/40">
+            <div
+              ref={fillRef}
+              className={cn(
+                'h-full transition-[width] duration-300 ease-out',
+                isDone ? 'bg-good' : 'bg-primary'
+              )}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Status pill */}
-      <span
-        className={cn(
-          'shrink-0 rounded-sm border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em]',
-          STATUS_TONE[item.status]
-        )}
-      >
-        {STATUS_LABEL[item.status]}
-      </span>
+        {/* Status pill */}
+        <span
+          className={cn(
+            'shrink-0 rounded-sm border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.22em]',
+            STATUS_TONE[item.status]
+          )}
+        >
+          {STATUS_LABEL[item.status]}
+        </span>
 
-      {/* Actions */}
-      <div className="flex shrink-0 items-center gap-1">
-        {isActive && (
+        {/* Actions */}
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
-            onClick={() => onCancel(item.id)}
-            title="Force stop this item"
-            aria-label="Force stop"
-            className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-destructive/60 hover:text-destructive"
-          >
-            <IconStop size={12} />
-          </button>
-        )}
-        {(isError || isCancelled) && (
-          <button
-            type="button"
-            onClick={() => onRetry(item.id)}
-            title="Retry this item"
-            aria-label="Retry"
-            className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-primary/60 hover:text-primary"
-          >
-            <IconPlay size={12} />
-          </button>
-        )}
-        {!isActive && (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirmRemove) {
-                onRemove(item.id);
-                setConfirmRemove(false);
-              } else {
-                setConfirmRemove(true);
-                window.setTimeout(() => setConfirmRemove(false), 2200);
-              }
-            }}
-            title={confirmRemove ? 'Click again to confirm' : 'Remove from queue'}
-            aria-label={confirmRemove ? 'Confirm remove' : 'Remove'}
+            onClick={() => onToggleExpand(item.id)}
+            title={expanded ? 'Hide log' : 'View log'}
+            aria-label={expanded ? 'Hide log' : 'View log'}
+            aria-expanded={expanded}
             className={cn(
-              'flex h-7 w-7 items-center justify-center rounded-sm border text-muted transition',
-              confirmRemove
-                ? 'border-destructive text-destructive'
-                : 'border-border hover:border-destructive/60 hover:text-destructive'
+              'flex h-7 w-7 items-center justify-center rounded-sm border transition',
+              expanded
+                ? 'border-primary/60 bg-[color-mix(in_oklab,var(--primary)_12%,transparent)] text-primary'
+                : 'border-border text-muted hover:border-primary/60 hover:text-primary'
             )}
           >
-            <IconClose size={12} />
+            <IconChevronDown
+              size={12}
+              className={cn('transition-transform', expanded && 'rotate-180')}
+            />
           </button>
-        )}
+          {isActive && (
+            <button
+              type="button"
+              onClick={() => onCancel(item.id)}
+              title="Force stop this item"
+              aria-label="Force stop"
+              className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-destructive/60 hover:text-destructive"
+            >
+              <IconStop size={12} />
+            </button>
+          )}
+          {(isError || isCancelled) && (
+            <button
+              type="button"
+              onClick={() => onRetry(item.id)}
+              title="Retry this item"
+              aria-label="Retry"
+              className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-primary/60 hover:text-primary"
+            >
+              <IconPlay size={12} />
+            </button>
+          )}
+          {!isActive && (
+            <button
+              type="button"
+              onClick={() => {
+                if (confirmRemove) {
+                  onRemove(item.id);
+                  setConfirmRemove(false);
+                } else {
+                  setConfirmRemove(true);
+                  window.setTimeout(() => setConfirmRemove(false), 2200);
+                }
+              }}
+              title={confirmRemove ? 'Click again to confirm' : 'Remove from queue'}
+              aria-label={confirmRemove ? 'Confirm remove' : 'Remove'}
+              className={cn(
+                'flex h-7 w-7 items-center justify-center rounded-sm border text-muted transition',
+                confirmRemove
+                  ? 'border-destructive text-destructive'
+                  : 'border-border hover:border-destructive/60 hover:text-destructive'
+              )}
+            >
+              <IconClose size={12} />
+            </button>
+          )}
+        </div>
       </div>
+      {expanded && (
+        <div className="border-t border-border/60 px-4 pb-3">
+          <QueueLogPanel itemId={item.id} />
+        </div>
+      )}
     </div>
   );
 };

@@ -14,8 +14,10 @@ import type { SVGProps } from 'react';
 import {
   ArrowRight,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock,
+  Copy,
   Cpu,
   Disc,
   ExternalLink,
@@ -92,8 +94,10 @@ export const IconClose = (props: IconProps) => (
 export {
   ArrowRight as IconArrow,
   Check as IconCheck,
+  ChevronDown as IconChevronDown,
   ChevronRight as IconChevron,
   Clock as IconClock,
+  Copy as IconCopy,
   Cpu as IconChip,
   Disc as IconDisc,
   ExternalLink as IconOpen,

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useQueueStore, selectStats } from '@/stores/useQueueStore';
 import { useElectronAPI, useFilePicks, useQueueDrag, useSetting } from '@/hooks';
@@ -48,6 +48,21 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
   const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
 
   const { getDragProps } = useQueueDrag();
+
+  // Per-card "view log" expand state. Lifted up so toggling one card
+  // doesn't re-render its siblings — `QueueCard` reads its own `expanded`
+  // bool out of this Set and is otherwise insulated. Session-scoped:
+  // unmounting the screen drops the set, matching the manager's policy
+  // of never persisting per-item logs to `queue.json`.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const onToggleExpand = useCallback((id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   const onConcurrencyChange = useCallback(
     (concurrency: 1 | 2 | 3 | 4) => {
@@ -181,6 +196,8 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
                 onCancel={onCancel}
                 onRemove={onRemove}
                 onRetry={onRetry}
+                expanded={expandedIds.has(item.id)}
+                onToggleExpand={onToggleExpand}
               />
             ))}
           </div>
@@ -204,6 +221,8 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
       onCancel,
       onRemove,
       onRetry,
+      expandedIds,
+      onToggleExpand,
     ]
   );
 
