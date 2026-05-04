@@ -1,10 +1,12 @@
 /**
  * Encode orchestrator — the single source of truth for active encode jobs.
  *
- * v0.1.0 allows a single concurrent job (queueing lands in v0.3). The
- * orchestrator nevertheless stores jobs in a `Map<jobId, Processor>` so
- * the queue upgrade is a pure addition: the rest of the IPC surface +
- * event routing already speaks jobId.
+ * v0.3.0 lifts the v0.1 single-job lock to a configurable concurrency cap.
+ * The default cap stays at 1 so the Single route preserves its one-encode-
+ * at-a-time guarantee; the queue manager bumps the cap to
+ * `queueConcurrency` while the queue is running and restores it afterward.
+ * Jobs are tracked in a `Map<jobId, Processor>` so the queue layer can
+ * dispatch parallel work without re-implementing process bookkeeping.
  *
  * Responsibilities:
  *   - Generate a stable `jobId` per encode.
@@ -97,20 +99,49 @@ interface ActiveJob {
 
 const activeJobs = new Map<string, ActiveJob>();
 
+/**
+ * Concurrency cap for parallel encodes. Defaults to 1 so the Single route
+ * keeps its one-encode-at-a-time guarantee; the queue manager raises this
+ * to `queueConcurrency` while it has a queue running and lowers it back to
+ * 1 when the queue drains. Single-route handlers always call `startEncode`
+ * with the cap at 1 so a stale concurrency change can't leak across.
+ */
+let concurrencyCap = 1;
+
 /** Publicly-readable active job ids (mostly for tests + diagnostics). */
 export const getActiveJobIds = (): string[] => [...activeJobs.keys()];
+
+/** Read the current concurrency cap. Exposed for diagnostics + tests. */
+export const getConcurrencyCap = (): number => concurrencyCap;
+
+/**
+ * Replace the cap. Pass an integer in `[1, 4]` — the queue manager validates
+ * upstream via zod so this is a thin setter. Lowering the cap below the
+ * current `activeJobs.size` does NOT cancel running encodes; it just rejects
+ * new starts until enough jobs settle to fit under the new ceiling.
+ */
+export const setConcurrencyCap = (cap: number): void => {
+  if (!Number.isInteger(cap) || cap < 1) {
+    throw new IpcError('INVALID_INPUT', `concurrencyCap must be a positive integer, got ${cap}`);
+  }
+  concurrencyCap = cap;
+};
 
 /**
  * Starts an encode. Returns immediately after the preflight check + spawn;
  * callers consume progress / completion via the `events` callbacks.
+ *
+ * Rejects with `IpcError('UNAVAILABLE')` when the active-jobs map is already
+ * at the configured concurrency cap. The Single-route UI keeps the cap at 1,
+ * so this preserves the v0.1.0 "another encode is already running" surface
+ * verbatim until the queue manager raises the cap.
  */
 export const startEncode = async (
   input: EncodeStartInput,
   events: EncodeEvents,
   deps: OrchestratorDeps = defaultOrchestratorDeps()
 ): Promise<EncodeStartResult> => {
-  // v0.1 runs one encode at a time; queueing lands in v0.3.
-  if (activeJobs.size > 0) {
+  if (activeJobs.size >= concurrencyCap) {
     throw new IpcError('UNAVAILABLE', 'Another encode is already running');
   }
 

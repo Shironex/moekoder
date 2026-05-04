@@ -6,6 +6,7 @@ import { useElectronAPI, useFfmpegStatus, useSetting } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
 import { logger } from '@/lib/logger';
+import { QueueSettingsSection } from './Settings/QueueSettingsSection';
 
 const log = logger('settings');
 
@@ -327,6 +328,15 @@ export const Settings = () => {
               <FolderOpen size={14} />
               Open logs folder
             </Button>
+          </Section>
+
+          <Section
+            kanji="列"
+            mono="queue · 列 · retsu"
+            title="Queue"
+            description="Knobs for the batch pipeline. Concurrency mirrors the segmented control on the Queue screen — both write to electron-store, so changes from either side stick."
+          >
+            <QueueSettingsSection />
           </Section>
 
           <Section

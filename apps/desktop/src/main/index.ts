@@ -7,6 +7,14 @@ import { applyCsp } from './security/apply-csp';
 import { registerAllIpcHandlers, cleanupAllIpcHandlers } from './ipc/register';
 import { cancelAllEncodes } from './encode/orchestrator';
 import { initUpdater } from './updater';
+import {
+  initQueueManager,
+  cancelAll as cancelAllQueueItems,
+  getSnapshot as getQueueSnapshot,
+} from './queue/manager';
+import { loadSnapshot, scheduleFlush, flushNow } from './queue/persistence';
+import { buildQueueManagerEvents } from './ipc/handlers/queue';
+import { getSetting } from './store';
 
 let mainWindow: BrowserWindow | null = null;
 let cleanupDone = false;
@@ -51,6 +59,34 @@ if (!gotLock) {
       applyCsp(session.defaultSession);
 
       mainWindow = createMainWindow();
+
+      // Hydrate queue state BEFORE registering IPC handlers so the renderer's
+      // first `queue:get-snapshot` call returns the post-recovery view, not
+      // an empty queue.
+      try {
+        const snapshot = await loadSnapshot();
+        const queueEvents = buildQueueManagerEvents({ mainWindow });
+        await initQueueManager(
+          queueEvents,
+          {
+            snapshot,
+            settings: {
+              concurrency: getSetting('queueConcurrency'),
+              maxRetries: getSetting('queueMaxRetries'),
+              backoffMs: getSetting('queueBackoffMs'),
+            },
+            // Wire the persistence flush into the manager's emitChange path.
+            // Inlined here to avoid a circular require between manager and
+            // persistence (manager imports the type, not the impl).
+          },
+          {
+            scheduleFlush: provider => scheduleFlush(provider),
+          }
+        );
+      } catch (err) {
+        log.warn('Failed to initialize queue manager:', err);
+      }
+
       registerAllIpcHandlers({ mainWindow });
 
       try {
@@ -91,13 +127,34 @@ if (!gotLock) {
     shuttingDown = true;
 
     void (async () => {
-      // SIGTERM every in-flight ffmpeg child and wait for its `close` event
-      // before tearing down IPC — closing handlers while a processor is
-      // still emitting would surface as a dropped error on the renderer.
+      // Snapshot the queue FIRST so the on-disk state captures whatever was
+      // running pre-quit. Items that were `active` will be demoted to `wait`
+      // on next boot via the persistence layer's sanitizeOnLoad — but only
+      // if they're persisted from this snapshot before SIGTERM lands.
+      try {
+        await flushNow(getQueueSnapshot);
+      } catch (err) {
+        log.warn('Failed to flush queue snapshot before quit:', err);
+      }
+      // Now drain queue items + Single-route encodes. cancelAllQueueItems
+      // is a superset that resolves once every queue child has settled;
+      // cancelAllEncodes catches anything left (Single-route).
+      try {
+        await cancelAllQueueItems();
+      } catch (err) {
+        log.warn('Failed to drain queue items:', err);
+      }
       try {
         await cancelAllEncodes();
       } catch (err) {
         log.warn('Failed to drain active encodes:', err);
+      }
+      // Final flush — the cancellation cascade may have updated item states
+      // (active → cancelled) that the first flush missed.
+      try {
+        await flushNow(getQueueSnapshot);
+      } catch (err) {
+        log.warn('Failed final queue flush:', err);
       }
       try {
         cleanupAllIpcHandlers();

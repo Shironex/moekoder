@@ -9,3 +9,5 @@ export * from './useEncodeTransitions';
 export * from './useWindowControls';
 export * from './useSidebarToggle';
 export * from './useFilePicks';
+export * from './useQueueEvents';
+export * from './useQueueDrag';

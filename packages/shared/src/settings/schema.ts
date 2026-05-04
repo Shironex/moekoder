@@ -64,6 +64,23 @@ export interface UserSettings {
   /** Whether the app runs background update checks. Default `false` per the
    *  onboarding Privacy pledge — users must opt in from Settings → Updates. */
   autoCheckUpdates: boolean;
+  /** How many encodes the queue may run in parallel. Clamped 1..4 by the
+   *  queue manager's zod schema; default 1 mirrors the Single-route guarantee. */
+  queueConcurrency: 1 | 2 | 3 | 4;
+  /** Per-item retry budget. After this many additional attempts the queue
+   *  marks the item `error` and moves on. Default 2 (so 3 total tries). */
+  queueMaxRetries: number;
+  /** Base backoff between retries, in milliseconds. The queue waits
+   *  `queueBackoffMs * 2^attempts` so attempt 2 waits 4s, attempt 3 waits 8s,
+   *  etc. */
+  queueBackoffMs: number;
+  /** Which screen the app boots into. `'single'` keeps the v0.2 default;
+   *  power-users can flip to `'queue'` so the app opens straight into the
+   *  batch screen. */
+  queueDefaultRoute: 'single' | 'queue';
+  /** Fire a desktop notification when the queue drains (running → empty,
+   *  not paused, not cancelled). Opt-out for users who hate toast popups. */
+  queueNotifyOnComplete: boolean;
 }
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
@@ -76,6 +93,11 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   container: 'mp4',
   sidebarCollapsed: false,
   autoCheckUpdates: false,
+  queueConcurrency: 1,
+  queueMaxRetries: 2,
+  queueBackoffMs: 4000,
+  queueDefaultRoute: 'single',
+  queueNotifyOnComplete: true,
 };
 
 export type UserSettingsKey = keyof UserSettings;

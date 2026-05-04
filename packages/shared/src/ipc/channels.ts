@@ -35,6 +35,18 @@ export const IPC_CHANNELS = {
   ENCODE_START: 'encode:start',
   ENCODE_CANCEL: 'encode:cancel',
   ENCODE_GET_PREFLIGHT: 'encode:get-preflight',
+  QUEUE_GET_SNAPSHOT: 'queue:get-snapshot',
+  QUEUE_ADD_ITEMS: 'queue:add-items',
+  QUEUE_REMOVE_ITEM: 'queue:remove-item',
+  QUEUE_REORDER: 'queue:reorder',
+  QUEUE_UPDATE_OUTPUT: 'queue:update-output',
+  QUEUE_START: 'queue:start',
+  QUEUE_PAUSE: 'queue:pause',
+  QUEUE_RESUME: 'queue:resume',
+  QUEUE_CLEAR_DONE: 'queue:clear-done',
+  QUEUE_CANCEL_ITEM: 'queue:cancel-item',
+  QUEUE_RETRY_ITEM: 'queue:retry-item',
+  QUEUE_SET_SETTINGS: 'queue:set-settings',
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_MAXIMIZE: 'window:maximize',
   WINDOW_CLOSE: 'window:close',
@@ -83,3 +95,19 @@ export const ENCODE_EVENT_CHANNELS = {
 } as const;
 
 export type EncodeEventChannel = (typeof ENCODE_EVENT_CHANNELS)[keyof typeof ENCODE_EVENT_CHANNELS];
+
+/**
+ * One-way main -> renderer queue event channels. Per-item progress + log
+ * lines travel on dedicated channels rather than riding the snapshot, so
+ * the renderer can subscribe to a single item's progress with a targeted
+ * Zustand selector and avoid re-rendering the entire card list on every
+ * ffmpeg tick. The same lesson the v0.1.0 encode store learned, applied at
+ * the IPC layer this time.
+ */
+export const QUEUE_EVENT_CHANNELS = {
+  CHANGED: 'queue:changed',
+  ITEM_PROGRESS: 'queue:item:progress',
+  ITEM_LOG: 'queue:item:log',
+} as const;
+
+export type QueueEventChannel = (typeof QUEUE_EVENT_CHANNELS)[keyof typeof QUEUE_EVENT_CHANNELS];
