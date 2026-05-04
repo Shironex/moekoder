@@ -84,6 +84,13 @@ const buildStubs = (initialFiles: Set<string> = new Set()) => ({
   scheduleRetry: (fn: () => void, ms: number) => {
     scheduledRetries.push({ fn, ms });
   },
+  // Default preflight stub — passes. Individual tests that need to assert
+  // the rejection branch override this in-place via `__setManagerDepsForTests`.
+  preflightQueue: vi.fn(async () => ({
+    directories: [],
+    shortfalls: [],
+    itemsConsidered: 0,
+  })),
 });
 
 const installManagerWithStubs = async (
@@ -532,6 +539,62 @@ describe('queue-complete event', () => {
     fireFail('job-1');
     await flushMicrotasks();
     expect(onQueueComplete).not.toHaveBeenCalled();
+  });
+});
+
+describe('start() preflight', () => {
+  it('rejects start when preflight throws and leaves running=false', async () => {
+    addItems([
+      {
+        videoPath: '/a',
+        videoName: 'a',
+        subtitlePath: '/sa',
+        subtitleName: 'sa',
+        outputPath: '/oa',
+      },
+    ]);
+    const failingPreflight = vi.fn(async () => {
+      const err = new Error('not enough disk');
+      (err as Error & { code: string }).code = 'UNAVAILABLE';
+      throw err;
+    });
+    __setManagerDepsForTests({
+      ...buildStubs(),
+      preflightQueue: failingPreflight as never,
+    });
+    await expect(start()).rejects.toThrow(/not enough disk/);
+    expect(failingPreflight).toHaveBeenCalledTimes(1);
+    const snap = getSnapshot();
+    expect(snap.running).toBe(false);
+    // Item should still be `wait` — preflight rejected before dispatch.
+    expect(snap.items[0].status).toBe('wait');
+    // No orchestrator job should have been created.
+    expect(activeEncodes.size).toBe(0);
+  });
+
+  it('proceeds with dispatch when preflight resolves', async () => {
+    addItems([
+      {
+        videoPath: '/a',
+        videoName: 'a',
+        subtitlePath: '/sa',
+        subtitleName: 'sa',
+        outputPath: '/oa',
+      },
+    ]);
+    const okPreflight = vi.fn(async () => ({
+      directories: [{ dir: '/o', requiredBytes: 0, freeBytes: 1 }],
+      shortfalls: [],
+      itemsConsidered: 1,
+    }));
+    __setManagerDepsForTests({
+      ...buildStubs(),
+      preflightQueue: okPreflight as never,
+    });
+    await start();
+    await flushMicrotasks();
+    expect(okPreflight).toHaveBeenCalledTimes(1);
+    expect(activeEncodes.size).toBe(1);
   });
 });
 

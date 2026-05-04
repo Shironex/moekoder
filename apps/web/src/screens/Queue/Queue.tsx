@@ -8,6 +8,7 @@ import { joinPath, basename, stripExt } from '@/lib/paths';
 import { autoPairFiles, categorizePaths } from '@/lib/drop-helpers';
 import { resolveOutputDir } from '@/lib/resolve-output';
 import { logger } from '@/lib/logger';
+import { reportQueueStartError } from '@/lib/queue-errors';
 import { QueueActions } from './QueueActions';
 import { QueueCard } from './QueueCard';
 import { QueueEmpty } from './QueueEmpty';
@@ -79,7 +80,7 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
   );
 
   const onStart = useCallback(() => {
-    api.queue.start().catch(err => log.warn('queue.start failed', err));
+    api.queue.start().catch(reportQueueStartError);
   }, [api]);
   const onPause = useCallback(() => {
     api.queue.pause().catch(err => log.warn('queue.pause failed', err));

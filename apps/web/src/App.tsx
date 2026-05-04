@@ -11,6 +11,7 @@ import { useQueueEvents } from '@/hooks/useQueueEvents';
 import { autoPairFiles, categorizePaths } from '@/lib/drop-helpers';
 import { resolveOutputDir } from '@/lib/resolve-output';
 import { stripExt } from '@/lib/paths';
+import { reportQueueStartError } from '@/lib/queue-errors';
 
 // Route-level code splitting for screens outside the hot encode path.
 // Onboarding runs exactly once, Settings/About are rarely opened — keeping
@@ -280,7 +281,7 @@ export const App = () => {
       paused={queuePaused}
       singleEncodeActive={phase === 'running'}
       concurrency={queueSettings.concurrency}
-      onStart={() => api.queue.start().catch(err => log.warn('queue.start failed', err))}
+      onStart={() => api.queue.start().catch(reportQueueStartError)}
       onPause={() => api.queue.pause().catch(err => log.warn('queue.pause failed', err))}
       onResume={() => api.queue.resume().catch(err => log.warn('queue.resume failed', err))}
       onAddPair={onQueueAddPair}

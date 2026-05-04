@@ -44,6 +44,7 @@ import {
   startEncode,
   type EncodeEvents,
 } from '../encode/orchestrator';
+import { preflightQueue, type PreflightSummary } from './preflight';
 
 const log = createMainLogger('queue:manager');
 
@@ -79,6 +80,11 @@ export interface QueueManagerDeps {
   /** Schedule a retry — defaults to `setTimeout`. Tests pass a fake-timer
    *  setter so retries are deterministic. */
   scheduleRetry: (fn: () => void, ms: number) => void;
+  /** Total-queue disk-space preflight invoked at the top of `start()`.
+   *  Throws an `IpcError('UNAVAILABLE', …)` listing per-directory
+   *  shortfalls. Tests stub this to assert the rejection branch without
+   *  hitting `fs.statfs`. */
+  preflightQueue: (items: QueueItem[]) => Promise<PreflightSummary>;
 }
 
 const defaultDeps = (): QueueManagerDeps => ({
@@ -100,6 +106,7 @@ const defaultDeps = (): QueueManagerDeps => ({
   scheduleRetry: (fn, ms) => {
     setTimeout(fn, ms).unref?.();
   },
+  preflightQueue: items => preflightQueue(items),
 });
 
 const DEFAULT_SETTINGS: QueueSettings = {
@@ -310,9 +317,17 @@ export const setSettings = (partial: Partial<QueueSettings>): QueueSettings => {
 /**
  * Start the dispatcher. Throws if the Single route currently holds an
  * active encode (cap is 1 → at least one job is on the orchestrator) or
- * if the queue is empty / has no waiting items.
+ * if the total-queue disk-space preflight reports any directory short of
+ * the summed estimated output bytes for waiting items.
+ *
+ * Empty / no-waiting-item case: preflight short-circuits with
+ * `itemsConsidered: 0`, dispatcher loop runs once and immediately winds
+ * down because `findNextWaiting()` returns null. Cheap, correct.
+ *
+ * Resume() is intentionally NOT preflighted — soft-pause already approved
+ * the items and an in-flight encode mid-pause shouldn't be re-vetted.
  */
-export const start = (): void => {
+export const start = async (): Promise<void> => {
   // Reject when the Single route is mid-encode. The orchestrator's
   // active-jobs map is the source of truth: if anything's there and our
   // own queue isn't responsible for it, it's a Single-route encode.
@@ -321,6 +336,13 @@ export const start = (): void => {
   if (foreignActive) {
     throw new IpcError('UNAVAILABLE', 'An encode is already running on Single. Stop it first.');
   }
+
+  // Total-queue preflight. Runs BEFORE flipping `running = true` so a
+  // failure leaves the queue idle and the renderer's snapshot unchanged.
+  // The preflight throws `IpcError('UNAVAILABLE', …)` directly — we let
+  // it bubble.
+  await deps.preflightQueue(state.items);
+
   state.running = true;
   state.paused = false;
   deps.setConcurrencyCap(state.settings.concurrency);
