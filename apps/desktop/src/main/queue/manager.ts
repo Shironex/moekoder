@@ -126,6 +126,10 @@ const state: ManagerState = {
   paused: false,
 };
 
+/** Wall-clock of the last queue-complete fire — used to debounce against
+ *  a multi-cap drain emitting the event from each completion handler. */
+let lastAnnouncedAt = 0;
+
 let events: QueueManagerEvents = {};
 let deps: QueueManagerDeps = defaultDeps();
 
@@ -142,6 +146,7 @@ export const __resetManagerStateForTests = (): void => {
   state.running = false;
   state.paused = false;
   events = {};
+  lastAnnouncedAt = 0;
 };
 
 /**
@@ -467,9 +472,17 @@ const dispatchOne = (item: QueueItem): void => {
     },
   };
 
-  // Kick off the encode. The orchestrator returns the jobId synchronously
-  // after the preflight + spawn — record the mapping so cancellations can
-  // reach the right child.
+  // Reserve a slot in the concurrency map BEFORE awaiting startEncode so
+  // a synchronous re-entry into processNext doesn't over-dispatch — the
+  // jobId is unknown yet, so we use the item id as a placeholder and swap
+  // it for the real jobId once the orchestrator returns. cancelItem reads
+  // through this map so a force-stop during the placeholder window can't
+  // hit the orchestrator (cancelEncode of an unknown id is a no-op), but
+  // the entry will still be cleared by the onError below if startEncode
+  // throws.
+  const placeholder = `pending-${item.id}`;
+  state.jobIdByItemId.set(item.id, placeholder);
+
   deps
     .startEncode(
       {
@@ -481,7 +494,11 @@ const dispatchOne = (item: QueueItem): void => {
       eventsForOrch
     )
     .then(({ jobId }) => {
-      state.jobIdByItemId.set(item.id, jobId);
+      // Swap the placeholder for the real jobId. If the item was already
+      // cancelled (entry deleted) skip — onError already cleaned up.
+      if (state.jobIdByItemId.get(item.id) === placeholder) {
+        state.jobIdByItemId.set(item.id, jobId);
+      }
     })
     .catch(err => {
       // Preflight failure (UNAVAILABLE / out of disk) — same retry flow as
@@ -490,6 +507,9 @@ const dispatchOne = (item: QueueItem): void => {
       // never created, so we emulate it inline.
       const code = (err as { code?: string }).code ?? 'INTERNAL';
       const message = err instanceof Error ? err.message : String(err);
+      // Drop the placeholder before fanning out the error so the manager's
+      // own error handler sees the slot freed.
+      state.jobIdByItemId.delete(item.id);
       eventsForOrch.onError(item.id, { code, message });
     });
 };
@@ -519,7 +539,6 @@ const processNext = (): void => {
  * `running = false` flip in `processNext` happens just before this is
  * called, so we read `done` count off the items directly.
  */
-let lastAnnouncedAt = 0;
 const maybeAnnounceComplete = (): void => {
   // Debounce: a multi-cap drain can flip running→false on the LAST item's
   // close handler, but the previous calls may have already triggered. We
