@@ -41,21 +41,22 @@ Part of the **Shiro Suite** alongside [ShiroAni](https://github.com/Shironex/shi
 
 ### What's inside
 
-|                            |                                                                                                                                                                                                        |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Hardsub encode**         | MKV + ASS → MP4 with subtitles burned in via libass, single job at a time                                                                                                                              |
-| **FFmpeg manager**         | Auto-downloads the ffmpeg engine on first run (BtbN on Windows, evermeet.cx on macOS), verifies SHA-256, installs to your user-data directory — no manual setup                                        |
-| **Hardware encoder probe** | Detects NVENC / QSV / AMF on your machine and recommends the fastest option; CPU (libx264) is always a guaranteed fallback                                                                             |
-| **Disk-space preflight**   | Bitrate-driven size estimate + safety margin checks your free space before the job starts                                                                                                              |
-| **9-step onboarding**      | First launch walks you through theme, engine install, GPU detection, preset, save location, container, and privacy                                                                                     |
-| **Save targets**           | Sibling `moekoder/` folder, same folder as source, a dedicated "subbed" folder, or a custom path                                                                                                       |
-| **Six themes**             | Plum (default), Midnight, Matcha, Cosmic, Void, Paper — live switching, persists across runs                                                                                                           |
-| **Drag & drop**            | Drop a video + subtitle (or a folder containing them) onto the window; Moekoder auto-pairs by filename, routes folders to the output slot, and surfaces a swap dropdown when multiple candidates match |
-| **Live progress**          | Ring + filmstrip + rolling log with fps, speed, bitrate, and ETA                                                                                                                                       |
-| **Smart audio fallback**   | Lossless-in-MP4 streams auto-transcoded to AAC 192k; everything else is stream-copied untouched                                                                                                        |
-| **Auto-updater**           | In-app updates on Windows; GitHub Releases link on macOS until code-signing lands                                                                                                                      |
-| **One-click logs**         | Reveal the logs folder in Finder / Explorer — the file transport captures everything the main process emits                                                                                            |
-| **Reinstall ffmpeg**       | If the binaries look damaged, Settings reruns the install pipeline on one click                                                                                                                        |
+|                            |                                                                                                                                                                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hardsub encode**         | MKV + ASS → MP4 / MKV with subtitles burned in via libass, single job or 1–4 parallel via the queue                                                                                                                          |
+| **FFmpeg manager**         | Auto-downloads the ffmpeg engine on first run (BtbN on Windows, evermeet.cx on macOS), verifies SHA-256, installs to your user-data directory — no manual setup                                                              |
+| **Hardware encoder probe** | Detects NVENC / QSV / AMF on your machine and recommends the fastest option; CPU (libx264) is always a guaranteed fallback                                                                                                   |
+| **Disk-space preflight**   | Bitrate-driven size estimate + safety margin checks your free space before the job starts                                                                                                                                    |
+| **9-step onboarding**      | First launch walks you through theme, engine install, GPU detection, preset, save location, container, and privacy                                                                                                           |
+| **Save targets**           | Sibling `moekoder/` folder, same folder as source, a dedicated "subbed" folder, or a custom path                                                                                                                             |
+| **Six themes**             | Plum (default), Midnight, Matcha, Cosmic, Void, Paper — live switching, persists across runs                                                                                                                                 |
+| **Drag & drop**            | Drop a video + subtitle (or a folder containing them) onto the window; Moekoder auto-pairs by filename, routes folders to the output slot, and surfaces a swap dropdown when multiple candidates match                       |
+| **Batch queue**            | Persistent queue at `userData/queue.json` survives force-kill; soft-pause, configurable retries with exponential backoff, drag-reorder, per-item log viewer, total-queue disk-space preflight, desktop notification on drain |
+| **Live progress**          | Ring + filmstrip + rolling log with fps, speed, bitrate, and ETA                                                                                                                                                             |
+| **Smart audio fallback**   | Lossless-in-MP4 streams auto-transcoded to AAC 192k; everything else is stream-copied untouched                                                                                                                              |
+| **Auto-updater**           | In-app updates on Windows; GitHub Releases link on macOS until code-signing lands                                                                                                                                            |
+| **One-click logs**         | Reveal the logs folder in Finder / Explorer — the file transport captures everything the main process emits                                                                                                                  |
+| **Reinstall ffmpeg**       | If the binaries look damaged, Settings reruns the install pipeline on one click                                                                                                                                              |
 
 ### Getting started
 
@@ -155,15 +156,15 @@ moekoder/
 
 ### Roadmap
 
-| Milestone              | Scope                                                                            | Status         |
-| ---------------------- | -------------------------------------------------------------------------------- | -------------- |
-| v0.1 — Hardsub MVP     | MKV + ASS → MP4, onboarding, FFmpeg manager, GPU probe, six themes               | ✅ shipped     |
-| **v0.2 — Drag & Drop** | Drag-drop auto-pairing, folder scan, multi-file picker, conflict picker dropdown | ✅ shipped     |
-| v0.3 — Batch Queue     | Queue screen, JSON persistence, retries                                          | 🚧 in progress |
-| v0.4 — Codec Expansion | HEVC + AV1, advanced preset editor                                               | planned        |
-| v0.5 — Embedded Fonts  | Extract attachments from the source MKV so libass renders the intended typefaces | planned        |
-| v0.6 — Soft-sub Mux    | MKV-out, copy streams, no re-encode path                                         | planned        |
-| v0.7+ — Polish         | Crash report clipboard, portable zip build, Linux AppImage, richer landing       | backlog        |
+| Milestone              | Scope                                                                            | Status     |
+| ---------------------- | -------------------------------------------------------------------------------- | ---------- |
+| v0.1 — Hardsub MVP     | MKV + ASS → MP4, onboarding, FFmpeg manager, GPU probe, six themes               | ✅ shipped |
+| v0.2 — Drag & Drop     | Drag-drop auto-pairing, folder scan, multi-file picker, conflict picker dropdown | ✅ shipped |
+| **v0.3 — Batch Queue** | Persistent queue, soft-pause, retries, drag-reorder, log viewer, preflight       | ✅ shipped |
+| v0.4 — Codec Expansion | HEVC + AV1, advanced preset editor                                               | planned    |
+| v0.5 — Embedded Fonts  | Extract attachments from the source MKV so libass renders the intended typefaces | planned    |
+| v0.6 — Soft-sub Mux    | MKV-out, copy streams, no re-encode path                                         | planned    |
+| v0.7+ — Polish         | Crash report clipboard, portable zip build, Linux AppImage, richer landing       | backlog    |
 
 ---
 
