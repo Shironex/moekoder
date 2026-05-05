@@ -157,8 +157,8 @@ export type HwAccel = EncodingSettings['hwAccel'];
 /**
  * v0.4 ships three preset tiers per codec: Fast (lower CQ ceiling, fastest
  * encode), Balanced (anime-archival defaults), Pristine (slowest, highest
- * quality). Phase B exports the Fast/Pristine constants; Phase A only
- * needs Balanced (the v0.1 default that every existing call site refers to).
+ * quality). Per-codec CQ targets per the roadmap: H.264 starts at CQ 19,
+ * HEVC nudges +3, AV1 nudges +6 to land at visually-equivalent quality.
  */
 export type PresetName = 'fast' | 'balanced' | 'pristine';
 
@@ -217,6 +217,110 @@ export const AV1_BALANCED_PRESET: Av1NvencSettings = {
  * lock) is unchanged. New code should call {@link defaultsFor} instead.
  */
 export const BALANCED_PRESET = H264_BALANCED_PRESET;
+
+// -----------------------------------------------------------------------------
+// Fast / Pristine tiers per codec.
+//
+// Fast tilts the CQ + preset towards quick turnaround for previews. Pristine
+// tilts the CQ + preset towards archival quality at the cost of encode time.
+// All three tiers stream-copy audio + emit MP4 — the user can flip those axes
+// independently from the tier picker.
+// -----------------------------------------------------------------------------
+
+/** H.264 NVENC — preview-grade preset. CQ 23, NVENC p2, animation tune. */
+export const H264_FAST_PRESET: H264NvencSettings = {
+  codec: 'h264',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 23,
+  nvencPreset: 'p2',
+  container: 'mp4',
+  audio: 'copy',
+  tune: 'animation',
+};
+
+/** H.264 NVENC — archival-grade preset. CQ 16, NVENC p7, animation tune. */
+export const H264_PRISTINE_PRESET: H264NvencSettings = {
+  codec: 'h264',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 16,
+  nvencPreset: 'p7',
+  container: 'mp4',
+  audio: 'copy',
+  tune: 'animation',
+};
+
+/** HEVC NVENC — preview-grade preset. CQ 26 (Balanced + 4), NVENC p2, 10-bit. */
+export const HEVC_FAST_PRESET: HevcNvencSettings = {
+  codec: 'hevc',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 26,
+  nvencPreset: 'p2',
+  container: 'mp4',
+  audio: 'copy',
+  tenBit: true,
+};
+
+/** HEVC NVENC — archival-grade preset. CQ 19, NVENC p7, 10-bit. */
+export const HEVC_PRISTINE_PRESET: HevcNvencSettings = {
+  codec: 'hevc',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 19,
+  nvencPreset: 'p7',
+  container: 'mp4',
+  audio: 'copy',
+  tenBit: true,
+};
+
+/** AV1 NVENC — preview-grade preset. CQ 32, NVENC p2, 10-bit. */
+export const AV1_FAST_PRESET: Av1NvencSettings = {
+  codec: 'av1',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 32,
+  nvencPreset: 'p2',
+  container: 'mp4',
+  audio: 'copy',
+  tenBit: true,
+};
+
+/** AV1 NVENC — archival-grade preset. CQ 24, NVENC p7, 10-bit. */
+export const AV1_PRISTINE_PRESET: Av1NvencSettings = {
+  codec: 'av1',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 24,
+  nvencPreset: 'p7',
+  container: 'mp4',
+  audio: 'copy',
+  tenBit: true,
+};
+
+/**
+ * Look up a preset constant by codec + tier. Renderer's quick-set buttons
+ * use this to overwrite the persisted `encoding` blob in one click. The
+ * NVENC variants are returned for HEVC/AV1 because they're the broadest
+ * compatibility default — the encoding section UI re-routes to the
+ * software equivalent when the user has no NVENC encoder for that codec.
+ */
+export const getPreset = (codec: VideoCodec, tier: PresetName): EncodingSettings => {
+  if (codec === 'h264') {
+    if (tier === 'fast') return H264_FAST_PRESET;
+    if (tier === 'pristine') return H264_PRISTINE_PRESET;
+    return H264_BALANCED_PRESET;
+  }
+  if (codec === 'hevc') {
+    if (tier === 'fast') return HEVC_FAST_PRESET;
+    if (tier === 'pristine') return HEVC_PRISTINE_PRESET;
+    return HEVC_BALANCED_PRESET;
+  }
+  if (tier === 'fast') return AV1_FAST_PRESET;
+  if (tier === 'pristine') return AV1_PRISTINE_PRESET;
+  return AV1_BALANCED_PRESET;
+};
 
 /**
  * Per-codec Balanced default selector. The orchestrator's preset merge
