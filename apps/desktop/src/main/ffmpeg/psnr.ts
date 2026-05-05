@@ -25,8 +25,8 @@ import { getFfmpegPath } from '../utils/bin-paths';
 /** Hard cap so a malformed candidate file can't hang the benchmark. */
 const PSNR_TIMEOUT_MS = 60_000;
 
-/** Match `average:NN.NN` in the ffmpeg PSNR summary line. */
-const AVG_RE = /average:([\d.]+)/i;
+/** Match `average:NN.NN` or `average:inf` in the ffmpeg PSNR summary line. */
+const AVG_RE = /average:(inf|[\d.]+)/i;
 
 export interface PsnrDeps {
   spawn: (cmd: string, args: string[]) => ChildProcess;
@@ -43,10 +43,15 @@ export const defaultPsnrDeps: PsnrDeps = {
  * `null` when ffmpeg succeeds but no `average:` line was emitted (rare —
  * usually means the candidate has no frames in common with the original
  * window). Rejects on spawn failure, non-zero exit, or timeout.
+ *
+ * `clipStartSec` seeks the original input to the same position that was
+ * encoded, so the filter compares the correct frames rather than the
+ * source head. The candidate is already trimmed to start at 0.
  */
 export const computePsnr = async (
   originalPath: string,
   candidatePath: string,
+  clipStartSec: number,
   clipDurationSec: number,
   deps: PsnrDeps = defaultPsnrDeps
 ): Promise<number | null> => {
@@ -54,8 +59,10 @@ export const computePsnr = async (
     const args = [
       '-hide_banner',
       '-nostats',
-      // Limit the original to the same window we encoded so the filter
-      // doesn't run out of frames mid-comparison.
+      // Input-level seek on the original so the comparison window matches
+      // the encoded slice exactly. The candidate starts at 0.
+      '-ss',
+      String(clipStartSec),
       '-t',
       String(clipDurationSec),
       '-i',
@@ -109,8 +116,9 @@ export const computePsnr = async (
         resolve(null);
         return;
       }
-      const value = Number.parseFloat(match[1]!);
-      resolve(Number.isFinite(value) ? value : null);
+      const raw = match[1]!.toLowerCase();
+      const value = raw === 'inf' ? Number.POSITIVE_INFINITY : Number.parseFloat(raw);
+      resolve(Number.isFinite(value) || value === Number.POSITIVE_INFINITY ? value : null);
     });
   });
 };

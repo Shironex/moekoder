@@ -100,8 +100,8 @@ export type EncodeEventChannel = (typeof ENCODE_EVENT_CHANNELS)[keyof typeof ENC
 /**
  * One-way main -> renderer benchmark event channels. `PROGRESS` ticks
  * per-phase (encoding -> measuring-psnr -> done|error) per candidate so
- * the modal can render a live status row. The final `RESULT` carries
- * the full `BenchmarkCandidateResult[]`.
+ * the modal can render a live status row. The final result is returned
+ * synchronously from `benchmark:run` rather than emitted as an event.
  */
 export const BENCHMARK_EVENT_CHANNELS = {
   PROGRESS: 'benchmark:progress',

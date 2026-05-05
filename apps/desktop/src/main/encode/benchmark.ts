@@ -196,7 +196,13 @@ export const runBenchmark = async (
 
     events.onProgress({ candidateIndex: i, phase: 'measuring-psnr' });
     try {
-      partial.psnr = await computePsnr(input.videoPath, outputPath, durationSec, deps.psnrDeps);
+      partial.psnr = await computePsnr(
+        input.videoPath,
+        outputPath,
+        startSec,
+        durationSec,
+        deps.psnrDeps
+      );
     } catch (err) {
       // PSNR failure isn't fatal for the benchmark — surface it on the
       // log stream and leave `psnr` null so the user can still see the

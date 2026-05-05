@@ -232,9 +232,10 @@ export const switchCodec = (
   const balanced = presetFor(nextCodec, 'balanced');
   const desiredHw = current.hwAccel as HwAccel;
   const legal = LEGAL_HW[nextCodec];
-  const pick = legal.includes(desiredHw)
-    ? desiredHw
-    : (legal.find(hw => available.includes(hw)) ?? legal[legal.length - 1]);
+  const pick =
+    legal.includes(desiredHw) && available.includes(desiredHw)
+      ? desiredHw
+      : (legal.find(hw => available.includes(hw)) ?? legal[legal.length - 1]);
   // Software paths require their codec-specific knobs, so layer the
   // tier-defaulted balanced preset for that path on top.
   const branchDefault = pick === balanced.hwAccel ? balanced : presetForHwAccel(nextCodec, pick);

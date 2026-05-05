@@ -100,11 +100,11 @@ export const App = () => {
   // to the pinned BtbN label.
   const { version: ffmpegVersion } = useFfmpegStatus();
 
-  // Output filename extension. Follows the picked container with one
-  // exception: `webm` falls back to `.mp4` because the backend pipeline
-  // silently re-routes WebM to the MP4 muxer until v0.4 lands proper
-  // VP9/AV1 support (see `buildEncodingOverrides`).
-  const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
+  // Output filename extension. Prefers the container from the active
+  // encoding profile (set via Settings → Encoding); falls back to the
+  // legacy onboarding `container` setting so existing users are unaffected.
+  const activeContainer = (encoding?.container as 'mp4' | 'mkv' | undefined) ?? container;
+  const outputExt = activeContainer === 'mkv' ? 'mkv' : 'mp4';
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -231,7 +231,6 @@ export const App = () => {
         log.warn('queue rail drop produced no auto-pairs');
         return;
       }
-      const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
       const newItems = paired.map(pair => {
         const videoName = pair.video.split(/[\\/]/).pop() ?? pair.video;
         const subtitleName = pair.subtitle.split(/[\\/]/).pop() ?? pair.subtitle;
@@ -248,7 +247,7 @@ export const App = () => {
       });
       api.queue.addItems(newItems).catch(err => log.warn('queue.addItems (rail) failed', err));
     },
-    [api, saveTarget, customSavePath, container]
+    [api, saveTarget, customSavePath, encoding, container]
   );
 
   const onQueueAddPair = useCallback(async (): Promise<void> => {

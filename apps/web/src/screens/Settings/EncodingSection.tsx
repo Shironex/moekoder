@@ -119,6 +119,7 @@ export const EncodingSection = () => {
   const { result: gpu, probe } = useGpuProbe();
   const [encoding, setEncoding] = useSetting('encoding');
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
+  const [activeTier, setActiveTier] = useState<Tier>('balanced');
 
   // Probe once on mount. Subsequent probes are cheap (the binary output is
   // small) and the user might reinstall ffmpeg between visits — best to
@@ -127,7 +128,7 @@ export const EncodingSection = () => {
     void probe();
   }, [probe]);
 
-  const profile = encoding ?? null;
+  const profile = encoding ?? presetFor('h264', 'balanced');
   const codec = codecOf(profile);
   const hwAccel = hwAccelOf(profile);
 
@@ -157,8 +158,9 @@ export const EncodingSection = () => {
   const onCodecChange = useCallback(
     (next: Codec): void => {
       const available = (gpu?.available ?? []) as ReadonlyArray<HwAccel>;
-      const swapped = switchCodec(profile ?? presetFor('h264', 'balanced'), next, available);
+      const swapped = switchCodec(profile, next, available);
       persist(swapped);
+      setActiveTier('balanced');
     },
     [gpu, profile, persist]
   );
@@ -188,6 +190,7 @@ export const EncodingSection = () => {
       // Tier overwrites the entire profile (CQ + preset + audio + container).
       // The user can fine-tune from there.
       persist(presetFor(codec, tier));
+      setActiveTier(tier);
     },
     [codec, persist]
   );
@@ -241,14 +244,6 @@ export const EncodingSection = () => {
     [profile, persist]
   );
 
-  if (!profile) {
-    return (
-      <div className="rounded-lg border border-border bg-popover/30 px-4 py-6 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-        loading…
-      </div>
-    );
-  }
-
   const cq = (profile.cq as number | undefined) ?? cqRange.min;
   const container = (profile.container as 'mp4' | 'mkv' | undefined) ?? 'mp4';
   const tenBit = Boolean(profile.tenBit);
@@ -284,8 +279,8 @@ export const EncodingSection = () => {
         hint="One-click presets per codec. Fast = preview-grade, Balanced = anime-archival default, Pristine = max quality."
       >
         <Segmented
-          value={'balanced' as Tier}
-          options={TIER_OPTIONS.map(o => ({ ...o, value: o.value }))}
+          value={activeTier}
+          options={TIER_OPTIONS}
           onChange={onTierChange}
           ariaLabel="Quality tier"
         />
@@ -312,7 +307,7 @@ export const EncodingSection = () => {
       </Row>
 
       {/* Encoder-specific preset knob */}
-      {(hwAccel === 'nvenc' || hwAccel === 'qsv') && (
+      {hwAccel === 'nvenc' && (
         <Row
           label="NVENC preset"
           hint="Higher numbers = slower + better quality. Anime archival sweet spot is p4–p7."

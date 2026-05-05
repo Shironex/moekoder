@@ -93,6 +93,7 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
     setCandidates(buildDefaultCandidates(encoding ?? null));
     setResults(null);
     setProgress(null);
+    setRunning(false);
     setError(null);
   }, [open, encoding]);
 
@@ -212,7 +213,7 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
       aria-modal="true"
       aria-label="Benchmark"
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur"
-      onClick={onClose}
+      onClick={running ? undefined : onClose}
     >
       <div
         className="flex max-h-[90vh] w-[min(900px,92vw)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
@@ -322,7 +323,9 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
                         {r.elapsedMs !== null ? `${(r.elapsedMs / 1000).toFixed(1)}s` : '—'}
                       </td>
                       <td className="px-4 py-2 text-right text-foreground">
-                        {r.psnr !== null ? `${r.psnr.toFixed(2)} dB` : '—'}
+                        {r.psnr !== null
+                          ? `${r.psnr === Infinity ? '∞' : r.psnr.toFixed(2)} dB`
+                          : '—'}
                       </td>
                     </tr>
                   ))}
@@ -386,7 +389,9 @@ const RowStatus = ({ phase, result }: RowStatusProps) => {
     return (
       <span className="font-mono text-[11px] text-good">
         {result.sizeBytes !== null ? formatBytes(result.sizeBytes) : '—'} ·{' '}
-        {result.psnr !== null ? `${result.psnr.toFixed(1)} dB` : '—'}
+        {result.psnr !== null
+          ? `${result.psnr === Infinity ? '∞' : result.psnr.toFixed(1)} dB`
+          : '—'}
       </span>
     );
   }
