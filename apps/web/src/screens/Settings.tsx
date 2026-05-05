@@ -6,6 +6,8 @@ import { useElectronAPI, useFfmpegStatus, useSetting } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
 import { logger } from '@/lib/logger';
+import { CustomPresetsSection } from './Settings/CustomPresetsSection';
+import { EncodingSection } from './Settings/EncodingSection';
 import { QueueSettingsSection } from './Settings/QueueSettingsSection';
 
 const log = logger('settings');
@@ -328,6 +330,24 @@ export const Settings = () => {
               <FolderOpen size={14} />
               Open logs folder
             </Button>
+          </Section>
+
+          <Section
+            kanji="符"
+            mono="encoding · 符 · fugō"
+            title="Encoding"
+            description="Codec, hardware encoder, and quality knobs for every encode the app starts. Quick-set Fast/Balanced/Pristine for sane defaults; tune CQ + presets for fine control."
+          >
+            <EncodingSection />
+          </Section>
+
+          <Section
+            kanji="集"
+            mono="presets · 集 · shū"
+            title="Custom presets"
+            description="Save the current encoding profile under a name and apply it later in one click. Up to 20 presets; names must be unique. Survives app restart."
+          >
+            <CustomPresetsSection />
           </Section>
 
           <Section

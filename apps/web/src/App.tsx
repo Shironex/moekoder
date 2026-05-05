@@ -91,6 +91,7 @@ export const App = () => {
   const [hwChoice] = useSetting('hwChoice');
   const [preset] = useSetting('preset');
   const [container] = useSetting('container');
+  const [encoding] = useSetting('encoding');
   const [queueDefaultRoute] = useSetting('queueDefaultRoute');
 
   // Best-effort ffmpeg version — surfaces in the Idle screen meta and in the
@@ -174,9 +175,14 @@ export const App = () => {
     const outputPath = joinPath(out.path, out.name);
     // `settings` at the IPC boundary is typed as a loose `Record<string,
     // unknown>` so the renderer bundle never imports the backend's
-    // `EncodingSettings`. `buildEncodingOverrides` returns a narrowly typed
-    // subset; cast is safe because the handler's zod schema re-validates.
-    const settings = buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>;
+    // `EncodingSettings`. v0.4 prefers the full `encoding` profile when
+    // present (set from Settings → Encoding); when absent — first launch
+    // before the user opens that section — we fall back to the
+    // onboarding-derived `buildEncodingOverrides` so existing user flows
+    // keep working unchanged.
+    const settings = encoding
+      ? ({ ...encoding } as Record<string, unknown>)
+      : (buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>);
     try {
       clearLogs();
       const res = await api.encode.start({
@@ -200,6 +206,7 @@ export const App = () => {
     hwChoice,
     preset,
     container,
+    encoding,
     clearLogs,
     setJobId,
     setPhase,
