@@ -32,7 +32,12 @@ import {
   type ProcessorDeps,
 } from '../ffmpeg/processor';
 import { probe } from '../ffmpeg/probe';
-import { BALANCED_BITRATE_KBPS, BALANCED_PRESET, type EncodingSettings } from '../ffmpeg/settings';
+import {
+  BALANCED_BITRATE_KBPS,
+  defaultsFor,
+  type EncodingSettings,
+  type VideoCodec,
+} from '../ffmpeg/settings';
 import { getFfmpegPath } from '../utils/bin-paths';
 import { IpcError } from '../ipc/errors';
 import { spawn } from 'node:child_process';
@@ -41,8 +46,17 @@ export interface EncodeStartInput {
   videoPath: string;
   subtitlePath: string;
   outputPath: string;
-  /** Optional partial overrides merged on top of {@link BALANCED_PRESET}. */
-  settings?: Partial<EncodingSettings>;
+  /**
+   * Optional partial overrides merged on top of the per-codec Balanced
+   * default selected via {@link defaultsFor}. The merge picks the codec
+   * default from `settings.codec` BEFORE the spread so a partial like
+   * `{ codec: 'hevc', cq: 24 }` does not inherit H.264-only fields.
+   *
+   * Typed as `Record<string, unknown>` because the IPC schema layer can
+   * only validate the shape loosely; the orchestrator coerces fields it
+   * recognises onto the typed default and discards the rest.
+   */
+  settings?: Record<string, unknown>;
 }
 
 export interface EncodeStartResult {
@@ -145,7 +159,15 @@ export const startEncode = async (
     throw new IpcError('UNAVAILABLE', 'Another encode is already running');
   }
 
-  const settings: EncodingSettings = { ...BALANCED_PRESET, ...(input.settings ?? {}) };
+  // Pick the per-codec default BEFORE spreading the partial — see the v0.4
+  // research doc gotcha. `Partial<DiscriminatedUnion>` does not preserve
+  // the discriminant linkage, so spreading an HEVC partial onto an H.264
+  // default would silently produce a frankenstein blob.
+  const codec = (input.settings?.codec as VideoCodec | undefined) ?? 'h264';
+  const settings = {
+    ...defaultsFor(codec),
+    ...(input.settings ?? {}),
+  } as EncodingSettings;
 
   const durationSec = await deps.probeDuration(input.videoPath);
   const outputDir = path.dirname(input.outputPath);

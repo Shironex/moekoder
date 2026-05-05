@@ -7,7 +7,6 @@ import {
   type EncodeStartInput,
   type EncodeStartResult,
 } from '../../encode/orchestrator';
-import type { EncodingSettings } from '../../ffmpeg/settings';
 import { handle } from '../with-ipc-handler';
 import {
   encodeCancelSchema,
@@ -18,11 +17,11 @@ import type { IpcContext } from '../register';
 
 /**
  * The `settings` field in `encode:start` is validated as a loose
- * `Record<string, unknown>` at the schema layer; the orchestrator merges
- * it onto `BALANCED_PRESET` and discards keys that aren't on the
- * {@link EncodingSettings} shape. Cast at the boundary.
+ * `Record<string, unknown>` at the schema layer; the orchestrator picks
+ * the per-codec default via `defaultsFor(settings.codec)`, spreads the
+ * partial on top, and discards keys that aren't on the discriminated
+ * `EncodingSettings` shape. The renderer never sees the union type.
  */
-type LoosePartialSettings = Partial<EncodingSettings>;
 
 interface PreflightRequest {
   videoPath: string;
@@ -51,7 +50,7 @@ export function registerEncodeHandlers(ctx: IpcContext): void {
         videoPath: input.videoPath,
         subtitlePath: input.subtitlePath,
         outputPath: input.outputPath,
-        settings: input.settings as LoosePartialSettings | undefined,
+        settings: input.settings as Record<string, unknown> | undefined,
       };
       return startEncode(typedInput, {
         onProgress: (jobId, progress) =>

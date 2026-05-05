@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { buildEncodeArgs, type EncodeJob } from './args';
-import { BALANCED_PRESET, type EncodingSettings } from './settings';
+import {
+  AV1_BALANCED_PRESET,
+  BALANCED_PRESET,
+  HEVC_BALANCED_PRESET,
+  type EncodingSettings,
+} from './settings';
 import { escapeSubtitlePath } from './path-escape';
 
 const VIDEO = 'C:\\in\\ep01.mkv';
@@ -8,10 +13,15 @@ const SUB = 'C:\\in\\ep01.ass';
 const OUT_MP4 = 'C:\\out\\ep01.mp4';
 const OUT_MKV = 'C:\\out\\ep01.mkv';
 
-const withSettings = (overrides: Partial<EncodingSettings>): EncodingSettings => ({
-  ...BALANCED_PRESET,
-  ...overrides,
-});
+/**
+ * Spread the H.264 Balanced default with an override patch. The override
+ * type is a record of arbitrary fields because spreading a discriminated
+ * union loses discriminant linkage in TS — the cast to `EncodingSettings`
+ * at the boundary is safe here because the test author knows the
+ * resulting blob is a legal union member.
+ */
+const withSettings = (overrides: Record<string, unknown>): EncodingSettings =>
+  ({ ...BALANCED_PRESET, ...overrides }) as EncodingSettings;
 
 const baseJob = (overrides: Partial<EncodeJob> = {}): EncodeJob => ({
   videoPath: VIDEO,
@@ -194,5 +204,212 @@ describe('buildEncodeArgs — subtitle path escaping', () => {
     // Sanity-check the raw unescaped path is NOT present in the filter
     // expression — it'd be a bug for the filter-graph parser.
     expect(args[vfIdx + 1]).not.toContain(`${SUB}'`);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// v0.4.0 — codec branches: HEVC + AV1.
+// -----------------------------------------------------------------------------
+
+describe('buildEncodeArgs — HEVC NVENC (10-bit main10)', () => {
+  it('emits the expected hevc_nvenc arg array for the Balanced preset', () => {
+    const args = buildEncodeArgs(baseJob({ settings: HEVC_BALANCED_PRESET }));
+    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+
+    expect(args).toEqual([
+      '-i',
+      VIDEO,
+      '-vf',
+      expectedFilter,
+      '-c:v',
+      'hevc_nvenc',
+      '-preset',
+      'p4',
+      '-rc:v',
+      'vbr',
+      '-cq:v',
+      '22',
+      '-tune',
+      'hq',
+      '-spatial_aq',
+      '1',
+      '-temporal_aq',
+      '1',
+      '-rc-lookahead',
+      '32',
+      '-c:a',
+      'copy',
+      '-movflags',
+      '+faststart',
+      '-tag:v',
+      'hvc1',
+      '-progress',
+      'pipe:1',
+      '-nostats',
+      '-y',
+      OUT_MP4,
+    ]);
+  });
+
+  it('falls back to 8-bit yuv420p when tenBit is false', () => {
+    const args = buildEncodeArgs(baseJob({ settings: { ...HEVC_BALANCED_PRESET, tenBit: false } }));
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toMatch(/format=yuv420p$/);
+    expect(args[vfIdx + 1]).not.toContain('format=yuv420p10le');
+  });
+
+  it('skips the `-tag:v hvc1` tag for MKV output', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        outputPath: OUT_MKV,
+        settings: { ...HEVC_BALANCED_PRESET, container: 'mkv' },
+      })
+    );
+    expect(args).not.toContain('-tag:v');
+    expect(args).not.toContain('hvc1');
+  });
+});
+
+describe('buildEncodeArgs — libx265 software', () => {
+  it('emits libx265 with CRF + animation tune + libx265 preset', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: {
+          codec: 'hevc',
+          hwAccel: 'libx265',
+          rateControl: 'cq',
+          cq: 22,
+          libx265Preset: 'medium',
+          container: 'mp4',
+          audio: 'copy',
+          tune: 'animation',
+        },
+      })
+    );
+    expect(args).toContain('libx265');
+    expect(args).toContain('-crf');
+    expect(args).toContain('22');
+    expect(args).toContain('-preset');
+    expect(args).toContain('medium');
+    expect(args).toContain('-tune');
+    expect(args).toContain('animation');
+    // libx265 software ingests source pixel format — no `format=` filter.
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).not.toMatch(/format=/);
+    // HEVC + MP4 still picks up the hvc1 muxer tag.
+    expect(args).toContain('-tag:v');
+    expect(args).toContain('hvc1');
+  });
+});
+
+describe('buildEncodeArgs — AV1 NVENC', () => {
+  it('emits av1_nvenc with the Balanced preset', () => {
+    const args = buildEncodeArgs(baseJob({ settings: AV1_BALANCED_PRESET }));
+    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+
+    expect(args).toEqual([
+      '-i',
+      VIDEO,
+      '-vf',
+      expectedFilter,
+      '-c:v',
+      'av1_nvenc',
+      '-preset',
+      'p4',
+      '-rc:v',
+      'vbr',
+      '-cq:v',
+      '28',
+      '-tune',
+      'hq',
+      '-spatial_aq',
+      '1',
+      '-temporal_aq',
+      '1',
+      '-rc-lookahead',
+      '32',
+      '-c:a',
+      'copy',
+      '-movflags',
+      '+faststart',
+      '-progress',
+      'pipe:1',
+      '-nostats',
+      '-y',
+      OUT_MP4,
+    ]);
+  });
+
+  it('does NOT emit the hvc1 tag for AV1 (MP4 muxer picks `av01` itself)', () => {
+    const args = buildEncodeArgs(baseJob({ settings: AV1_BALANCED_PRESET }));
+    expect(args).not.toContain('-tag:v');
+  });
+});
+
+describe('buildEncodeArgs — libsvtav1 software', () => {
+  it('emits libsvtav1 with integer preset + CRF mode', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: {
+          codec: 'av1',
+          hwAccel: 'libsvtav1',
+          rateControl: 'cq',
+          cq: 30,
+          svtPreset: 8,
+          container: 'mkv',
+          audio: 'copy',
+        },
+        outputPath: OUT_MKV,
+      })
+    );
+    expect(args).toContain('libsvtav1');
+    expect(args).toContain('-preset');
+    // Integer preset, stringified.
+    const presetIdx = args.indexOf('-preset');
+    expect(args[presetIdx + 1]).toBe('8');
+    expect(args).toContain('-crf');
+    expect(args).toContain('30');
+    // libsvtav1 software ingests source pixel format — no `format=` filter.
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).not.toMatch(/format=/);
+  });
+
+  it('rejects no NVENC tune flags on the libsvtav1 path', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: {
+          codec: 'av1',
+          hwAccel: 'libsvtav1',
+          rateControl: 'cq',
+          cq: 30,
+          svtPreset: 8,
+          container: 'mkv',
+          audio: 'copy',
+        },
+        outputPath: OUT_MKV,
+      })
+    );
+    // libsvtav1 has its own `-tune` namespace; v0.4 doesn't expose it yet.
+    expect(args).not.toContain('-tune');
+    expect(args).not.toContain('-spatial_aq');
+  });
+});
+
+describe('buildEncodeArgs — clip window (benchmark mode)', () => {
+  it('emits `-ss <start> -t <duration>` before `-i` when clipWindow is set', () => {
+    const args = buildEncodeArgs(baseJob({ clipWindow: { startSec: 0, durationSec: 10 } }));
+    expect(args[0]).toBe('-ss');
+    expect(args[1]).toBe('0');
+    expect(args[2]).toBe('-t');
+    expect(args[3]).toBe('10');
+    expect(args[4]).toBe('-i');
+  });
+
+  it('does NOT emit `-ss` / `-t` when clipWindow is undefined', () => {
+    const args = buildEncodeArgs(baseJob());
+    expect(args).not.toContain('-ss');
+    // `-t` does not appear in the standard NVENC arg set.
+    expect(args).not.toContain('-t');
+    expect(args[0]).toBe('-i');
   });
 });
