@@ -35,6 +35,7 @@ export const IPC_CHANNELS = {
   ENCODE_START: 'encode:start',
   ENCODE_CANCEL: 'encode:cancel',
   ENCODE_GET_PREFLIGHT: 'encode:get-preflight',
+  BENCHMARK_RUN: 'benchmark:run',
   QUEUE_GET_SNAPSHOT: 'queue:get-snapshot',
   QUEUE_ADD_ITEMS: 'queue:add-items',
   QUEUE_REMOVE_ITEM: 'queue:remove-item',
@@ -95,6 +96,20 @@ export const ENCODE_EVENT_CHANNELS = {
 } as const;
 
 export type EncodeEventChannel = (typeof ENCODE_EVENT_CHANNELS)[keyof typeof ENCODE_EVENT_CHANNELS];
+
+/**
+ * One-way main -> renderer benchmark event channels. `PROGRESS` ticks
+ * per-phase (encoding -> measuring-psnr -> done|error) per candidate so
+ * the modal can render a live status row. The final `RESULT` carries
+ * the full `BenchmarkCandidateResult[]`.
+ */
+export const BENCHMARK_EVENT_CHANNELS = {
+  PROGRESS: 'benchmark:progress',
+  LOG: 'benchmark:log',
+} as const;
+
+export type BenchmarkEventChannel =
+  (typeof BENCHMARK_EVENT_CHANNELS)[keyof typeof BENCHMARK_EVENT_CHANNELS];
 
 /**
  * One-way main -> renderer queue event channels. Per-item progress + log

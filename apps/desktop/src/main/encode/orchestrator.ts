@@ -57,6 +57,13 @@ export interface EncodeStartInput {
    * recognises onto the typed default and discards the rest.
    */
   settings?: Record<string, unknown>;
+  /**
+   * Optional clip window — propagated to {@link EncodeJob.clipWindow} so
+   * benchmark mode can encode a fixed-duration sample without writing a
+   * second orchestrator. Not exposed at the IPC `encode:start` boundary;
+   * benchmark mode calls `startEncode` directly through its own handler.
+   */
+  clipWindow?: { startSec: number; durationSec: number };
 }
 
 export interface EncodeStartResult {
@@ -193,6 +200,7 @@ export const startEncode = async (
     subtitlePath: input.subtitlePath,
     outputPath: input.outputPath,
     settings,
+    clipWindow: input.clipWindow,
   };
 
   const processor = deps.createProcessor(job, {

@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity } from 'lucide-react';
+import { Button } from '@/components/ui';
 import { useGpuProbe, useSetting } from '@/hooks';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/cn';
+import { BenchmarkModal } from './BenchmarkModal';
 import {
   CODEC_LABEL,
   CQ_RANGE,
@@ -115,6 +118,7 @@ const Segmented = <T extends string | number>({
 export const EncodingSection = () => {
   const { result: gpu, probe } = useGpuProbe();
   const [encoding, setEncoding] = useSetting('encoding');
+  const [benchmarkOpen, setBenchmarkOpen] = useState(false);
 
   // Probe once on mount. Subsequent probes are cheap (the binary output is
   // small) and the user might reinstall ffmpeg between visits — best to
@@ -399,6 +403,23 @@ export const EncodingSection = () => {
           ariaLabel="Output container"
         />
       </Row>
+
+      {/* Benchmark — opens the modal */}
+      <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+        <div className="flex max-w-[440px] flex-col gap-1">
+          <span className="font-display text-sm text-foreground">Benchmark</span>
+          <span className="text-[12px] text-muted-foreground">
+            Encode a 10-second sample against three candidate profiles and compare size + time +
+            PSNR side-by-side. Results stay in this session.
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setBenchmarkOpen(true)}>
+          <Activity size={14} />
+          Run benchmark
+        </Button>
+      </div>
+
+      <BenchmarkModal open={benchmarkOpen} onClose={() => setBenchmarkOpen(false)} />
     </div>
   );
 };
