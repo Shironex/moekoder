@@ -5,6 +5,7 @@ import {
   APP_NAME,
   APP_SIGIL,
   APP_EDITION,
+  BENCHMARK_EVENT_CHANNELS,
   ENCODE_EVENT_CHANNELS,
   FFMPEG_EVENT_CHANNELS,
   IPC_CHANNELS,
@@ -25,6 +26,11 @@ import type { GpuProbeResult } from './ffmpeg/gpu-probe';
 import type { PreflightResult } from './ffmpeg/disk-space';
 import type { EncodeProgress, EncodeResult, LogLine } from './ffmpeg/processor';
 import type { EncodeStartInput, EncodeStartResult } from './encode/orchestrator';
+import type {
+  BenchmarkCandidate,
+  BenchmarkCandidateResult,
+  BenchmarkProgress,
+} from './encode/benchmark';
 
 interface PreflightInput {
   videoPath: string;
@@ -276,6 +282,46 @@ const electronAPI = {
   },
   /** Enumerated encode event channel names, re-exposed for renderer convenience. */
   encodeEvents: ENCODE_EVENT_CHANNELS,
+  benchmark: {
+    /**
+     * Run a benchmark over the given candidates. Resolves with the
+     * full result table when every candidate has either completed or
+     * surfaced its error. Long-running by design — bumped to 30 minutes
+     * (3 candidates × 10s clip × encode + PSNR settles well under 5min,
+     * but pristine AV1 software adds slack on slow CPUs).
+     */
+    run: (input: {
+      videoPath: string;
+      subtitlePath: string;
+      startSec?: number;
+      durationSec?: number;
+      candidates: BenchmarkCandidate[];
+    }): Promise<BenchmarkCandidateResult[]> =>
+      invokeWithTimeout<BenchmarkCandidateResult[]>(
+        IPC_CHANNELS.BENCHMARK_RUN,
+        [input],
+        30 * 60_000
+      ),
+    onProgress: (handler: (payload: BenchmarkProgress) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, payload: BenchmarkProgress): void =>
+        handler(payload);
+      ipcRenderer.on(BENCHMARK_EVENT_CHANNELS.PROGRESS, listener);
+      return () => {
+        ipcRenderer.removeListener(BENCHMARK_EVENT_CHANNELS.PROGRESS, listener);
+      };
+    },
+    onLog: (handler: (line: { ts: number; level: string; text: string }) => void): (() => void) => {
+      const listener = (
+        _event: IpcRendererEvent,
+        payload: { ts: number; level: string; text: string }
+      ): void => handler(payload);
+      ipcRenderer.on(BENCHMARK_EVENT_CHANNELS.LOG, listener);
+      return () => {
+        ipcRenderer.removeListener(BENCHMARK_EVENT_CHANNELS.LOG, listener);
+      };
+    },
+  },
+  benchmarkEvents: BENCHMARK_EVENT_CHANNELS,
   queue: {
     getSnapshot: (): Promise<QueueSnapshot> =>
       invokeWithTimeout<QueueSnapshot>(IPC_CHANNELS.QUEUE_GET_SNAPSHOT, []),

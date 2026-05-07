@@ -91,6 +91,7 @@ export const App = () => {
   const [hwChoice] = useSetting('hwChoice');
   const [preset] = useSetting('preset');
   const [container] = useSetting('container');
+  const [encoding] = useSetting('encoding');
   const [queueDefaultRoute] = useSetting('queueDefaultRoute');
 
   // Best-effort ffmpeg version — surfaces in the Idle screen meta and in the
@@ -99,11 +100,11 @@ export const App = () => {
   // to the pinned BtbN label.
   const { version: ffmpegVersion } = useFfmpegStatus();
 
-  // Output filename extension. Follows the picked container with one
-  // exception: `webm` falls back to `.mp4` because the backend pipeline
-  // silently re-routes WebM to the MP4 muxer until v0.4 lands proper
-  // VP9/AV1 support (see `buildEncodingOverrides`).
-  const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
+  // Output filename extension. Prefers the container from the active
+  // encoding profile (set via Settings → Encoding); falls back to the
+  // legacy onboarding `container` setting so existing users are unaffected.
+  const activeContainer = (encoding?.container as 'mp4' | 'mkv' | undefined) ?? container;
+  const outputExt = activeContainer === 'mkv' ? 'mkv' : 'mp4';
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -174,9 +175,14 @@ export const App = () => {
     const outputPath = joinPath(out.path, out.name);
     // `settings` at the IPC boundary is typed as a loose `Record<string,
     // unknown>` so the renderer bundle never imports the backend's
-    // `EncodingSettings`. `buildEncodingOverrides` returns a narrowly typed
-    // subset; cast is safe because the handler's zod schema re-validates.
-    const settings = buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>;
+    // `EncodingSettings`. v0.4 prefers the full `encoding` profile when
+    // present (set from Settings → Encoding); when absent — first launch
+    // before the user opens that section — we fall back to the
+    // onboarding-derived `buildEncodingOverrides` so existing user flows
+    // keep working unchanged.
+    const settings = encoding
+      ? ({ ...encoding } as Record<string, unknown>)
+      : (buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>);
     try {
       clearLogs();
       const res = await api.encode.start({
@@ -200,6 +206,7 @@ export const App = () => {
     hwChoice,
     preset,
     container,
+    encoding,
     clearLogs,
     setJobId,
     setPhase,
@@ -224,7 +231,6 @@ export const App = () => {
         log.warn('queue rail drop produced no auto-pairs');
         return;
       }
-      const outputExt = container === 'mkv' ? 'mkv' : 'mp4';
       const newItems = paired.map(pair => {
         const videoName = pair.video.split(/[\\/]/).pop() ?? pair.video;
         const subtitleName = pair.subtitle.split(/[\\/]/).pop() ?? pair.subtitle;
@@ -241,7 +247,7 @@ export const App = () => {
       });
       api.queue.addItems(newItems).catch(err => log.warn('queue.addItems (rail) failed', err));
     },
-    [api, saveTarget, customSavePath, container]
+    [api, saveTarget, customSavePath, encoding, container]
   );
 
   const onQueueAddPair = useCallback(async (): Promise<void> => {

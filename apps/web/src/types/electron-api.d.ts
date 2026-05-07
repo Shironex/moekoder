@@ -16,6 +16,7 @@ import type {
   UPDATER_EVENT_CHANNELS,
   ENCODE_EVENT_CHANNELS,
   QUEUE_EVENT_CHANNELS,
+  BENCHMARK_EVENT_CHANNELS,
   NewQueueItem,
   QueueItemLogEvent,
   QueueItemProgressEvent,
@@ -198,6 +199,41 @@ export interface DialogFolderResult {
   folderPath: string | null;
 }
 
+/**
+ * One candidate slot in a benchmark run. Mirrors
+ * `apps/desktop/src/main/encode/benchmark.ts` BenchmarkCandidate.
+ */
+export interface BenchmarkCandidate {
+  id: string;
+  label: string;
+  /** Encoding profile partial — same shape `encode:start` accepts. */
+  settings: Record<string, unknown>;
+  container: 'mp4' | 'mkv';
+}
+
+/** Per-candidate result row. Mirrors `BenchmarkCandidateResult`. */
+export interface BenchmarkCandidateResult {
+  id: string;
+  label: string;
+  sizeBytes: number | null;
+  elapsedMs: number | null;
+  psnr: number | null;
+  error: string | null;
+}
+
+/** Live progress payload over `benchmark:progress`. */
+export interface BenchmarkProgress {
+  candidateIndex: number;
+  phase: 'encoding' | 'measuring-psnr' | 'done' | 'error';
+  encodeProgress?: EncodeProgressPayload;
+}
+
+export interface BenchmarkLogLine {
+  ts: number;
+  level: string;
+  text: string;
+}
+
 export interface ElectronAPI {
   app: {
     getVersion: () => Promise<string>;
@@ -260,6 +296,18 @@ export interface ElectronAPI {
     ) => () => void;
   };
   encodeEvents: typeof ENCODE_EVENT_CHANNELS;
+  benchmark: {
+    run: (input: {
+      videoPath: string;
+      subtitlePath: string;
+      startSec?: number;
+      durationSec?: number;
+      candidates: BenchmarkCandidate[];
+    }) => Promise<BenchmarkCandidateResult[]>;
+    onProgress: (handler: (payload: BenchmarkProgress) => void) => () => void;
+    onLog: (handler: (line: BenchmarkLogLine) => void) => () => void;
+  };
+  benchmarkEvents: typeof BENCHMARK_EVENT_CHANNELS;
   queue: {
     getSnapshot: () => Promise<QueueSnapshot>;
     addItems: (items: NewQueueItem[]) => Promise<string[]>;

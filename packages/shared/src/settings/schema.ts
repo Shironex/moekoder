@@ -81,7 +81,71 @@ export interface UserSettings {
   /** Fire a desktop notification when the queue drains (running → empty,
    *  not paused, not cancelled). Opt-out for users who hate toast popups. */
   queueNotifyOnComplete: boolean;
+  /**
+   * Persisted full encoding profile picked from Settings → Encoding. v0.4
+   * supersedes the per-axis onboarding-derived `hwChoice` / `preset` /
+   * `container` keys with this single blob — the legacy keys are still
+   * read at boot for users coming from v0.3 and earlier, but the new
+   * Encoding section writes here directly.
+   *
+   * Loose record so the renderer doesn't import the desktop's
+   * `EncodingSettings` discriminated union (the renderer bundle never
+   * pulls main-process modules).
+   */
+  encoding: EncodingProfile;
+  /**
+   * Custom presets the user has saved from the Encoding section. Each
+   * entry carries a `version: 1` field so a future shape migration is
+   * tractable; v0.4 only ever writes version 1.
+   */
+  customPresets: CustomPreset[];
 }
+
+/**
+ * Renderer-facing mirror of the desktop's `EncodingSettings` discriminated
+ * union. The wire boundary (electron-store + IPC) revalidates the shape
+ * loosely — the typed union lives in `apps/desktop/src/main/ffmpeg/settings.ts`
+ * and the renderer reflects only the fields it needs to read for the
+ * Encoding section UI. Storing as a raw record avoids the
+ * `Partial<DiscriminatedUnion>` pitfalls when serializing/deserializing.
+ */
+export type EncodingProfile = Record<string, unknown>;
+
+/**
+ * One custom preset — a named encoding profile the user can quick-apply
+ * from the Encoding section. `version: 1` is mandatory from day one so
+ * future shape changes can migrate cleanly without dropping saved data.
+ */
+export interface CustomPreset {
+  /** Schema version. v0.4 only writes 1. Bump on breaking shape changes. */
+  version: 1;
+  /** Stable id (`crypto.randomUUID()`), used as the React key + delete target. */
+  id: string;
+  /** User-supplied display name. Trimmed at edit time; capped at 40 chars. */
+  name: string;
+  /** `Date.now()` at save time. Older entries surface first in the list. */
+  createdAt: number;
+  /** Full encoding profile snapshot. */
+  settings: EncodingProfile;
+}
+
+/**
+ * Default encoding profile — H.264 NVENC Balanced. Mirrors
+ * `H264_BALANCED_PRESET` in `apps/desktop/src/main/ffmpeg/settings.ts`.
+ * The renderer overwrites this on the first save from the new Encoding
+ * section; users coming from v0.3 still get the H.264 defaults until they
+ * open the section.
+ */
+const DEFAULT_ENCODING_PROFILE: EncodingProfile = {
+  codec: 'h264',
+  hwAccel: 'nvenc',
+  rateControl: 'cq',
+  cq: 19,
+  nvencPreset: 'p4',
+  container: 'mp4',
+  audio: 'copy',
+  tune: 'animation',
+};
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
   hasCompletedOnboarding: false,
@@ -98,6 +162,8 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   queueBackoffMs: 4000,
   queueDefaultRoute: 'single',
   queueNotifyOnComplete: true,
+  encoding: DEFAULT_ENCODING_PROFILE,
+  customPresets: [],
 };
 
 export type UserSettingsKey = keyof UserSettings;
