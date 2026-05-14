@@ -30,7 +30,7 @@
     "@types/node": "^22.10.0",
     "@types/yauzl": "^2.10.3",
     "cross-env": "^10.1.0",
-    "electron": "^41.0.0",
+    "electron": "^42.0.1",
     "electron-builder": "^26.0.0",
     "esbuild": "^0.28.0",
     "typescript": "^5.9.3",
