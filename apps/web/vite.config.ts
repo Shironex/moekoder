@@ -37,6 +37,7 @@ export default defineConfig({
     __MOEKODER_BUILD_HASH__: JSON.stringify(resolveGitHash()),
   },
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@moekoder/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
@@ -46,7 +47,6 @@ export default defineConfig({
     // Electron 41 ships Chromium 134 — ES2022 covers everything we use and
     // skips legacy transforms (optional chaining, nullish coalescing, etc.).
     target: 'es2022',
-    minify: 'esbuild',
     cssCodeSplit: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
