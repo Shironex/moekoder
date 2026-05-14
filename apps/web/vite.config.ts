@@ -49,7 +49,7 @@ export default defineConfig({
     target: 'es2022',
     cssCodeSplit: true,
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules/')) return;
