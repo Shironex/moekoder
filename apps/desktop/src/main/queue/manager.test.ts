@@ -108,7 +108,12 @@ const installManagerWithStubs = async (
   onQueueComplete = vi.fn();
 
   await initQueueManager(
-    { onChanged, onItemProgress, onItemLog, onQueueComplete },
+    {
+      onChanged: onChanged as never,
+      onItemProgress: onItemProgress as never,
+      onItemLog: onItemLog as never,
+      onQueueComplete: onQueueComplete as never,
+    },
     { snapshot },
     buildStubs(initialFiles)
   );
