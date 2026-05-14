@@ -34,6 +34,11 @@
       "electron",
       "esbuild"
     ],
+    "overrides": {
+      "fast-uri@<3.1.2": ">=3.1.2",
+      "ip-address@<10.1.1": ">=10.1.1",
+      "devalue@>=5.6.3 <5.8.1": ">=5.8.1"
+    },
     "auditConfig": {
       "ignoreCves": [
         "CVE-2026-33532"
@@ -52,16 +57,16 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "concurrently": "^9.2.0",
-    "eslint": "^10.2.0",
+    "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^17.4.0",
+    "globals": "^17.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.3",
     "png-to-ico": "^3.0.1",
     "prettier": "^3.8.1",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.1",
-    "wait-on": "^9.0.1"
+    "typescript-eslint": "^8.59.3",
+    "wait-on": "^9.0.10"
   }
 }
