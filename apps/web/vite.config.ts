@@ -37,6 +37,12 @@ export default defineConfig({
     __MOEKODER_BUILD_HASH__: JSON.stringify(resolveGitHash()),
   },
   resolve: {
+    // plugin-react 6 dropped the implicit dedupe of react/react-dom that
+    // plugin-react 4 added for us. apps/web is the only React consumer and
+    // pnpm hoists a single copy already, but we add this explicitly as a
+    // belt-and-braces guard against the "Invalid hook call" failure mode
+    // that mismatched React copies produce.
+    dedupe: ['react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@moekoder/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
@@ -46,7 +52,6 @@ export default defineConfig({
     // Electron 41 ships Chromium 134 — ES2022 covers everything we use and
     // skips legacy transforms (optional chaining, nullish coalescing, etc.).
     target: 'es2022',
-    minify: 'esbuild',
     cssCodeSplit: true,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
