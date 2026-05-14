@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const appVersionSchema = z.tuple([]);
 
 /** `app:open-external` — single URL string, must be a parseable URL. */
-export const appOpenExternalSchema = z.tuple([z.string().url()]);
+export const appOpenExternalSchema = z.tuple([z.url()]);
 
 /**
  * `app:reveal-in-folder` — a single absolute path. The handler uses

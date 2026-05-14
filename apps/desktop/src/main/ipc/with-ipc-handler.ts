@@ -1,5 +1,5 @@
 import { ipcMain, type IpcMainInvokeEvent } from 'electron';
-import type { ZodTuple, ZodTypeAny } from 'zod';
+import type { ZodTuple, ZodType } from 'zod';
 import { createLogger } from '@moekoder/shared';
 import { IpcError } from './errors';
 
@@ -15,7 +15,7 @@ type Handler<TArgs extends unknown[], TReturn> = (
  */
 function validateArgs<TArgs extends unknown[]>(
   channel: string,
-  schema: ZodTuple<[ZodTypeAny, ...ZodTypeAny[]] | []>,
+  schema: ZodTuple<[ZodType, ...ZodType[]] | []>,
   rawArgs: unknown[]
 ): TArgs {
   const parsed = schema.safeParse(rawArgs);
@@ -35,7 +35,7 @@ function validateArgs<TArgs extends unknown[]>(
  */
 export function handle<TArgs extends unknown[], TReturn>(
   channel: string,
-  schema: ZodTuple<[ZodTypeAny, ...ZodTypeAny[]] | []> | undefined,
+  schema: ZodTuple<[ZodType, ...ZodType[]] | []> | undefined,
   fn: Handler<TArgs, TReturn>
 ): void {
   const log = createLogger(`ipc:${channel}`);
@@ -66,7 +66,7 @@ export function handle<TArgs extends unknown[], TReturn>(
  */
 export function handleWithFallback<TArgs extends unknown[], TReturn>(
   channel: string,
-  schema: ZodTuple<[ZodTypeAny, ...ZodTypeAny[]] | []> | undefined,
+  schema: ZodTuple<[ZodType, ...ZodType[]] | []> | undefined,
   fn: Handler<TArgs, TReturn>,
   fallback: TReturn
 ): void {
