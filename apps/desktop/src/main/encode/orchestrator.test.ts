@@ -79,6 +79,7 @@ const makeDeps = (
     extractFonts: vi.fn(async () => null),
     cleanupFontsDir: vi.fn(async () => {}),
     getUseEmbeddedFonts: vi.fn(() => true),
+    readSubtitleFile: vi.fn(async () => ''),
     checkPreflight: vi.fn(async () => preflight),
     ensureDir: vi.fn(async () => {}),
     newJobId: vi.fn(() => `job-${++jobCounter}`),
@@ -569,6 +570,75 @@ describe('startEncode — font extraction (v0.5.0)', () => {
     await drainActive();
 
     expect(cleanupFontsDir).toHaveBeenCalledWith(FONTS_DIR);
+  });
+
+  it('emits a warn per `\\fn` reference that is missing from the extracted set', async () => {
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'Bauhaus 93.ttf' }]),
+      extractFonts: vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['Bauhaus 93.ttf'] })),
+      readSubtitleFile: vi.fn(
+        async () => '{\\fn(Bauhaus 93)}line one\n{\\fn(Comic Sans MS)}line two\n'
+      ),
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    const warnLogs = events.onLog.mock.calls.filter(
+      ([, line]) => (line as { level: string }).level === 'warn'
+    );
+    // "Bauhaus 93" stem matches "Bauhaus.ttf" — only Comic Sans MS warns.
+    expect(warnLogs).toHaveLength(1);
+    expect(warnLogs[0]![1]).toMatchObject({
+      level: 'warn',
+      text: expect.stringContaining('Comic Sans MS'),
+    });
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+  });
+
+  it('continues silently when the subtitle file cannot be read', async () => {
+    // Diagnostic is best-effort — a missing or locked ASS must not break
+    // an encode whose fontsdir already extracted successfully.
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]),
+      extractFonts: vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['a.ttf'] })),
+      readSubtitleFile: vi.fn(async () => {
+        throw new Error('ENOENT');
+      }),
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(deps.createProcessor).toHaveBeenCalledWith(
+      expect.objectContaining({ fontsDir: FONTS_DIR }),
+      expect.any(Object)
+    );
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
   });
 
   it('falls back to a no-fontsdir encode and warns when extraction throws', async () => {

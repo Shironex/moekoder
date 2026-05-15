@@ -26,7 +26,9 @@ import type { EncodeJob } from '../ffmpeg/args';
 import { checkPreflight, type PreflightResult } from '../ffmpeg/disk-space';
 import {
   cleanupFontsDir as defaultCleanupFontsDir,
+  diagnoseMissingFonts,
   extractFonts as defaultExtractFonts,
+  findReferencedFonts,
   type FontExtractResult,
 } from '../ffmpeg/font-extractor';
 import {
@@ -125,6 +127,14 @@ export interface OrchestratorDeps {
   cleanupFontsDir: (dir: string) => Promise<void>;
   /** Setting reader — seamed so tests can flip `useEmbeddedFonts` per case. */
   getUseEmbeddedFonts: () => boolean;
+  /**
+   * Read a subtitle file as UTF-8. Used by the v0.5.0 missing-font
+   * diagnostic to regex-scan the ASS for `\fn(...)` overrides and warn
+   * when a referenced font isn't in the extracted set. Errors are
+   * swallowed at the call site — the diagnostic is best-effort and
+   * must never block an encode.
+   */
+  readSubtitleFile: (subtitlePath: string) => Promise<string>;
   /** Preflight check (mocked in tests). */
   checkPreflight: (
     outputDir: string,
@@ -250,7 +260,26 @@ export const startEncode = async (
           jobId,
           onLog: l => events.onLog(jobId, l),
         });
-        if (extracted) fontsDir = extracted.dir;
+        if (extracted) {
+          fontsDir = extracted.dir;
+          // Best-effort: scan the ASS for `\fn(...)` overrides and warn
+          // per font we don't have. Wrapped so a missing/locked subtitle
+          // file degrades to "no diagnostic", never a hard failure.
+          try {
+            const subtitleText = await deps.readSubtitleFile(input.subtitlePath);
+            const referenced = findReferencedFonts(subtitleText);
+            if (referenced.length > 0) {
+              diagnoseMissingFonts({
+                referenced,
+                extractedFonts: extracted.fontFiles,
+                onLog: l => events.onLog(jobId, l),
+              });
+            }
+          } catch {
+            // Soft failure — the warn diagnostic is a nice-to-have, not
+            // a gate. Carry on.
+          }
+        }
       }
     } catch (err) {
       // Soft failure: log and continue without a fontsdir. The encode
@@ -369,6 +398,7 @@ export const defaultOrchestratorDeps = (): OrchestratorDeps => {
       }),
     cleanupFontsDir: dir => defaultCleanupFontsDir(dir),
     getUseEmbeddedFonts: () => getSetting('useEmbeddedFonts'),
+    readSubtitleFile: subtitlePath => fs.readFile(subtitlePath, 'utf8'),
     checkPreflight: (outputDir, durationSec, bitrateKbps) =>
       checkPreflight(outputDir, durationSec, bitrateKbps),
     ensureDir: async dir => {
