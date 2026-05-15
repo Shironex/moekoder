@@ -297,6 +297,11 @@ describe('findReferencedFonts', () => {
     const ass = '{\\fn( Bauhaus 93 )}{\\fn(  NotoSerif  )}';
     expect(findReferencedFonts(ass)).toEqual(['Bauhaus 93', 'NotoSerif']);
   });
+
+  it('extracts a font name from the standard bare \\fn syntax without parens', () => {
+    const ass = 'Dialogue: 0,0:00:00.00,0:00:01.00,Default,,0,0,0,,{\\fnArial}Hello';
+    expect(findReferencedFonts(ass)).toEqual(['Arial']);
+  });
 });
 
 describe('diagnoseMissingFonts', () => {
