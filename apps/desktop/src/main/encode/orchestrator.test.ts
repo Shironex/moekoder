@@ -591,7 +591,7 @@ describe('startEncode — font extraction (v0.5.0)', () => {
     const warnLogs = events.onLog.mock.calls.filter(
       ([, line]) => (line as { level: string }).level === 'warn'
     );
-    // "Bauhaus 93" stem matches "Bauhaus.ttf" — only Comic Sans MS warns.
+    // "Bauhaus 93" matches extracted "Bauhaus 93.ttf" — only Comic Sans MS warns.
     expect(warnLogs).toHaveLength(1);
     expect(warnLogs[0]![1]).toMatchObject({
       level: 'warn',
