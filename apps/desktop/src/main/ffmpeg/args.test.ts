@@ -6,7 +6,7 @@ import {
   HEVC_BALANCED_PRESET,
   type EncodingSettings,
 } from './settings';
-import { escapeSubtitlePath } from './path-escape';
+import { escapeLibassPath } from './path-escape';
 
 const VIDEO = 'C:\\in\\ep01.mkv';
 const SUB = 'C:\\in\\ep01.ass';
@@ -34,7 +34,7 @@ const baseJob = (overrides: Partial<EncodeJob> = {}): EncodeJob => ({
 describe('buildEncodeArgs — NVENC path', () => {
   it('emits the expected NVENC arg array for the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob());
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p`;
 
     expect(args).toEqual([
       '-i',
@@ -197,10 +197,10 @@ describe('buildEncodeArgs — progress + overwrite', () => {
 });
 
 describe('buildEncodeArgs — subtitle path escaping', () => {
-  it('runs the subtitle path through escapeSubtitlePath', () => {
+  it('runs the subtitle path through escapeLibassPath', () => {
     const args = buildEncodeArgs(baseJob());
     const vfIdx = args.indexOf('-vf');
-    expect(args[vfIdx + 1]).toContain(escapeSubtitlePath(SUB));
+    expect(args[vfIdx + 1]).toContain(escapeLibassPath(SUB));
     // Sanity-check the raw unescaped path is NOT present in the filter
     // expression — it'd be a bug for the filter-graph parser.
     expect(args[vfIdx + 1]).not.toContain(`${SUB}'`);
@@ -214,7 +214,7 @@ describe('buildEncodeArgs — subtitle path escaping', () => {
 describe('buildEncodeArgs — HEVC NVENC (10-bit main10)', () => {
   it('emits the expected hevc_nvenc arg array for the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob({ settings: HEVC_BALANCED_PRESET }));
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p10le`;
 
     expect(args).toEqual([
       '-i',
@@ -305,7 +305,7 @@ describe('buildEncodeArgs — libx265 software', () => {
 describe('buildEncodeArgs — AV1 NVENC', () => {
   it('emits av1_nvenc with the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob({ settings: AV1_BALANCED_PRESET }));
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p10le`;
 
     expect(args).toEqual([
       '-i',
@@ -392,6 +392,56 @@ describe('buildEncodeArgs — libsvtav1 software', () => {
     // libsvtav1 has its own `-tune` namespace; v0.4 doesn't expose it yet.
     expect(args).not.toContain('-tune');
     expect(args).not.toContain('-spatial_aq');
+  });
+});
+
+// -----------------------------------------------------------------------------
+// v0.5.0 — MKV embedded font extraction: subtitles filter learns `:fontsdir=`.
+// -----------------------------------------------------------------------------
+
+describe('buildEncodeArgs — fontsdir (v0.5.0)', () => {
+  const FONTS_DIR = 'C:\\Users\\u\\AppData\\Local\\Temp\\mkfont-abc123';
+
+  it('appends `:fontsdir=<escaped>` to the subtitles filter when fontsDir is set', () => {
+    const args = buildEncodeArgs(baseJob({ fontsDir: FONTS_DIR }));
+    const vfIdx = args.indexOf('-vf');
+    const vf = args[vfIdx + 1]!;
+    expect(vf).toContain(`subtitles='${escapeLibassPath(SUB)}'`);
+    expect(vf).toContain(`:fontsdir='${escapeLibassPath(FONTS_DIR)}'`);
+    // Order matters: fontsdir must follow the subtitles token (filter-graph
+    // option syntax), not appear after the pixel-format normaliser.
+    expect(vf.indexOf(':fontsdir=')).toBeLessThan(vf.indexOf(',format='));
+  });
+
+  it('emits the v0.4 NVENC arg array byte-for-byte when fontsDir is absent', () => {
+    // Regression lock — every existing v0.4 caller passes no fontsDir and
+    // MUST get the exact same filter string. If this test ever drifts, the
+    // v0.4 → v0.5 upgrade silently changed user behaviour.
+    const v04 = buildEncodeArgs(baseJob());
+    const v05 = buildEncodeArgs(baseJob({ fontsDir: undefined }));
+    expect(v05).toEqual(v04);
+    const vfIdx = v05.indexOf('-vf');
+    expect(v05[vfIdx + 1]).not.toContain('fontsdir');
+  });
+
+  it('keeps the NVENC pixel-format normaliser after the fontsdir token', () => {
+    const args = buildEncodeArgs(baseJob({ fontsDir: FONTS_DIR }));
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toMatch(/:fontsdir='[^']+',format=yuv420p$/);
+  });
+
+  it('still emits fontsdir on the libx264 software path', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: withSettings({ hwAccel: 'libx264', tune: 'animation' }),
+        fontsDir: FONTS_DIR,
+      })
+    );
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toContain(':fontsdir=');
+    // libx264 doesn't append a `format=` filter, so the chain ends at the
+    // closing quote of the fontsdir option.
+    expect(args[vfIdx + 1]).toMatch(/:fontsdir='[^']+'$/);
   });
 });
 

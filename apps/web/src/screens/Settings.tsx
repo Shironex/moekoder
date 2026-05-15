@@ -101,6 +101,7 @@ export const Settings = () => {
   const [appVersion, setAppVersion] = useState<string | null>(null);
   const [busy, setBusy] = useState<null | 'logs' | 'ffmpeg' | 'github' | 'update-check'>(null);
   const [autoCheck, setAutoCheck] = useSetting('autoCheckUpdates');
+  const [useEmbeddedFonts, setUseEmbeddedFonts] = useSetting('useEmbeddedFonts');
   const [updaterChip, setUpdaterChip] = useState<UpdaterChipState>({ kind: 'idle' });
 
   useEffect(() => {
@@ -165,6 +166,17 @@ export const Settings = () => {
       }
     },
     [setAutoCheck]
+  );
+
+  const onToggleUseEmbeddedFonts = useCallback(
+    async (next: boolean): Promise<void> => {
+      try {
+        await setUseEmbeddedFonts(next);
+      } catch (err) {
+        log.warn('persist useEmbeddedFonts failed', err);
+      }
+    },
+    [setUseEmbeddedFonts]
   );
 
   const onCheckForUpdates = useCallback(async (): Promise<void> => {
@@ -348,6 +360,31 @@ export const Settings = () => {
             description="Save the current encoding profile under a name and apply it later in one click. Up to 20 presets; names must be unique. Survives app restart."
           >
             <CustomPresetsSection />
+          </Section>
+
+          <Section
+            kanji="字"
+            mono="fonts · 字 · ji"
+            title="Embedded fonts"
+            description="When the source is an MKV with attached fonts (the fansub default), MoeKoder extracts them into a per-job temp dir and feeds the path to libass so \\fn(CustomFont) typesetting renders as the author intended. Off ⇒ libass falls back to system fonts only, matching v0.4 behaviour."
+          >
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary"
+                checked={useEmbeddedFonts ?? true}
+                onChange={e => void onToggleUseEmbeddedFonts(e.target.checked)}
+              />
+              <span className="flex flex-col leading-tight">
+                <b className="font-display text-sm text-foreground">
+                  Use embedded fonts (recommended)
+                </b>
+                <span className="text-[12px] text-muted-foreground">
+                  On by default. Cleans up after every encode — no fonts are left on disk. Toggle
+                  off if you'd rather every typeset cue render in Arial.
+                </span>
+              </span>
+            </label>
           </Section>
 
           <Section

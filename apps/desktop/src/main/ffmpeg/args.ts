@@ -31,7 +31,7 @@
  * builder — keeping the decision in one place and letting the builder
  * remain a pure settings-to-args transform.
  */
-import { escapeSubtitlePath } from './path-escape';
+import { escapeLibassPath } from './path-escape';
 import type { EncodingSettings } from './settings';
 
 export interface EncodeJob {
@@ -50,6 +50,14 @@ export interface EncodeJob {
    * speed it shaves off the decoder.
    */
   clipWindow?: { startSec: number; durationSec: number };
+  /**
+   * Optional per-job fonts directory. When set, the subtitles filter is
+   * extended with `:fontsdir='<escaped>'` so libass can resolve
+   * `\fn(CustomFont)` overrides against MKV-attached fonts the
+   * font-extractor dropped into the dir. Undefined → v0.4 behaviour
+   * verbatim (no fontsdir, libass falls back to system fonts only).
+   */
+  fontsDir?: string;
 }
 
 /**
@@ -64,8 +72,19 @@ const wantsTenBitFilter = (settings: EncodingSettings): boolean => {
   return settings.tenBit;
 };
 
-const buildFilterChain = (subtitlePath: string, settings: EncodingSettings): string => {
-  const parts = [`subtitles='${escapeSubtitlePath(subtitlePath)}'`];
+const buildFilterChain = (
+  subtitlePath: string,
+  settings: EncodingSettings,
+  fontsDir: string | undefined
+): string => {
+  // The subtitles filter takes colon-separated options. When `fontsDir`
+  // is set we append `:fontsdir='<escaped>'` immediately after the path
+  // so libass scans the per-job temp dir for `\fn(...)` matches before
+  // falling back to system fonts.
+  const subtitlesToken = fontsDir
+    ? `subtitles='${escapeLibassPath(subtitlePath)}':fontsdir='${escapeLibassPath(fontsDir)}'`
+    : `subtitles='${escapeLibassPath(subtitlePath)}'`;
+  const parts = [subtitlesToken];
 
   if (settings.hwAccel === 'nvenc') {
     if (wantsTenBitFilter(settings)) {
@@ -206,7 +225,7 @@ const buildContainerArgs = (settings: EncodingSettings): string[] => {
  * quoting is needed around paths.
  */
 export const buildEncodeArgs = (job: EncodeJob): string[] => {
-  const { videoPath, subtitlePath, outputPath, settings, clipWindow } = job;
+  const { videoPath, subtitlePath, outputPath, settings, clipWindow, fontsDir } = job;
 
   const args: string[] = [];
 
@@ -220,7 +239,7 @@ export const buildEncodeArgs = (job: EncodeJob): string[] => {
   args.push('-i', videoPath);
 
   // Video filter chain: subtitle burn-in (+ codec-aware pix fmt for NVENC).
-  args.push('-vf', buildFilterChain(subtitlePath, settings));
+  args.push('-vf', buildFilterChain(subtitlePath, settings, fontsDir));
 
   // Video encoder + rate control.
   args.push(...buildVideoArgs(settings));

@@ -4,6 +4,32 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-05-15
+
+MKV embedded-font extraction release. When the source is an MKV with attached fonts — standard practice for anime fansubs that ship `\fn(CustomFont)` typesetting in their ASS scripts — MoeKoder now extracts every font attachment into a per-job temp dir and feeds the path to libass via the `subtitles=...:fontsdir=` option. Burned output finally renders typeset cues with the fonts the author intended instead of silently falling back to Arial.
+
+### Added
+
+- **MKV attachment extraction** — new `font-extractor` module runs `ffmpeg -dump_attachment:t '' -i <video>` against a per-job `os.tmpdir()/mkfont-*` directory, accepts the well-known exit-code-1-on-success quirk, filters the dump to font extensions (`.ttf .otf .ttc .woff .woff2`) plus mime hints, and returns the dir + basenames. Returns `null` when there are no font-shaped attachments to dump (cover-art-only MKVs short-circuit before invoking ffmpeg).
+- **libass `fontsdir=` wiring** — `buildFilterChain` learns an optional `fontsDir` argument and emits `subtitles='<sub>':fontsdir='<dir>'` ahead of the codec-aware pixel-format filter when set. v0.4 byte-for-byte regression locked — no `fontsDir` ⇒ the exact same arg array as v0.4.
+- **Orchestrator lifecycle wiring** — after preflight and before `createProcessor`, the orchestrator probes attachments, calls `extractFonts(...)`, and threads the resulting dir onto `EncodeJob.fontsDir`. Both terminal callbacks (`onComplete` and `onError` / CANCELLED) run `cleanupFontsDir(...)` so the temp dir is removed whether the encode succeeded, errored, or was user-cancelled.
+- **Settings → Embedded fonts toggle** — new section in `apps/web/src/screens/Settings.tsx` ("字 · ji"). Defaults to **on** so anime fansubs render correctly out of the box; flip off to restore v0.4 behaviour (libass falls back to system fonts only).
+- **Missing-font diagnostic** — after a successful extraction the orchestrator regex-scans the ASS subtitle for `\fn(Name)` overrides and emits a `warn` per reference not present among the extracted basenames (case-insensitive, stem-matched). Surfaces in the same job-log channel that feeds both the Single-route log panel and the queue card's expand drawer.
+- **`useEmbeddedFonts` setting key** — `boolean`, default `true`, in `packages/shared/src/settings/schema.ts`. Read directly by the orchestrator at job-start time so the renderer doesn't need a new IPC channel and the queue manager doesn't need to thread the flag.
+- **`OrchestratorDeps` seams** — `probeAttachments`, `extractFonts`, `cleanupFontsDir`, `getUseEmbeddedFonts`, and `readSubtitleFile` are now injectable so every branch (toggle on/off, attachments yes/no, extractor success/failure, missing-font diagnostic, cleanup-on-cancel) runs in vitest without spawning ffmpeg or touching disk.
+- **39 new vitest tests** — 2 in `probe.test.ts` (multi-font fixture + missing-tag fallback), 3 in `path-escape.test.ts` (fontsdir-style inputs + alias), 4 in `args.test.ts` (fontsdir token + v0.4 regression lock + NVENC pixel-format ordering + libx264 path), 21 in `font-extractor.test.ts` (filter + extract + cleanup + `\fn` scan + diff), and 9 in `orchestrator.test.ts` (toggle off, no attachments, extract + cleanup on success / cancel / error, soft-fail on extractor throw, missing-font warn, subtitle-read failure tolerated). Test count: 229 (was 190).
+
+### Changed
+
+- **`escapeSubtitlePath` → `escapeLibassPath`** — the helper handles both `subtitles=` and `fontsdir=` libass filter arguments now that the escape rules apply identically. Old names are kept as `@deprecated` aliases for one release so external call sites can migrate without a synchronised cut.
+- **`EncodeJob` gains `fontsDir?: string`** — opt-in field; callers that don't set it produce the v0.4 filter chain byte-for-byte.
+
+### Known Limitations
+
+- The missing-font diagnostic is best-effort string matching on the ASS file (`\fn(Name)` overrides, stem-matched against extracted basenames). It does **not** enumerate system fonts and cannot distinguish "missing on disk" from "present elsewhere on the system" — every warning reads as "may fall back to system default". Full system-font enumeration is deferred to v0.6.
+- Soft-subbed mux (no burn-in, font attachments preserved in the output MKV) is still v0.6 territory.
+- Embedded-font extraction runs per-job. A queue of 24 episodes from the same release will re-extract identical fonts 24 times — a `<userData>/fonts/<sourceHash>/` cache is on the v0.6 roadmap.
+
 ## [0.4.0] - 2026-05-05
 
 Codec expansion release. HEVC and AV1 join H.264 across NVENC + software paths, with a per-codec preset editor, three quality tiers (Fast / Balanced / Pristine), custom presets that survive an app restart, and a benchmark mode that scores 2–4 candidate profiles on a 10-second sample with size, encode time, and PSNR.

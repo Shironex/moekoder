@@ -1,12 +1,14 @@
 /**
- * FFmpeg Subtitle Filter Path Escaping
- * =====================================
+ * FFmpeg libass Filter Path Escaping
+ * ===================================
  *
- * The subtitles filter in FFmpeg requires careful path escaping due to
- * multiple parsing layers:
+ * Both `subtitles=<path>` and `fontsdir=<path>` (passed as a colon-separated
+ * option to the same filter) feed through three parsing layers before
+ * libass sees the final path. The escape rules are identical for both —
+ * v0.5.0's MKV font extraction reuses this helper for its temp fontsdir.
  *
  * Layer 1: FFmpeg option parser
- *   -vf "subtitles='C:\\path\\file.ass'"
+ *   -vf "subtitles='C:\\path\\file.ass':fontsdir='C:\\path\\fonts'"
  *   The outer quotes protect the entire filter string
  *
  * Layer 2: Filter graph parser
@@ -28,7 +30,7 @@
 export type EscapePlatform = 'win32' | 'posix';
 
 /**
- * Platform-parametrised core of {@link escapeSubtitlePath}. Exported for
+ * Platform-parametrised core of {@link escapeLibassPath}. Exported for
  * unit tests so both branches can be exercised on a single host.
  *
  * Windows branch: runs the 3-layer backslash / drive-letter / filter-graph
@@ -42,7 +44,7 @@ export type EscapePlatform = 'win32' | 'posix';
  * (`[ ] ; , = '`) are escaped on both platforms because they can legally
  * appear in filenames.
  */
-export const escapeSubtitlePathFor = (absolutePath: string, platform: EscapePlatform): string => {
+export const escapeLibassPathFor = (absolutePath: string, platform: EscapePlatform): string => {
   if (platform === 'win32') {
     return (
       absolutePath
@@ -77,11 +79,27 @@ export const escapeSubtitlePathFor = (absolutePath: string, platform: EscapePlat
 };
 
 /**
- * Escapes a file path for use in FFmpeg's `subtitles=` filter. Dispatches
- * to the Windows or POSIX branch based on the current process platform.
+ * Escapes a file path for use in FFmpeg's libass filter options
+ * (`subtitles='<path>'` and `fontsdir='<path>'`). Dispatches to the
+ * Windows or POSIX branch based on the current process platform.
  *
- * @param absolutePath - The absolute path to the subtitle file
- * @returns Escaped path safe for use inside `subtitles='<path>'`
+ * @param absolutePath - The absolute path to a subtitle file or fonts dir
+ * @returns Escaped path safe for use inside the libass filter options
  */
-export const escapeSubtitlePath = (absolutePath: string): string =>
-  escapeSubtitlePathFor(absolutePath, process.platform === 'win32' ? 'win32' : 'posix');
+export const escapeLibassPath = (absolutePath: string): string =>
+  escapeLibassPathFor(absolutePath, process.platform === 'win32' ? 'win32' : 'posix');
+
+/**
+ * Backwards-compatible alias. Prior to v0.5.0 this helper was named for
+ * subtitle paths specifically; libass `fontsdir=` reuses the exact same
+ * escape rules, so the canonical name is now `escapeLibassPath`. Kept as
+ * an alias for one release to avoid touching every call site at once.
+ *
+ * @deprecated Use `escapeLibassPath` instead. Removed in v0.6.0.
+ */
+export const escapeSubtitlePath = escapeLibassPath;
+
+/**
+ * @deprecated Use `escapeLibassPathFor` instead. Removed in v0.6.0.
+ */
+export const escapeSubtitlePathFor = escapeLibassPathFor;

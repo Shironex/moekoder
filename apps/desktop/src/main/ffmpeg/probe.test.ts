@@ -130,6 +130,62 @@ describe('normalizeProbeJson', () => {
     });
   });
 
+  it('maps multiple font attachments from a fansub-style MKV', () => {
+    // Anime fansubs routinely ship 3-10 attached fonts so libass can render
+    // `\fn(CustomFont)` cues. v0.5.0's font-extractor depends on every one
+    // of these surfacing through the probe — lock the multi-attachment
+    // shape here so a probe regression can't silently drop fonts.
+    const result = normalizeProbeJson({
+      streams: [
+        {
+          index: 1,
+          codec_type: 'attachment',
+          codec_name: 'ttf',
+          tags: { filename: 'Bauhaus 93.ttf', mimetype: 'application/x-truetype-font' },
+        },
+        {
+          index: 2,
+          codec_type: 'attachment',
+          codec_name: 'otf',
+          tags: { filename: 'NotoSerifJP-Bold.otf', mimetype: 'application/vnd.ms-opentype' },
+        },
+        {
+          index: 3,
+          codec_type: 'attachment',
+          codec_name: 'ttf',
+          tags: { filename: 'Comic Sans MS.ttf', mimetype: 'application/x-truetype-font' },
+        },
+      ],
+    });
+    expect(result.attachments).toEqual([
+      {
+        index: 1,
+        filename: 'Bauhaus 93.ttf',
+        mimeType: 'application/x-truetype-font',
+      },
+      {
+        index: 2,
+        filename: 'NotoSerifJP-Bold.otf',
+        mimeType: 'application/vnd.ms-opentype',
+      },
+      {
+        index: 3,
+        filename: 'Comic Sans MS.ttf',
+        mimeType: 'application/x-truetype-font',
+      },
+    ]);
+  });
+
+  it('preserves attachments with missing filename / mimetype tags', () => {
+    // Some muxers omit the `filename` or `mimetype` tag entirely. The probe
+    // must still emit a record so callers can decide what to do — the
+    // extractor filters by extension as a fallback when mime is absent.
+    const result = normalizeProbeJson({
+      streams: [{ index: 5, codec_type: 'attachment', codec_name: 'ttf' }],
+    });
+    expect(result.attachments).toEqual([{ index: 5, filename: undefined, mimeType: undefined }]);
+  });
+
   it('falls back from avg_frame_rate to r_frame_rate when avg is 0/0', () => {
     const result = normalizeProbeJson({
       streams: [

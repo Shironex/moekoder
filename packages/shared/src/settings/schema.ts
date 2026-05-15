@@ -64,6 +64,15 @@ export interface UserSettings {
   /** Whether the app runs background update checks. Default `false` per the
    *  onboarding Privacy pledge — users must opt in from Settings → Updates. */
   autoCheckUpdates: boolean;
+  /**
+   * Whether the encoder extracts embedded font attachments from MKV inputs
+   * into a per-job temp dir and feeds it to libass via the `fontsdir=`
+   * option. Default `true` because the alternative — libass silently
+   * falling back to Arial on every `\fn(CustomFont)` cue — produces visibly
+   * wrong typesetting on anime fansubs, which is most of MoeKoder's diet.
+   * Toggle off from Settings → Encoding to restore v0.4 behaviour.
+   */
+  useEmbeddedFonts: boolean;
   /** How many encodes the queue may run in parallel. Clamped 1..4 by the
    *  queue manager's zod schema; default 1 mirrors the Single-route guarantee. */
   queueConcurrency: 1 | 2 | 3 | 4;
@@ -157,6 +166,7 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   container: 'mp4',
   sidebarCollapsed: false,
   autoCheckUpdates: false,
+  useEmbeddedFonts: true,
   queueConcurrency: 1,
   queueMaxRetries: 2,
   queueBackoffMs: 4000,
