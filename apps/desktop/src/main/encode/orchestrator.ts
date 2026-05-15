@@ -25,19 +25,25 @@ import * as path from 'node:path';
 import type { EncodeJob } from '../ffmpeg/args';
 import { checkPreflight, type PreflightResult } from '../ffmpeg/disk-space';
 import {
+  cleanupFontsDir as defaultCleanupFontsDir,
+  extractFonts as defaultExtractFonts,
+  type FontExtractResult,
+} from '../ffmpeg/font-extractor';
+import {
   FFmpegProcessor,
   type EncodeProgress,
   type EncodeResult,
   type LogLine,
   type ProcessorDeps,
 } from '../ffmpeg/processor';
-import { probe } from '../ffmpeg/probe';
+import { probe, type ProbeAttachment } from '../ffmpeg/probe';
 import {
   BALANCED_BITRATE_KBPS,
   defaultsFor,
   type EncodingSettings,
   type VideoCodec,
 } from '../ffmpeg/settings';
+import { getSetting } from '../store';
 import { getFfmpegPath } from '../utils/bin-paths';
 import { IpcError } from '../ipc/errors';
 import { spawn } from 'node:child_process';
@@ -95,6 +101,30 @@ export interface OrchestratorDeps {
   ) => { run: () => Promise<EncodeResult>; cancel: () => void };
   /** Probe duration for preflight. */
   probeDuration: (videoPath: string) => Promise<number>;
+  /**
+   * Probe attachments (v0.5.0) — feeds the font-extractor. Separated
+   * from `probeDuration` so tests can stub each independently. Returns
+   * an empty array when the input has no attachment streams.
+   */
+  probeAttachments: (videoPath: string) => Promise<ProbeAttachment[]>;
+  /**
+   * Extract MKV-embedded fonts into a per-job temp dir. Returns `null`
+   * when the input has no font-shaped attachments (no fontsdir needed)
+   * or when the user has toggled off `useEmbeddedFonts`. May throw on a
+   * genuine extractor failure — the orchestrator catches that, emits a
+   * warn, and proceeds with the v0.4 (no-fontsdir) filter chain so a
+   * font-extraction hiccup never blocks an encode.
+   */
+  extractFonts: (input: {
+    videoPath: string;
+    attachments: ProbeAttachment[];
+    jobId: string;
+    onLog?: (line: LogLine) => void;
+  }) => Promise<FontExtractResult | null>;
+  /** Remove a per-job fonts temp dir. ENOENT-tolerant. */
+  cleanupFontsDir: (dir: string) => Promise<void>;
+  /** Setting reader — seamed so tests can flip `useEmbeddedFonts` per case. */
+  getUseEmbeddedFonts: () => boolean;
   /** Preflight check (mocked in tests). */
   checkPreflight: (
     outputDir: string,
@@ -116,6 +146,14 @@ interface ActiveJob {
   cancel: () => void;
   /** Resolves when the processor run settles (complete or error — never rejects). */
   done: Promise<void>;
+  /**
+   * Per-job MKV-fonts temp dir (v0.5.0). Set when the font-extractor
+   * produced a fontsdir for this job; both terminal callbacks
+   * (onComplete + onError / cancel) clean it up. Undefined when the
+   * input had no attachments, the user toggled extraction off, or the
+   * extractor failed and we fell back to the v0.4 filter chain.
+   */
+  fontsDir?: string;
 }
 
 const activeJobs = new Map<string, ActiveJob>();
@@ -195,12 +233,56 @@ export const startEncode = async (
   }
 
   const jobId = deps.newJobId();
+
+  // v0.5.0 — MKV embedded font extraction. Runs after preflight (which
+  // is the disk-space gate) so we don't dump fonts only to fail at the
+  // start line. Guarded by `useEmbeddedFonts`; an extractor failure
+  // logs a warning and degrades to v0.4 behaviour rather than killing
+  // the encode.
+  let fontsDir: string | undefined;
+  if (deps.getUseEmbeddedFonts()) {
+    try {
+      const attachments = await deps.probeAttachments(input.videoPath);
+      if (attachments.length > 0) {
+        const extracted = await deps.extractFonts({
+          videoPath: input.videoPath,
+          attachments,
+          jobId,
+          onLog: l => events.onLog(jobId, l),
+        });
+        if (extracted) fontsDir = extracted.dir;
+      }
+    } catch (err) {
+      // Soft failure: log and continue without a fontsdir. The encode
+      // will still produce output; typeset cues may fall back to the
+      // system default fonts (which is exactly v0.4 behaviour).
+      events.onLog(jobId, {
+        ts: Date.now(),
+        level: 'warn',
+        text: `Font extraction failed: ${err instanceof Error ? err.message : String(err)}. Continuing without embedded fonts.`,
+      });
+    }
+  }
+
   const job: EncodeJob = {
     videoPath: input.videoPath,
     subtitlePath: input.subtitlePath,
     outputPath: input.outputPath,
     settings,
     clipWindow: input.clipWindow,
+    fontsDir,
+  };
+
+  // Cleanup is idempotent + ENOENT-tolerant. We invoke it from BOTH
+  // terminal callbacks (onComplete + onError/cancel) so a user-initiated
+  // cancel does not leave the temp dir behind. The promise is detached
+  // — we don't block the renderer-facing event on disk cleanup.
+  const cleanupFontsIfAny = (): void => {
+    if (!fontsDir) return;
+    void deps.cleanupFontsDir(fontsDir).catch(() => {
+      // Swallow — the extractor's own cleanup is best-effort and
+      // ENOENT-tolerant. Re-emitting an error here would be noise.
+    });
   };
 
   const processor = deps.createProcessor(job, {
@@ -208,10 +290,12 @@ export const startEncode = async (
     onLog: l => events.onLog(jobId, l),
     onComplete: r => {
       activeJobs.delete(jobId);
+      cleanupFontsIfAny();
       events.onComplete(jobId, r);
     },
     onError: e => {
       activeJobs.delete(jobId);
+      cleanupFontsIfAny();
       // Propagate a CANCELLED error with that code instead of the generic
       // INTERNAL bucket so renderer code can distinguish user-initiated stops.
       const code = (e as Error & { code?: string }).code === 'CANCELLED' ? 'CANCELLED' : 'INTERNAL';
@@ -226,7 +310,7 @@ export const startEncode = async (
     () => undefined,
     () => undefined
   );
-  activeJobs.set(jobId, { cancel: () => processor.cancel(), done });
+  activeJobs.set(jobId, { cancel: () => processor.cancel(), done, fontsDir });
 
   return { jobId, preflight };
 };
@@ -274,6 +358,17 @@ export const defaultOrchestratorDeps = (): OrchestratorDeps => {
   return {
     createProcessor: (job, callbacks) => new FFmpegProcessor(job, callbacks, processorDeps),
     probeDuration: async (videoPath: string) => (await probe(videoPath)).durationSec,
+    probeAttachments: async (videoPath: string) => (await probe(videoPath)).attachments,
+    extractFonts: input =>
+      defaultExtractFonts({
+        videoPath: input.videoPath,
+        attachments: input.attachments,
+        jobId: input.jobId,
+        ffmpegPath: getFfmpegPath(),
+        onLog: input.onLog,
+      }),
+    cleanupFontsDir: dir => defaultCleanupFontsDir(dir),
+    getUseEmbeddedFonts: () => getSetting('useEmbeddedFonts'),
     checkPreflight: (outputDir, durationSec, bitrateKbps) =>
       checkPreflight(outputDir, durationSec, bitrateKbps),
     ensureDir: async dir => {

@@ -75,6 +75,10 @@ const makeDeps = (
       return stub;
     }),
     probeDuration: vi.fn(async () => 60),
+    probeAttachments: vi.fn(async () => []),
+    extractFonts: vi.fn(async () => null),
+    cleanupFontsDir: vi.fn(async () => {}),
+    getUseEmbeddedFonts: vi.fn(() => true),
     checkPreflight: vi.fn(async () => preflight),
     ensureDir: vi.fn(async () => {}),
     newJobId: vi.fn(() => `job-${++jobCounter}`),
@@ -391,6 +395,217 @@ describe('concurrency cap', () => {
     expect(() => setConcurrencyCap(0)).toThrow();
     expect(() => setConcurrencyCap(-1)).toThrow();
     expect(() => setConcurrencyCap(1.5)).toThrow();
+  });
+});
+
+// -----------------------------------------------------------------------------
+// v0.5.0 — MKV embedded font extraction.
+// -----------------------------------------------------------------------------
+
+describe('startEncode — font extraction (v0.5.0)', () => {
+  const FONTS_DIR = '/tmp/mkfont-test';
+
+  it('does not invoke the extractor when useEmbeddedFonts is off', async () => {
+    const extractFonts = vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['a.ttf'] }));
+    const probeAttachments = vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]);
+    const deps = makeDeps({
+      getUseEmbeddedFonts: vi.fn(() => false),
+      extractFonts,
+      probeAttachments,
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(probeAttachments).not.toHaveBeenCalled();
+    expect(extractFonts).not.toHaveBeenCalled();
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+  });
+
+  it('skips extraction when the input has no attachments', async () => {
+    const extractFonts = vi.fn(async () => null);
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => []),
+      extractFonts,
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(extractFonts).not.toHaveBeenCalled();
+    expect(deps.createProcessor).toHaveBeenCalledWith(
+      expect.objectContaining({ fontsDir: undefined }),
+      expect.any(Object)
+    );
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+  });
+
+  it('extracts and passes fontsDir to the processor when attachments exist + toggle on', async () => {
+    const attachments = [{ index: 1, filename: 'Bauhaus.ttf' }];
+    const extractFonts = vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['Bauhaus.ttf'] }));
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => attachments),
+      extractFonts,
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(extractFonts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        videoPath: '/in/v.mkv',
+        attachments,
+        jobId: 'job-1',
+      })
+    );
+    expect(deps.createProcessor).toHaveBeenCalledWith(
+      expect.objectContaining({ fontsDir: FONTS_DIR }),
+      expect.any(Object)
+    );
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+  });
+
+  it('cleans up the fonts dir on successful completion', async () => {
+    const cleanupFontsDir = vi.fn(async () => {});
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]),
+      extractFonts: vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['a.ttf'] })),
+      cleanupFontsDir,
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
+
+    expect(cleanupFontsDir).toHaveBeenCalledWith(FONTS_DIR);
+  });
+
+  it('cleans up the fonts dir on cancellation (CANCELLED error path)', async () => {
+    const cleanupFontsDir = vi.fn(async () => {});
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]),
+      extractFonts: vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['a.ttf'] })),
+      cleanupFontsDir,
+    });
+    const events = makeEvents();
+
+    const { jobId } = await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    cancelEncode(jobId);
+    processors[0]!.__fail(Object.assign(new Error('Encode cancelled'), { code: 'CANCELLED' }));
+    await drainActive();
+
+    expect(cleanupFontsDir).toHaveBeenCalledWith(FONTS_DIR);
+  });
+
+  it('cleans up the fonts dir when ffmpeg errors mid-encode', async () => {
+    const cleanupFontsDir = vi.fn(async () => {});
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]),
+      extractFonts: vi.fn(async () => ({ dir: FONTS_DIR, fontFiles: ['a.ttf'] })),
+      cleanupFontsDir,
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    processors[0]!.__fail(new Error('ffmpeg exited with code 42'));
+    await drainActive();
+
+    expect(cleanupFontsDir).toHaveBeenCalledWith(FONTS_DIR);
+  });
+
+  it('falls back to a no-fontsdir encode and warns when extraction throws', async () => {
+    const deps = makeDeps({
+      probeAttachments: vi.fn(async () => [{ index: 1, filename: 'a.ttf' }]),
+      extractFonts: vi.fn(async () => {
+        throw new Error('ffmpeg missing');
+      }),
+    });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(deps.createProcessor).toHaveBeenCalledWith(
+      expect.objectContaining({ fontsDir: undefined }),
+      expect.any(Object)
+    );
+    expect(events.onLog).toHaveBeenCalledWith(
+      'job-1',
+      expect.objectContaining({
+        level: 'warn',
+        text: expect.stringContaining('Font extraction failed'),
+      })
+    );
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 1,
+      outputBytes: 1,
+      elapsedMs: 1,
+    });
+    await drainActive();
   });
 });
 
