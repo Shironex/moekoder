@@ -39,11 +39,33 @@ Moekoder is a desktop hardsub tool for people who keep their anime locally and c
 
 Part of the **Shiro Suite** alongside [ShiroAni](https://github.com/Shironex/shiroani) (anime), [Shiranami](https://github.com/Shironex/shiranami) (music), and [KireiManga](https://github.com/Shironex/kirei-manga) (manga). The four siblings share design language, monorepo patterns, and the same late-night cozy mood.
 
+### Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/idle.png" alt="Idle screen — Ready when you are." /></td>
+    <td width="50%"><img src="assets/screenshots/queue.png" alt="Queue screen with a stopped item" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Idle — drop a video + subtitle, pick a save target, hit Begin.</sub></td>
+    <td align="center"><sub>Queue — stack a batch, walk away, soft-pause anytime.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/settings-appearance.png" alt="Settings → Appearance with six theme cards" /></td>
+    <td width="50%"><img src="assets/screenshots/settings-encoding.png" alt="Settings → Encoding — codec, encoder, quality tier" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Appearance — six kanji-named themes, live switching.</sub></td>
+    <td align="center"><sub>Encoding — H.264 / HEVC / AV1 with Fast · Balanced · Pristine tiers.</sub></td>
+  </tr>
+</table>
+
 ### What's inside
 
 |                            |                                                                                                                                                                                                                              |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hardsub encode**         | MKV + ASS → MP4 / MKV with subtitles burned in via libass, single job or 1–4 parallel via the queue                                                                                                                          |
+| **Hardsub encode**         | MKV + ASS → MP4 / MKV with subtitles burned in via libass; H.264 / HEVC / AV1 codecs on NVENC + software paths; single job or 1–4 parallel via the queue                                                                     |
+| **Codec + preset editor**  | Per-codec Fast / Balanced / Pristine tiers, custom named presets that persist across runs, and a benchmark mode that scores 2–4 candidate profiles on a 10s sample (size + time + PSNR)                                      |
 | **FFmpeg manager**         | Auto-downloads the ffmpeg engine on first run (BtbN on Windows, evermeet.cx on macOS), verifies SHA-256, installs to your user-data directory — no manual setup                                                              |
 | **Hardware encoder probe** | Detects NVENC / QSV / AMF on your machine and recommends the fastest option; CPU (libx264) is always a guaranteed fallback                                                                                                   |
 | **Disk-space preflight**   | Bitrate-driven size estimate + safety margin checks your free space before the job starts                                                                                                                                    |
@@ -83,8 +105,8 @@ Grab the latest build from [Releases](https://github.com/Shironex/moekoder/relea
 
 |          |                                                        |
 | -------- | ------------------------------------------------------ |
-| Desktop  | Electron 41                                            |
-| Frontend | React 18, Vite 7, Tailwind CSS 4                       |
+| Desktop  | Electron 42                                            |
+| Frontend | React 18, Vite 8, Tailwind CSS 4                       |
 | State    | Zustand 5                                              |
 | UI       | Radix UI, Lucide Icons                                 |
 | Landing  | Astro 6, Tailwind CSS 4                                |
@@ -156,15 +178,15 @@ moekoder/
 
 ### Roadmap
 
-| Milestone              | Scope                                                                            | Status     |
-| ---------------------- | -------------------------------------------------------------------------------- | ---------- |
-| v0.1 — Hardsub MVP     | MKV + ASS → MP4, onboarding, FFmpeg manager, GPU probe, six themes               | ✅ shipped |
-| v0.2 — Drag & Drop     | Drag-drop auto-pairing, folder scan, multi-file picker, conflict picker dropdown | ✅ shipped |
-| **v0.3 — Batch Queue** | Persistent queue, soft-pause, retries, drag-reorder, log viewer, preflight       | ✅ shipped |
-| v0.4 — Codec Expansion | HEVC + AV1, advanced preset editor                                               | planned    |
-| v0.5 — Embedded Fonts  | Extract attachments from the source MKV so libass renders the intended typefaces | planned    |
-| v0.6 — Soft-sub Mux    | MKV-out, copy streams, no re-encode path                                         | planned    |
-| v0.7+ — Polish         | Crash report clipboard, portable zip build, Linux AppImage, richer landing       | backlog    |
+| Milestone                  | Scope                                                                            | Status     |
+| -------------------------- | -------------------------------------------------------------------------------- | ---------- |
+| v0.1 — Hardsub MVP         | MKV + ASS → MP4, onboarding, FFmpeg manager, GPU probe, six themes               | ✅ shipped |
+| v0.2 — Drag & Drop         | Drag-drop auto-pairing, folder scan, multi-file picker, conflict picker dropdown | ✅ shipped |
+| v0.3 — Batch Queue         | Persistent queue, soft-pause, retries, drag-reorder, log viewer, preflight       | ✅ shipped |
+| **v0.4 — Codec Expansion** | HEVC + AV1, per-codec preset tiers, custom presets, benchmark mode               | ✅ shipped |
+| v0.5 — Embedded Fonts      | Extract attachments from the source MKV so libass renders the intended typefaces | planned    |
+| v0.6 — Soft-sub Mux        | MKV-out, copy streams, no re-encode path                                         | planned    |
+| v0.7+ — Polish             | Crash report clipboard, portable zip build, Linux AppImage, richer landing       | backlog    |
 
 ---
 
