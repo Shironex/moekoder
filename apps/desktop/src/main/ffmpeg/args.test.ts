@@ -395,6 +395,56 @@ describe('buildEncodeArgs — libsvtav1 software', () => {
   });
 });
 
+// -----------------------------------------------------------------------------
+// v0.5.0 — MKV embedded font extraction: subtitles filter learns `:fontsdir=`.
+// -----------------------------------------------------------------------------
+
+describe('buildEncodeArgs — fontsdir (v0.5.0)', () => {
+  const FONTS_DIR = 'C:\\Users\\u\\AppData\\Local\\Temp\\mkfont-abc123';
+
+  it('appends `:fontsdir=<escaped>` to the subtitles filter when fontsDir is set', () => {
+    const args = buildEncodeArgs(baseJob({ fontsDir: FONTS_DIR }));
+    const vfIdx = args.indexOf('-vf');
+    const vf = args[vfIdx + 1]!;
+    expect(vf).toContain(`subtitles='${escapeLibassPath(SUB)}'`);
+    expect(vf).toContain(`:fontsdir='${escapeLibassPath(FONTS_DIR)}'`);
+    // Order matters: fontsdir must follow the subtitles token (filter-graph
+    // option syntax), not appear after the pixel-format normaliser.
+    expect(vf.indexOf(':fontsdir=')).toBeLessThan(vf.indexOf(',format='));
+  });
+
+  it('emits the v0.4 NVENC arg array byte-for-byte when fontsDir is absent', () => {
+    // Regression lock — every existing v0.4 caller passes no fontsDir and
+    // MUST get the exact same filter string. If this test ever drifts, the
+    // v0.4 → v0.5 upgrade silently changed user behaviour.
+    const v04 = buildEncodeArgs(baseJob());
+    const v05 = buildEncodeArgs(baseJob({ fontsDir: undefined }));
+    expect(v05).toEqual(v04);
+    const vfIdx = v05.indexOf('-vf');
+    expect(v05[vfIdx + 1]).not.toContain('fontsdir');
+  });
+
+  it('keeps the NVENC pixel-format normaliser after the fontsdir token', () => {
+    const args = buildEncodeArgs(baseJob({ fontsDir: FONTS_DIR }));
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toMatch(/:fontsdir='[^']+',format=yuv420p$/);
+  });
+
+  it('still emits fontsdir on the libx264 software path', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        settings: withSettings({ hwAccel: 'libx264', tune: 'animation' }),
+        fontsDir: FONTS_DIR,
+      })
+    );
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toContain(':fontsdir=');
+    // libx264 doesn't append a `format=` filter, so the chain ends at the
+    // closing quote of the fontsdir option.
+    expect(args[vfIdx + 1]).toMatch(/:fontsdir='[^']+'$/);
+  });
+});
+
 describe('buildEncodeArgs — clip window (benchmark mode)', () => {
   it('emits `-ss <start> -t <duration>` before `-i` when clipWindow is set', () => {
     const args = buildEncodeArgs(baseJob({ clipWindow: { startSec: 0, durationSec: 10 } }));
