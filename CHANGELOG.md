@@ -39,6 +39,12 @@ Codec expansion release. HEVC and AV1 join H.264 across NVENC + software paths, 
 - AV1 NVENC needs an RTX 40-series GPU. Pre-RTX-40 hardware sees the AV1 NVENC option disabled with a `requires RTX 40-series` tooltip; AV1 software (`libsvtav1`) is always available.
 - Benchmark mode runs candidates sequentially. Parallel candidates are tractable (the orchestrator already supports concurrency) but the benchmark deliberately serialises so the timing numbers aren't contaminated by GPU contention.
 
+### Maintenance
+
+- **Toolchain bumps** — electron 41.2.1 → 42.0.1, vite 7 → 8 + `@vitejs/plugin-react` 4.7.0 → 6.0.2 (with `resolve.dedupe` + dropped `minify:'esbuild'` for vite 8 compat), vitest 3 → 4 in web + desktop (explicit `include` glob pinned for desktop), zod 3 → 4 in apps/desktop.
+- **Node engine floor raised to `>=22.12.0`** to satisfy electron 42's runtime requirements.
+- **Security fixes** — Phase 1 safe bumps + Phase 2 pnpm overrides clear 4 high-severity CVEs (`fast-uri <3.1.2`, `ip-address <10.1.1`, `devalue >=5.6.3 <5.8.1` pinned forward).
+
 ## [0.3.0] - 2026-05-04
 
 Batch queue release. The Queue tab in the titlebar — dormant since v0.1 — now drives a real, persistent batch pipeline. Drop a folder of episodes, click Start, walk away.
