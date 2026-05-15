@@ -149,59 +149,71 @@ export const extractFonts = async (input: ExtractFontsInput): Promise<FontExtrac
 
   let stderrBuf = '';
 
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(ffmpegPath, args, { cwd: tempDir, windowsHide: true });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(ffmpegPath, args, { cwd: tempDir, windowsHide: true });
 
-    child.stderr?.on('data', (chunk: Buffer | string) => {
-      stderrBuf += chunk.toString();
+      child.stderr?.on('data', (chunk: Buffer | string) => {
+        stderrBuf += chunk.toString();
+      });
+
+      child.on('error', err => {
+        reject(err);
+      });
+
+      child.on('close', (code: number | null) => {
+        // ffmpeg -dump_attachment exits with code 1 even on success because
+        // it complains about the missing output file after dumping. Treat
+        // both 0 and 1 as candidate success — the real check is whether
+        // any font files landed.
+        if (code === 0 || code === 1) {
+          resolve();
+          return;
+        }
+        if (code === null) {
+          reject(
+            new Error(
+              `ffmpeg attachment dump terminated by signal: ${stderrBuf.slice(-400) || '(no stderr)'}`
+            )
+          );
+          return;
+        }
+        reject(
+          new Error(
+            `ffmpeg attachment dump exited with code ${code}: ${stderrBuf.slice(-400) || '(no stderr)'}`
+          )
+        );
+      });
     });
 
-    child.on('error', err => {
-      reject(err);
+    const allFiles = await fsImpl.readdir(tempDir);
+    const fontFiles = allFiles.filter(name => {
+      // Match against the probe-supplied font set when we have a filename
+      // hit; otherwise fall back to extension. This handles MKVs where the
+      // probe filename and the actual dumped filename agree (the common
+      // case) AND oddball dumps where filenames don't survive verbatim.
+      const ext = path.extname(name).toLowerCase();
+      return FONT_EXTENSIONS.has(ext);
     });
 
-    child.on('close', (code: number | null) => {
-      // ffmpeg -dump_attachment exits with code 1 even on success because
-      // it complains about the missing output file after dumping. Treat
-      // both 0 and 1 as candidate success — the real check is whether
-      // any font files landed.
-      if (code === 0 || code === 1) {
-        resolve();
-        return;
-      }
-      reject(
-        new Error(
-          `ffmpeg attachment dump exited with code ${code}: ${stderrBuf.slice(-400) || '(no stderr)'}`
-        )
+    if (fontFiles.length === 0) {
+      // Nothing usable landed — throw so the outer catch cleans up the
+      // empty dir and re-throws to the caller.
+      throw new Error(
+        `Attachment dump for job ${jobId} produced no font files (candidates: ${fontCandidates.length}).`
       );
-    });
-  });
+    }
 
-  const allFiles = await fsImpl.readdir(tempDir);
-  const fontFiles = allFiles.filter(name => {
-    // Match against the probe-supplied font set when we have a filename
-    // hit; otherwise fall back to extension. This handles MKVs where the
-    // probe filename and the actual dumped filename agree (the common
-    // case) AND oddball dumps where filenames don't survive verbatim.
-    const ext = path.extname(name).toLowerCase();
-    return FONT_EXTENSIONS.has(ext);
-  });
-
-  if (fontFiles.length === 0) {
-    // Nothing usable landed — clean up the empty dir before throwing so
-    // we don't leak temp dirs on a hostile input.
-    await cleanupFontsDir(tempDir, fsImpl);
-    throw new Error(
-      `Attachment dump for job ${jobId} produced no font files (candidates: ${fontCandidates.length}).`
+    emit(
+      'info',
+      `Extracted ${fontFiles.length} font${fontFiles.length === 1 ? '' : 's'} from MKV attachments → ${tempDir}`
     );
+
+    return { dir: tempDir, fontFiles };
+  } catch (err) {
+    await cleanupFontsDir(tempDir, fsImpl);
+    throw err;
   }
-
-  emit(
-    'info',
-    `Extracted ${fontFiles.length} font${fontFiles.length === 1 ? '' : 's'} from MKV attachments → ${tempDir}`
-  );
-
-  return { dir: tempDir, fontFiles };
 };
 
 /**
@@ -224,26 +236,23 @@ export const cleanupFontsDir = async (
 // ----- v0.5.0 commit 8 — missing-font diagnostic ----------------------
 
 /**
- * Regex matches `\fn(FontName)` directives inside an ASS dialogue line.
- * The font name runs until the next backslash or closing paren. We do
- * not anchor to dialogue lines specifically — Style: blocks declare a
- * default fontname via `Fontname:` rather than `\fn`, but those are
- * already covered by libass's normal fontname matching (it tries the
- * Style: fontname against `fontsdir=` and the system fonts). Our scan
- * is the override path — the moment a single line shouts "use this
- * specific font", we want to know if libass can find it.
+ * Regex matches both standard ASS `\fnFontName` and the parenthesized
+ * form `\fn(FontName)` used by some tools. Standard form: name runs
+ * until the next `\` or `}`; parenthesized form: name runs until `)`.
+ * Group 1 = parenthesized name, group 2 = bare name.
  */
-const FN_OVERRIDE_RE = /\\fn\s*\(\s*([^)\\]+?)\s*\)/g;
+const FN_OVERRIDE_RE = /\\fn(?:\s*\(\s*([^)\\]+?)\s*\)|([^\\}]+?))(?=[\\}]|$)/g;
 
 /**
  * Scan an ASS file's contents and return the deduplicated set of font
- * names referenced via `\fn(...)` override tags. Names are trimmed but
- * preserved case-sensitively because libass matches the same way.
+ * names referenced via `\fn` override tags (both standard and
+ * parenthesized forms). Names are trimmed but preserved case-sensitively
+ * because libass matches the same way.
  */
 export const findReferencedFonts = (subtitleContents: string): string[] => {
   const out = new Set<string>();
   for (const match of subtitleContents.matchAll(FN_OVERRIDE_RE)) {
-    const name = match[1]?.trim();
+    const name = (match[1] || match[2])?.trim();
     if (name) out.add(name);
   }
   return [...out];
@@ -270,8 +279,7 @@ export interface DiagnoseMissingFontsInput {
  * thought you had it") are worse than false positives ("we warned
  * about a font you actually have"), so we keep the comparison narrow.
  */
-const fontStem = (basename: string): string =>
-  basename.replace(/\.(ttf|otf|ttc|woff2?|TTF|OTF|TTC|WOFF2?)$/, '').toLowerCase();
+const fontStem = (basename: string): string => path.parse(basename).name.toLowerCase();
 
 /**
  * Diff the set of fonts an ASS file references via `\fn(...)` overrides
