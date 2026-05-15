@@ -6,7 +6,7 @@ import {
   HEVC_BALANCED_PRESET,
   type EncodingSettings,
 } from './settings';
-import { escapeSubtitlePath } from './path-escape';
+import { escapeLibassPath } from './path-escape';
 
 const VIDEO = 'C:\\in\\ep01.mkv';
 const SUB = 'C:\\in\\ep01.ass';
@@ -34,7 +34,7 @@ const baseJob = (overrides: Partial<EncodeJob> = {}): EncodeJob => ({
 describe('buildEncodeArgs — NVENC path', () => {
   it('emits the expected NVENC arg array for the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob());
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p`;
 
     expect(args).toEqual([
       '-i',
@@ -197,10 +197,10 @@ describe('buildEncodeArgs — progress + overwrite', () => {
 });
 
 describe('buildEncodeArgs — subtitle path escaping', () => {
-  it('runs the subtitle path through escapeSubtitlePath', () => {
+  it('runs the subtitle path through escapeLibassPath', () => {
     const args = buildEncodeArgs(baseJob());
     const vfIdx = args.indexOf('-vf');
-    expect(args[vfIdx + 1]).toContain(escapeSubtitlePath(SUB));
+    expect(args[vfIdx + 1]).toContain(escapeLibassPath(SUB));
     // Sanity-check the raw unescaped path is NOT present in the filter
     // expression — it'd be a bug for the filter-graph parser.
     expect(args[vfIdx + 1]).not.toContain(`${SUB}'`);
@@ -214,7 +214,7 @@ describe('buildEncodeArgs — subtitle path escaping', () => {
 describe('buildEncodeArgs — HEVC NVENC (10-bit main10)', () => {
   it('emits the expected hevc_nvenc arg array for the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob({ settings: HEVC_BALANCED_PRESET }));
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p10le`;
 
     expect(args).toEqual([
       '-i',
@@ -305,7 +305,7 @@ describe('buildEncodeArgs — libx265 software', () => {
 describe('buildEncodeArgs — AV1 NVENC', () => {
   it('emits av1_nvenc with the Balanced preset', () => {
     const args = buildEncodeArgs(baseJob({ settings: AV1_BALANCED_PRESET }));
-    const expectedFilter = `subtitles='${escapeSubtitlePath(SUB)}',format=yuv420p10le`;
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p10le`;
 
     expect(args).toEqual([
       '-i',

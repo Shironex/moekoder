@@ -31,7 +31,7 @@
  * builder — keeping the decision in one place and letting the builder
  * remain a pure settings-to-args transform.
  */
-import { escapeSubtitlePath } from './path-escape';
+import { escapeLibassPath } from './path-escape';
 import type { EncodingSettings } from './settings';
 
 export interface EncodeJob {
@@ -65,7 +65,7 @@ const wantsTenBitFilter = (settings: EncodingSettings): boolean => {
 };
 
 const buildFilterChain = (subtitlePath: string, settings: EncodingSettings): string => {
-  const parts = [`subtitles='${escapeSubtitlePath(subtitlePath)}'`];
+  const parts = [`subtitles='${escapeLibassPath(subtitlePath)}'`];
 
   if (settings.hwAccel === 'nvenc') {
     if (wantsTenBitFilter(settings)) {
