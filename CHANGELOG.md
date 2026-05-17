@@ -4,7 +4,7 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - 2026-05-15
+## [0.5.0] - 2026-05-17
 
 MKV embedded-font extraction release. When the source is an MKV with attached fonts — standard practice for anime fansubs that ship `\fn(CustomFont)` typesetting in their ASS scripts — MoeKoder now extracts every font attachment into a per-job temp dir and feeds the path to libass via the `subtitles=...:fontsdir=` option. Burned output finally renders typeset cues with the fonts the author intended instead of silently falling back to Arial.
 
@@ -23,6 +23,13 @@ MKV embedded-font extraction release. When the source is an MKV with attached fo
 
 - **`escapeSubtitlePath` → `escapeLibassPath`** — the helper handles both `subtitles=` and `fontsdir=` libass filter arguments now that the escape rules apply identically. Old names are kept as `@deprecated` aliases for one release so external call sites can migrate without a synchronised cut.
 - **`EncodeJob` gains `fontsDir?: string`** — opt-in field; callers that don't set it produce the v0.4 filter chain byte-for-byte.
+
+### Fixed
+
+- **Font tempdir cleanup on every failure path** — the extractor now wraps the ffmpeg spawn + readdir in try/catch so spawn errors, non-0/1 exit codes, signal kills, readdir throws, and zero-files-produced all remove the temp dir before propagating. Previously a mid-extraction failure could leave `mkfont-*` directories behind in `os.tmpdir()`.
+- **`\fn` regex matches both libass forms** — the missing-font diagnostic now catches the bare form (`\fnFontName`) as well as the parenthesized form (`\fn(FontName)`). Prior scan missed `{\fnArial}` overrides entirely.
+- **Signal-killed ffmpeg surfaces a distinct error** — null exit code (process killed by signal) is now distinguished from a non-zero code so failures don't masquerade as "exit code null" in the job log.
+- **`fontStem` switched to `path.parse(...).name`** — replaces the regex-based extension strip; correctly handles compound names like `Bauhaus 93.ttf` so the missing-font diagnostic matches the right filename.
 
 ### Known Limitations
 
