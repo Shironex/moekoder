@@ -7,7 +7,7 @@
  * The manager iterates `downloads` in order, so the progress bar advances
  * smoothly through them without the renderer needing to know the count.
  */
-import { fetchJson } from '../http';
+import { fetchGitHubJson } from '../http';
 
 export type FFmpegPlatform = 'win32' | 'darwin';
 export type BinaryName = 'ffmpeg' | 'ffprobe';
@@ -80,7 +80,7 @@ interface GitHubReleaseResponse {
 export async function resolveWindowsSource(): Promise<FFmpegSource> {
   let release: GitHubReleaseResponse;
   try {
-    release = await fetchJson<GitHubReleaseResponse>(WINDOWS_RELEASE_API);
+    release = await fetchGitHubJson<GitHubReleaseResponse>(WINDOWS_RELEASE_API);
   } catch (err) {
     throw new Error(
       `Failed to resolve the Windows ffmpeg download from the GitHub Releases API ` +

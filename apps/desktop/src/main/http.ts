@@ -75,8 +75,8 @@ export async function downloadToFile(
  * so callers can surface an actionable message rather than parsing an HTML
  * error page as JSON.
  */
-export async function fetchJson<T>(url: string): Promise<T> {
-  log.debug(`fetchJson ${url}`);
+export async function fetchGitHubJson<T>(url: string): Promise<T> {
+  log.debug(`fetchGitHubJson ${url}`);
   return runGated(url, async () => {
     const response = await fetch(url, {
       redirect: 'follow',
@@ -86,7 +86,9 @@ export async function fetchJson<T>(url: string): Promise<T> {
       },
     });
     if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}: ${url}`);
+      throw new Error(
+        `Request failed with status ${response.status} (${response.statusText}): ${url}`
+      );
     }
     return (await response.json()) as T;
   });
