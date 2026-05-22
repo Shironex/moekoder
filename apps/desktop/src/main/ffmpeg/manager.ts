@@ -351,7 +351,7 @@ export async function ensureInstalled(onProgress: ProgressCallback): Promise<voi
   }
 
   onProgress({ stage: 'resolving', pct: 0, message: 'Resolving ffmpeg source' });
-  const source = getSourceForPlatform(process.platform);
+  const source = await getSourceForPlatform(process.platform);
   assertSourceCoversBothBinaries(source);
 
   fs.mkdirSync(getBinDir(), { recursive: true });
