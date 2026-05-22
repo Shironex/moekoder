@@ -26,7 +26,7 @@
  * `hdmv_pgs_subtitle` / `dvd_subtitle`) is excluded — those are bitmaps and
  * have no `.ass`/`.srt` representation.
  */
-const TEXT_SUBTITLE_CODECS = new Set(['ass', 'ssa', 'subrip', 'srt', 'text', 'webvtt', 'mov_text']);
+const TEXT_SUBTITLE_CODECS = new Set(['ass', 'ssa', 'subrip', 'srt', 'webvtt', 'mov_text']);
 
 /**
  * Map the codec ffprobe reports for a subtitle stream onto the output file

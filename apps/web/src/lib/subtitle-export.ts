@@ -8,7 +8,7 @@
  * extension a `-c:s copy` extraction must use.
  */
 
-const TEXT_SUBTITLE_CODECS = new Set(['ass', 'ssa', 'subrip', 'srt', 'text', 'webvtt', 'mov_text']);
+const TEXT_SUBTITLE_CODECS = new Set(['ass', 'ssa', 'subrip', 'srt', 'webvtt', 'mov_text']);
 
 /** Whether a probed subtitle stream codec carries extractable text. */
 export const isTextSubtitleCodec = (codec: string): boolean => TEXT_SUBTITLE_CODECS.has(codec);

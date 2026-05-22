@@ -265,7 +265,7 @@ export const App = () => {
       });
       api.queue.addItems(newItems).catch(err => log.warn('queue.addItems (rail) failed', err));
     },
-    [api, saveTarget, customSavePath, encoding, container]
+    [api, saveTarget, customSavePath, outputExt]
   );
 
   const onQueueAddPair = useCallback(async (): Promise<void> => {

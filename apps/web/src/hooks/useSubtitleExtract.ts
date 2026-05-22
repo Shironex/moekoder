@@ -192,8 +192,8 @@ export const useSubtitleExtract = (): UseSubtitleExtract => {
       const ext = outputExtForFormat(track.codec, format) ?? track.outputExt ?? 'ass';
       // Disambiguate multiple tracks with a language/index suffix so a
       // multi-sub extract doesn't overwrite a single output file.
-      const langTag = track.language ?? deriveSubtitleLang(source.name) ?? `t${track.ordinal}`;
-      const filename = `${sourceStem}.${langTag}.${ext}`;
+      const langTag = track.language ?? deriveSubtitleLang(source.name) ?? 'und';
+      const filename = `${sourceStem}.${langTag}.s${track.ordinal}.${ext}`;
       const outputPath = joinPath(outputDir, filename);
       try {
         const res = await api.subtitle.extract({
