@@ -4,6 +4,25 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-05-22
+
+Windows onboarding hotfix. The pinned BtbN `autobuild-YYYY-MM-DD-HH-MM` ffmpeg download URL started returning 404 — BtbN prunes old dated autobuilds on a rolling schedule, so the snapshot tag we hard-coded for v0.5.0 eventually disappeared and first-run ffmpeg auto-install broke on Windows. MoeKoder now resolves the Windows build at runtime against the permanent rolling `latest` tag and verifies it with the SHA-256 the GitHub Releases API reports per asset, so supply-chain verification is preserved without depending on a tag that can vanish.
+
+### Fixed
+
+- **Windows ffmpeg download 404** — `getSourceForPlatform('win32')` no longer points at a dated `autobuild-*` tag that BtbN later deletes. New `resolveWindowsSource()` queries `api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/latest`, selects the stable `ffmpeg-n8.1-latest-win64-gpl-8.1.zip` asset, and builds the `BinaryArchive` from its live `browser_download_url` and the API-reported `digest`. macOS stays a static evermeet.cx pin.
+
+### Changed
+
+- **`getSourceForPlatform` is now async** — both platform branches share one awaitable call site; `ensureInstalled` awaits the resolved source before downloading. The Windows path is resolved on demand; macOS returns its static source.
+- **Integrity verification never silently dropped** — `resolveWindowsSource()` throws a clear, actionable error on any failure (network, missing asset, or a missing/malformed `sha256:<hex>` digest) rather than degrading to an unverified download.
+
+### Added
+
+- **`fetchGitHubJson<T>()` in `main/http.ts`** — gated JSON GET that rides the same per-host rate-limit clock as `downloadToFile`, sends the `User-Agent` + `Accept: application/vnd.github+json` headers the GitHub REST API requires, and throws a host-prefixed error (status + statusText) on any non-2xx so callers never parse an HTML error page as JSON.
+- **`api.github.com` host gate (1000 ms)** — spacing keeps a single install's resolution calls clear of GitHub's 60 req/hr/IP unauthenticated ceiling.
+- **Offline-deterministic tests** — `manager.test.ts` stubs `fetch` with a representative `latest` release payload (throwaway digest) to cover asset selection, the missing-asset throw, and the missing/invalid-digest throw. Test count: 234 (was 229).
+
 ## [0.5.0] - 2026-05-17
 
 MKV embedded-font extraction release. When the source is an MKV with attached fonts — standard practice for anime fansubs that ship `\fn(CustomFont)` typesetting in their ASS scripts — MoeKoder now extracts every font attachment into a per-job temp dir and feeds the path to libass via the `subtitles=...:fontsdir=` option. Burned output finally renders typeset cues with the fonts the author intended instead of silently falling back to Arial.
