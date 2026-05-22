@@ -184,7 +184,7 @@ moekoder/
 | v0.2 — Drag & Drop         | Drag-drop auto-pairing, folder scan, multi-file picker, conflict picker dropdown | ✅ shipped |
 | v0.3 — Batch Queue         | Persistent queue, soft-pause, retries, drag-reorder, log viewer, preflight       | ✅ shipped |
 | **v0.4 — Codec Expansion** | HEVC + AV1, per-codec preset tiers, custom presets, benchmark mode               | ✅ shipped |
-| v0.5 — Embedded Fonts      | Extract attachments from the source MKV so libass renders the intended typefaces | planned    |
+| v0.5 — Embedded Fonts      | Extract attachments from the source MKV so libass renders the intended typefaces | ✅ shipped |
 | v0.6 — Soft-sub Mux        | MKV-out, copy streams, no re-encode path                                         | planned    |
 | v0.7+ — Polish             | Crash report clipboard, portable zip build, Linux AppImage, richer landing       | backlog    |
 
