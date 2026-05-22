@@ -4,6 +4,33 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-05-22
+
+Mux, don't burn. Two complementary subtitle features that skip libass entirely. **Soft-sub mux** stream-copies the source video + audio and muxes an external `.ass` in as a separate, selectable subtitle track — an MKV that opens in VLC / mpv with the subs toggleable, produced in seconds instead of minutes because nothing is re-encoded. **Subtitle extraction** is the inverse: open a container, probe its embedded subtitle streams, and pull any of them out to standalone `.ass` / `.srt` files, transcoding between text formats on the way out if you ask for it.
+
+### Added
+
+- **Soft-sub mux mode** — "Mux only (soft subs)" toggle in Settings → Encoding. When on, the encoder bypasses the libass burn-in filter and instead emits `ffmpeg -i <video> -i <subs> -map 0:v -map 0:a -map 1:0 -c copy -c:s ass -metadata:s:s:0 language=<lang> -disposition:s:0 default <out.mkv>` — video and audio are stream-copied, the `.ass` rides along as a default-flagged subtitle track. Container is forced to MKV (MP4 soft-subs warn). Language metadata is derived from the subtitle filename (`.en.ass` / `.pl.ass` → `eng` / `pol`, ISO-639-2) with a manual override field. Reuses the existing encode pipeline and `-progress` parser; the bar fills near-instantly since the job is I/O-bound, not encode-bound.
+- **Subtitle extraction screen** — a dedicated Extract view (new Titlebar entry). Open a container and the existing `ffmpeg:probe` lists its embedded subtitle streams (index / codec / language / title) in a multi-select table; choose an output folder and pull the selected text tracks out. Image-based subtitles (PGS / VOBSUB) are surfaced but non-selectable — they have no text representation.
+- **Extraction output-format selector** — `ASS` / `SRT` / `Match source`, defaulting to ASS (anime subtitles are authored in ASS). Copies the stream verbatim when the source already matches the chosen format; transcodes otherwise (a SubRip track out to `.ass`, or `.ass` down to `.srt` with a styling-loss note). Backed by a shared `resolveSubtitleOutput` codec ⇄ extension resolver and a new `subtitle:extract` IPC channel.
+- **Test coverage** — new mux-arg, subtitle-codec, and extractor suites plus renderer-side codec / language tests. Desktop test count: 263 (was 234); web suite: 28.
+
+### Changed
+
+- **Extraction filenames carry the track ordinal** — `<stem>.<lang>.s<N>.<ext>` so two same-language tracks (a full + a signs track both tagged `eng`) no longer collide and overwrite each other.
+- **Removed the deprecated `escapeSubtitlePath` / `escapeSubtitlePathFor` libass-escape aliases** — they were marked for removal in v0.6.0 and had no remaining callers. Mux and extract args go straight to `spawn` (no shell, no libass filter), so no path escaping is needed on those paths.
+
+### Fixed
+
+- **`text`-codec extraction mismatch** — the generic ffprobe `text` tag was classified as extractable but had no extension mapping, so a source-format extract emitted `-c:s copy` into a fabricated `.ass` file and failed in ffmpeg. `text` is no longer treated as a selectable text codec.
+- **Dropped-queue container extension stale closure** — the drop-to-queue handler read the mux-influenced output extension but didn't list it as a dependency, so toggling mux mode could leave queued items with the wrong container extension until an unrelated re-render.
+
+### Known Limitations
+
+- Multiple subtitle tracks in a single mux is out of scope — one external `.ass` per mux (planned for v0.7).
+- Extraction is copy-or-transcode between text formats only; image subtitles (PGS / VOBSUB) can't be exported.
+- Same as v0.5.x: binaries are unsigned, the auto-updater is Windows-only, and there's no Linux build yet. Embedded-font extraction still runs per-job (no `<userData>/fonts/<sourceHash>/` cache).
+
 ## [0.5.1] - 2026-05-22
 
 Windows onboarding hotfix. The pinned BtbN `autobuild-YYYY-MM-DD-HH-MM` ffmpeg download URL started returning 404 — BtbN prunes old dated autobuilds on a rolling schedule, so the snapshot tag we hard-coded for v0.5.0 eventually disappeared and first-run ffmpeg auto-install broke on Windows. MoeKoder now resolves the Windows build at runtime against the permanent rolling `latest` tag and verifies it with the SHA-256 the GitHub Releases API reports per asset, so supply-chain verification is preserved without depending on a tag that can vanish.
