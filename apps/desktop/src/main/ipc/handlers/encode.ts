@@ -51,6 +51,8 @@ export function registerEncodeHandlers(ctx: IpcContext): void {
         subtitlePath: input.subtitlePath,
         outputPath: input.outputPath,
         settings: input.settings as Record<string, unknown> | undefined,
+        mux: input.mux,
+        lang: input.lang,
       };
       return startEncode(typedInput, {
         onProgress: (jobId, progress) =>

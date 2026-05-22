@@ -22,6 +22,7 @@ import {
 } from '@moekoder/shared';
 import type { InstallProgress } from './ffmpeg/manager';
 import type { ProbeResult } from './ffmpeg/probe';
+import type { SubtitleExtractResult } from './ffmpeg/subtitle-extractor';
 import type { GpuProbeResult } from './ffmpeg/gpu-probe';
 import type { PreflightResult } from './ffmpeg/disk-space';
 import type { EncodeProgress, EncodeResult, LogLine } from './ffmpeg/processor';
@@ -213,6 +214,22 @@ const electronAPI = {
         ipcRenderer.removeListener(FFMPEG_EVENT_CHANNELS.DOWNLOAD_PROGRESS, listener);
       };
     },
+  },
+  subtitle: {
+    /**
+     * Extract one embedded subtitle track to a standalone file via
+     * stream-copy. Listing the available tracks reuses `ffmpeg.probe`. Text
+     * extraction is fast, but a large container can take a moment to demux —
+     * bump the timeout above the 10s default.
+     */
+    extract: (input: {
+      videoPath: string;
+      streamIndex: number;
+      codec: string;
+      format?: 'source' | 'ass' | 'srt';
+      outputPath: string;
+    }): Promise<SubtitleExtractResult> =>
+      invokeWithTimeout<SubtitleExtractResult>(IPC_CHANNELS.SUBTITLE_EXTRACT, [input], 300_000),
   },
   gpu: {
     probe: (): Promise<GpuProbeResult> =>

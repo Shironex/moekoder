@@ -316,6 +316,9 @@ export class FFmpegProcessor {
    * decision so the renderer can surface why audio was re-encoded.
    */
   private async applyAudioFallback(job: EncodeJob): Promise<EncodeJob> {
+    // Soft-sub mux stream-copies every track via `-c copy`; there's no audio
+    // plan to second-guess and no MP4 container to placate (mux is MKV-only).
+    if (job.mux) return job;
     if (job.settings.audio !== 'copy') return job;
 
     const sourceCodec = job.sourceAudioCodec ?? (await this.deps.probeAudioCodec?.(job.videoPath));

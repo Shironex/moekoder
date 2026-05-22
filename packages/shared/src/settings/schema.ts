@@ -73,6 +73,21 @@ export interface UserSettings {
    * Toggle off from Settings → Encoding to restore v0.4 behaviour.
    */
   useEmbeddedFonts: boolean;
+  /**
+   * v0.6.0 — "Mux, don't burn". When `true`, the encode pipeline skips
+   * burn-in entirely and instead stream-copies the source while muxing the
+   * `.ass` in as a *separate selectable* subtitle track. Forces the output
+   * container to MKV (MP4 cannot carry soft `.ass`). Default `false` so the
+   * burn-in flow every existing user relies on stays the default.
+   */
+  muxOnlySoftSubs: boolean;
+  /**
+   * v0.6.0 — ISO-639-2/B language code (e.g. `eng`, `pol`) tagged onto the
+   * muxed subtitle track when {@link muxOnlySoftSubs} is on. Empty string =
+   * auto-derive from the subtitle filename suffix at encode-start time
+   * (`.en.ass` → `eng`), with this value as the manual override.
+   */
+  muxSubtitleLang: string;
   /** How many encodes the queue may run in parallel. Clamped 1..4 by the
    *  queue manager's zod schema; default 1 mirrors the Single-route guarantee. */
   queueConcurrency: 1 | 2 | 3 | 4;
@@ -167,6 +182,8 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   sidebarCollapsed: false,
   autoCheckUpdates: false,
   useEmbeddedFonts: true,
+  muxOnlySoftSubs: false,
+  muxSubtitleLang: '',
   queueConcurrency: 1,
   queueMaxRetries: 2,
   queueBackoffMs: 4000,

@@ -10,7 +10,7 @@ import { useQueueStore, selectStats } from '@/stores/useQueueStore';
 import { useQueueEvents } from '@/hooks/useQueueEvents';
 import { autoPairFiles, categorizePaths } from '@/lib/drop-helpers';
 import { resolveOutputDir } from '@/lib/resolve-output';
-import { stripExt } from '@/lib/paths';
+import { deriveSubtitleLang } from '@/lib/subtitle-lang';
 import { reportQueueStartError } from '@/lib/queue-errors';
 
 // Route-level code splitting for screens outside the hot encode path.
@@ -22,6 +22,9 @@ const Onboarding = lazy(() =>
 );
 const Settings = lazy(() => import('@/screens/Settings').then(m => ({ default: m.Settings })));
 const About = lazy(() => import('@/screens/About').then(m => ({ default: m.About })));
+const ExtractScreen = lazy(() =>
+  import('@/screens/Extract').then(m => ({ default: m.ExtractScreen }))
+);
 import { useAppStore, useEncodeStore } from '@/stores';
 import {
   useElectronAPI,
@@ -35,7 +38,7 @@ import {
 } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
 import { buildEncodingOverrides } from '@/lib/encoding-overrides';
-import { joinPath } from '@/lib/paths';
+import { basename, joinPath, stripExt } from '@/lib/paths';
 import { logger } from '@/lib/logger';
 
 const log = logger('app');
@@ -92,6 +95,8 @@ export const App = () => {
   const [preset] = useSetting('preset');
   const [container] = useSetting('container');
   const [encoding] = useSetting('encoding');
+  const [muxOnlySoftSubs] = useSetting('muxOnlySoftSubs');
+  const [muxSubtitleLang] = useSetting('muxSubtitleLang');
   const [queueDefaultRoute] = useSetting('queueDefaultRoute');
 
   // Best-effort ffmpeg version — surfaces in the Idle screen meta and in the
@@ -103,8 +108,11 @@ export const App = () => {
   // Output filename extension. Prefers the container from the active
   // encoding profile (set via Settings → Encoding); falls back to the
   // legacy onboarding `container` setting so existing users are unaffected.
+  // Soft-sub mux (v0.6.0) always writes MKV — MP4 can't carry soft `.ass` —
+  // so it overrides the profile container outright.
+  const muxEnabled = Boolean(muxOnlySoftSubs);
   const activeContainer = (encoding?.container as 'mp4' | 'mkv' | undefined) ?? container;
-  const outputExt = activeContainer === 'mkv' ? 'mkv' : 'mp4';
+  const outputExt = muxEnabled || activeContainer === 'mkv' ? 'mkv' : 'mp4';
 
   // Pipe the IPC encode event stream into the store once at this stable mount.
   useEncodeEvents();
@@ -183,6 +191,12 @@ export const App = () => {
     const settings = encoding
       ? ({ ...encoding } as Record<string, unknown>)
       : (buildEncodingOverrides(hwChoice, preset, container) as Record<string, unknown>);
+    // Soft-sub mux (v0.6.0): tag the muxed track with the manual override if
+    // set, otherwise auto-derive it from the subtitle filename suffix
+    // (`.en.ass` → eng). Empty string ⇒ leave the track untagged.
+    const lang = muxEnabled
+      ? muxSubtitleLang?.trim() || deriveSubtitleLang(basename(subs.path)) || undefined
+      : undefined;
     try {
       clearLogs();
       const res = await api.encode.start({
@@ -190,6 +204,8 @@ export const App = () => {
         subtitlePath: subs.path,
         outputPath,
         settings,
+        mux: muxEnabled || undefined,
+        lang,
       });
       setJobId(res.jobId);
       setPhase('running');
@@ -207,6 +223,8 @@ export const App = () => {
     preset,
     container,
     encoding,
+    muxEnabled,
+    muxSubtitleLang,
     clearLogs,
     setJobId,
     setPhase,
@@ -247,7 +265,7 @@ export const App = () => {
       });
       api.queue.addItems(newItems).catch(err => log.warn('queue.addItems (rail) failed', err));
     },
-    [api, saveTarget, customSavePath, encoding, container]
+    [api, saveTarget, customSavePath, outputExt]
   );
 
   const onQueueAddPair = useCallback(async (): Promise<void> => {
@@ -358,6 +376,8 @@ export const App = () => {
             <QueueScreenContainer />
           </AppShell>
         );
+      case 'extract':
+        return <ExtractScreen />;
       case 'onboarding':
         return <Onboarding />;
       case 'settings':
@@ -382,6 +402,7 @@ export const App = () => {
           <Titlebar
             route={route}
             onRouteChange={onRouteChange}
+            onExtract={() => setView('extract')}
             onSettings={() => setView('settings')}
           />
         )}

@@ -31,6 +31,7 @@ export const IPC_CHANNELS = {
   FFMPEG_ENSURE_BINARIES: 'ffmpeg:ensure-binaries',
   FFMPEG_REMOVE_INSTALLED: 'ffmpeg:remove-installed',
   FFMPEG_PROBE: 'ffmpeg:probe',
+  SUBTITLE_EXTRACT: 'subtitle:extract',
   GPU_PROBE: 'gpu:probe',
   ENCODE_START: 'encode:start',
   ENCODE_CANCEL: 'encode:cancel',

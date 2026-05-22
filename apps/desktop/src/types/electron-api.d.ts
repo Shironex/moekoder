@@ -15,6 +15,7 @@ import type {
 } from '@moekoder/shared';
 import type { InstallProgress } from '../main/ffmpeg/manager';
 import type { ProbeResult } from '../main/ffmpeg/probe';
+import type { SubtitleExtractResult } from '../main/ffmpeg/subtitle-extractor';
 import type { GpuProbeResult } from '../main/ffmpeg/gpu-probe';
 import type { PreflightResult } from '../main/ffmpeg/disk-space';
 import type { EncodeProgress, LogLine } from '../main/ffmpeg/processor';
@@ -91,6 +92,15 @@ export interface ElectronAPI {
     removeInstalled: () => Promise<void>;
     probe: (filePath: string) => Promise<ProbeResult>;
     onDownloadProgress: (handler: (payload: InstallProgress) => void) => () => void;
+  };
+  subtitle: {
+    extract: (input: {
+      videoPath: string;
+      streamIndex: number;
+      codec: string;
+      format?: 'source' | 'ass' | 'srt';
+      outputPath: string;
+    }) => Promise<SubtitleExtractResult>;
   };
   gpu: {
     probe: () => Promise<GpuProbeResult>;

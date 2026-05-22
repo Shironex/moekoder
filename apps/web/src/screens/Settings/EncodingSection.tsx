@@ -118,6 +118,8 @@ const Segmented = <T extends string | number>({
 export const EncodingSection = () => {
   const { result: gpu, probe } = useGpuProbe();
   const [encoding, setEncoding] = useSetting('encoding');
+  const [muxOnlySoftSubs, setMuxOnlySoftSubs] = useSetting('muxOnlySoftSubs');
+  const [muxSubtitleLang, setMuxSubtitleLang] = useSetting('muxSubtitleLang');
   const [benchmarkOpen, setBenchmarkOpen] = useState(false);
   const [activeTier, setActiveTier] = useState<Tier>('balanced');
 
@@ -247,6 +249,34 @@ export const EncodingSection = () => {
   const cq = (profile.cq as number | undefined) ?? cqRange.min;
   const container = (profile.container as 'mp4' | 'mkv' | undefined) ?? 'mp4';
   const tenBit = Boolean(profile.tenBit);
+  const muxEnabled = Boolean(muxOnlySoftSubs);
+  // Soft `.ass` can only ride in Matroska — flag MP4 so we can warn + force.
+  const containerConflictsWithMux = muxEnabled && container === 'mp4';
+
+  const onMuxToggle = useCallback(
+    (next: boolean): void => {
+      setMuxOnlySoftSubs(next).catch(err => log.warn('persist muxOnlySoftSubs failed', err));
+      // Soft `.ass` requires MKV. Force the container the moment mux is
+      // enabled so the persisted profile + the derived output extension agree.
+      if (next && profile && (profile.container as string | undefined) !== 'mkv') {
+        persist({ ...profile, container: 'mkv' });
+      }
+    },
+    [setMuxOnlySoftSubs, profile, persist]
+  );
+
+  const onMuxLangChange = useCallback(
+    (next: string): void => {
+      // ISO-639 codes are short + alphabetic; keep the field tidy but don't
+      // hard-validate (the user may have a code outside our derivation table).
+      const cleaned = next
+        .toLowerCase()
+        .replace(/[^a-z]/g, '')
+        .slice(0, 3);
+      setMuxSubtitleLang(cleaned).catch(err => log.warn('persist muxSubtitleLang failed', err));
+    },
+    [setMuxSubtitleLang]
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -398,6 +428,63 @@ export const EncodingSection = () => {
           ariaLabel="Output container"
         />
       </Row>
+
+      {/* Mux only (soft subs) — v0.6.0 */}
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-primary"
+            checked={muxEnabled}
+            onChange={e => onMuxToggle(e.target.checked)}
+          />
+          <span className="flex flex-col leading-tight">
+            <b className="font-display text-sm text-foreground">Mux only (soft subs)</b>
+            <span className="text-[12px] text-muted-foreground">
+              Don't burn — stream-copy the video + audio and add the subtitle as a separate,
+              selectable track. Finishes in seconds (no re-encode). Forces the MKV container; codec
+              + quality settings above are ignored while this is on.
+            </span>
+          </span>
+        </label>
+
+        {muxEnabled && (
+          <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <label
+                htmlFor="mux-lang"
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted"
+              >
+                Track language
+              </label>
+              <input
+                id="mux-lang"
+                type="text"
+                value={muxSubtitleLang ?? ''}
+                onChange={e => onMuxLangChange(e.target.value)}
+                placeholder="auto (e.g. eng)"
+                spellCheck={false}
+                maxLength={3}
+                className="w-[120px] rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm lowercase text-foreground placeholder:text-muted/60 focus:border-primary focus:outline-none"
+                aria-label="Muxed subtitle track language code"
+              />
+            </div>
+            <p className="text-[12px] text-muted-foreground">
+              ISO-639-2 code (eng, pol, jpn) the player labels the track with. Leave blank to
+              auto-derive from the subtitle filename suffix (e.g. <code>.en.ass</code> → eng).
+            </p>
+          </div>
+        )}
+
+        {containerConflictsWithMux && (
+          <p
+            role="alert"
+            className="rounded-md border border-bad/40 bg-bad/10 px-3 py-2 text-[12px] text-foreground"
+          >
+            MP4 can't carry soft <code>.ass</code> subtitles — output will be written as MKV.
+          </p>
+        )}
+      </div>
 
       {/* Benchmark — opens the modal */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
