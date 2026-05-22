@@ -88,18 +88,3 @@ export const escapeLibassPathFor = (absolutePath: string, platform: EscapePlatfo
  */
 export const escapeLibassPath = (absolutePath: string): string =>
   escapeLibassPathFor(absolutePath, process.platform === 'win32' ? 'win32' : 'posix');
-
-/**
- * Backwards-compatible alias. Prior to v0.5.0 this helper was named for
- * subtitle paths specifically; libass `fontsdir=` reuses the exact same
- * escape rules, so the canonical name is now `escapeLibassPath`. Kept as
- * an alias for one release to avoid touching every call site at once.
- *
- * @deprecated Use `escapeLibassPath` instead. Removed in v0.6.0.
- */
-export const escapeSubtitlePath = escapeLibassPath;
-
-/**
- * @deprecated Use `escapeLibassPathFor` instead. Removed in v0.6.0.
- */
-export const escapeSubtitlePathFor = escapeLibassPathFor;

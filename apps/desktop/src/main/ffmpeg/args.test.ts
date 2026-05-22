@@ -463,3 +463,94 @@ describe('buildEncodeArgs — clip window (benchmark mode)', () => {
     expect(args[0]).toBe('-i');
   });
 });
+
+// -----------------------------------------------------------------------------
+// v0.6.0 — "Mux, don't burn": soft-sub muxing (stream-copy + separate track).
+// -----------------------------------------------------------------------------
+
+describe('buildEncodeArgs — mux (soft subs)', () => {
+  it('emits the expected stream-copy mux arg array for an .ass into MKV', () => {
+    const args = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true, lang: 'eng' }));
+
+    expect(args).toEqual([
+      '-i',
+      VIDEO,
+      '-i',
+      SUB,
+      '-map',
+      '0:v',
+      '-map',
+      '0:a',
+      '-map',
+      '1:0',
+      '-c',
+      'copy',
+      '-c:s',
+      'ass',
+      '-metadata:s:s:0',
+      'language=eng',
+      '-disposition:s:0',
+      'default',
+      '-progress',
+      'pipe:1',
+      '-nostats',
+      '-y',
+      OUT_MKV,
+    ]);
+  });
+
+  it('bypasses the burn-in filter chain entirely (no `-vf`, no video encoder)', () => {
+    const args = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true, lang: 'eng' }));
+    expect(args).not.toContain('-vf');
+    expect(args).not.toContain('-c:v');
+    expect(args).not.toContain('h264_nvenc');
+    expect(args).not.toContain('-movflags');
+  });
+
+  it('passes raw subtitle + video paths (no libass escaping)', () => {
+    const args = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true }));
+    // The raw, unescaped Windows paths must appear verbatim — mux args go
+    // straight to spawn with no filter-graph parser to placate.
+    expect(args).toContain(VIDEO);
+    expect(args).toContain(SUB);
+    expect(args).not.toContain(escapeLibassPath(SUB));
+  });
+
+  it('maps the subtitle codec from the source extension (.srt → srt)', () => {
+    const args = buildEncodeArgs(
+      baseJob({ subtitlePath: 'C:\\in\\ep01.srt', outputPath: OUT_MKV, mux: true })
+    );
+    const idx = args.indexOf('-c:s');
+    expect(args[idx + 1]).toBe('srt');
+  });
+
+  it('falls back to `-c:s copy` for an unrecognised subtitle extension', () => {
+    const args = buildEncodeArgs(
+      baseJob({ subtitlePath: 'C:\\in\\ep01.sub', outputPath: OUT_MKV, mux: true })
+    );
+    const idx = args.indexOf('-c:s');
+    expect(args[idx + 1]).toBe('copy');
+  });
+
+  it('omits the language metadata when lang is empty or whitespace', () => {
+    const blank = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true, lang: '   ' }));
+    expect(blank).not.toContain('-metadata:s:s:0');
+    const absent = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true }));
+    expect(absent).not.toContain('-metadata:s:s:0');
+  });
+
+  it('still emits `-progress pipe:1 -nostats` so the existing parser works', () => {
+    const args = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true }));
+    const idx = args.indexOf('-progress');
+    expect(idx).toBeGreaterThan(-1);
+    expect(args[idx + 1]).toBe('pipe:1');
+    expect(args).toContain('-nostats');
+  });
+
+  it('always emits `-y` immediately before the output path', () => {
+    const args = buildEncodeArgs(baseJob({ outputPath: OUT_MKV, mux: true }));
+    const yIdx = args.lastIndexOf('-y');
+    expect(args[yIdx + 1]).toBe(OUT_MKV);
+    expect(yIdx).toBe(args.length - 2);
+  });
+});

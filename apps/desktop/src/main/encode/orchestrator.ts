@@ -72,6 +72,15 @@ export interface EncodeStartInput {
    * benchmark mode calls `startEncode` directly through its own handler.
    */
   clipWindow?: { startSec: number; durationSec: number };
+  /**
+   * v0.6.0 — "Mux, don't burn". When `true` the job stream-copies video +
+   * audio and muxes the subtitle in as a separate track (MKV) instead of
+   * burning it in. Skips font extraction (no libass) + audio fallback (the
+   * `-c copy` path needs no audio plan).
+   */
+  mux?: boolean;
+  /** ISO-639-2/B language code tagged onto the muxed subtitle track. */
+  lang?: string;
 }
 
 export interface EncodeStartResult {
@@ -249,8 +258,10 @@ export const startEncode = async (
   // start line. Guarded by `useEmbeddedFonts`; an extractor failure
   // logs a warning and degrades to v0.4 behaviour rather than killing
   // the encode.
+  // Soft-sub mux never burns subtitles, so libass + its fontsdir are moot —
+  // skip the attachment probe + extraction entirely when `mux` is set.
   let fontsDir: string | undefined;
-  if (deps.getUseEmbeddedFonts()) {
+  if (!input.mux && deps.getUseEmbeddedFonts()) {
     try {
       const attachments = await deps.probeAttachments(input.videoPath);
       if (attachments.length > 0) {
@@ -300,6 +311,8 @@ export const startEncode = async (
     settings,
     clipWindow: input.clipWindow,
     fontsDir,
+    mux: input.mux,
+    lang: input.lang,
   };
 
   // Cleanup is idempotent + ENOENT-tolerant. We invoke it from BOTH

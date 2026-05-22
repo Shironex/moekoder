@@ -18,6 +18,10 @@ export const encodeStartSchema = z.tuple([
     subtitlePath: z.string().min(1),
     outputPath: z.string().min(1),
     settings: z.record(z.string(), z.unknown()).optional(),
+    /** v0.6.0 — soft-sub mux mode (stream-copy + separate subtitle track). */
+    mux: z.boolean().optional(),
+    /** ISO-639-2/B language code tagged onto the muxed subtitle track. */
+    lang: z.string().optional(),
   }),
 ]);
 

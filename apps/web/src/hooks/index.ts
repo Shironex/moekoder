@@ -9,5 +9,6 @@ export * from './useEncodeTransitions';
 export * from './useWindowControls';
 export * from './useSidebarToggle';
 export * from './useFilePicks';
+export * from './useSubtitleExtract';
 export * from './useQueueEvents';
 export * from './useQueueDrag';

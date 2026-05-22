@@ -8,6 +8,7 @@ export type AppView =
   | 'single-encoding'
   | 'single-done'
   | 'queue'
+  | 'extract'
   | 'settings'
   | 'about'
   | 'crash';

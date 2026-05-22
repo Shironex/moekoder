@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeLibassPathFor, escapeSubtitlePathFor } from './path-escape';
+import { escapeLibassPathFor } from './path-escape';
 
 /**
  * Exact-output assertions freeze the escape behaviour — the outputs here
@@ -73,11 +73,5 @@ describe('escapeLibassPathFor — fontsdir inputs (v0.5.0)', () => {
 
   it('escapes a POSIX temp fontsdir path (trailing slash preserved)', () => {
     expect(escapeLibassPathFor('/tmp/mkfont-abc123', 'posix')).toBe('/tmp/mkfont-abc123');
-  });
-});
-
-describe('escapeSubtitlePathFor — deprecated alias', () => {
-  it('is the same reference as escapeLibassPathFor', () => {
-    expect(escapeSubtitlePathFor).toBe(escapeLibassPathFor);
   });
 });

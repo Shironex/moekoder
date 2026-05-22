@@ -89,6 +89,27 @@ export interface ProbeResult {
   attachments: ProbeAttachment[];
 }
 
+/** Single-track subtitle extraction result — mirrors `ffmpeg/subtitle-extractor` SubtitleExtractResult. */
+export interface SubtitleExtractResult {
+  outputPath: string;
+  streamIndex: number;
+}
+
+/** `subtitle:extract` input — mirrors `handlers/subtitle` SubtitleExtractInput. */
+export interface SubtitleExtractInput {
+  videoPath: string;
+  /** Subtitle ordinal (0-based among subtitle streams) → `0:s:<N>`. */
+  streamIndex: number;
+  /** Probed `codec_name` for the stream (e.g. `ass`, `subrip`). */
+  codec: string;
+  /**
+   * Desired output format. `'source'` copies verbatim; `'ass'`/`'srt'` force
+   * that format (transcoding when the source differs). Defaults to `'source'`.
+   */
+  format?: 'source' | 'ass' | 'srt';
+  outputPath: string;
+}
+
 /** Vendor identifiers the probe knows about. Mirrors `ffmpeg/gpu-probe` GpuVendor. */
 export type GpuVendor = 'nvenc' | 'qsv' | 'amf' | 'videotoolbox';
 
@@ -145,6 +166,10 @@ export interface EncodeStartInput {
   outputPath: string;
   /** Optional partial encode-settings override merged onto BALANCED_PRESET. */
   settings?: Record<string, unknown>;
+  /** v0.6.0 — soft-sub mux mode (stream-copy + separate subtitle track). */
+  mux?: boolean;
+  /** ISO-639-2/B language code tagged onto the muxed subtitle track. */
+  lang?: string;
 }
 
 /** Orchestrator start result — mirrors `encode/orchestrator` EncodeStartResult. */
@@ -280,6 +305,9 @@ export interface ElectronAPI {
     removeInstalled: () => Promise<void>;
     probe: (filePath: string) => Promise<ProbeResult>;
     onDownloadProgress: (handler: (payload: InstallProgress) => void) => () => void;
+  };
+  subtitle: {
+    extract: (input: SubtitleExtractInput) => Promise<SubtitleExtractResult>;
   };
   gpu: {
     probe: () => Promise<GpuProbeResult>;

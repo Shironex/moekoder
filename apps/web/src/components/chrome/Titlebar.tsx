@@ -1,3 +1,4 @@
+import { Subtitles } from 'lucide-react';
 import { APP_EDITION, APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { IconClose, IconHistory, IconMax, IconMin, IconSettings } from '@/components/ui/icons';
 import { useWindowControls } from '@/hooks';
@@ -17,6 +18,9 @@ interface TitlebarProps {
   onRouteChange?: (route: TitlebarRoute) => void;
   /** Required — Settings is always reachable from the titlebar. */
   onSettings: () => void;
+  /** Optional — opens the subtitle Extract screen (v0.6.0). When omitted the
+   *  Extract entry is hidden. */
+  onExtract?: () => void;
   /** Optional — History isn't wired until v0.2. */
   onHistory?: () => void;
   /** Window-control overrides. When unset, they fall back to the preload bridge (once it exists) or no-op. */
@@ -42,6 +46,7 @@ export const Titlebar = ({
   route,
   onRouteChange,
   onSettings,
+  onExtract,
   onHistory,
   onMin,
   onMax,
@@ -91,6 +96,17 @@ export const Titlebar = ({
         {onHistory && (
           <button type="button" className="title-icon-btn" onClick={onHistory} title="History">
             <IconHistory size={16} />
+          </button>
+        )}
+        {onExtract && (
+          <button
+            type="button"
+            className="title-icon-btn"
+            onClick={onExtract}
+            title="Extract subtitles"
+            aria-label="Extract subtitles"
+          >
+            <Subtitles size={16} />
           </button>
         )}
         <button type="button" className="title-icon-btn" onClick={onSettings} title="Settings">

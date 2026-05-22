@@ -17,6 +17,7 @@ import { registerFsHandlers, cleanupFsHandlers } from './handlers/fs';
 import { registerStoreHandlers, cleanupStoreHandlers } from './handlers/store';
 import { registerUpdaterHandlers, cleanupUpdaterHandlers } from './handlers/updater';
 import { registerFfmpegHandlers, cleanupFfmpegHandlers } from './handlers/ffmpeg';
+import { registerSubtitleHandlers, cleanupSubtitleHandlers } from './handlers/subtitle';
 import { registerGpuHandlers, cleanupGpuHandlers } from './handlers/gpu';
 import { registerEncodeHandlers, cleanupEncodeHandlers } from './handlers/encode';
 import { registerBenchmarkHandlers, cleanupBenchmarkHandlers } from './handlers/benchmark';
@@ -34,6 +35,7 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerStoreHandlers(ctx);
   registerUpdaterHandlers(ctx);
   registerFfmpegHandlers(ctx);
+  registerSubtitleHandlers(ctx);
   registerGpuHandlers(ctx);
   registerEncodeHandlers(ctx);
   registerBenchmarkHandlers(ctx);
@@ -48,6 +50,7 @@ export function cleanupAllIpcHandlers(): void {
   cleanupStoreHandlers();
   cleanupUpdaterHandlers();
   cleanupFfmpegHandlers();
+  cleanupSubtitleHandlers();
   cleanupGpuHandlers();
   cleanupEncodeHandlers();
   cleanupBenchmarkHandlers();

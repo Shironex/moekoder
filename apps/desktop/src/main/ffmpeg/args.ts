@@ -33,6 +33,7 @@
  */
 import { escapeLibassPath } from './path-escape';
 import type { EncodingSettings } from './settings';
+import { subtitleCodecForExtension } from './subtitle-codecs';
 
 export interface EncodeJob {
   videoPath: string;
@@ -58,6 +59,19 @@ export interface EncodeJob {
    * verbatim (no fontsdir, libass falls back to system fonts only).
    */
   fontsDir?: string;
+  /**
+   * v0.6.0 — "Mux, don't burn". When `true` the builder bypasses the entire
+   * burn-in filter chain + video encoder and instead stream-copies the
+   * source video/audio while muxing `subtitlePath` in as a *separate*
+   * selectable subtitle track (MKV only). See {@link buildMuxArgs}.
+   */
+  mux?: boolean;
+  /**
+   * ISO-639-2/B language code (e.g. `eng`, `pol`) tagged onto the muxed
+   * subtitle track so players label it. Only consulted when {@link mux} is
+   * set; an empty/undefined value drops the `-metadata` language tag.
+   */
+  lang?: string;
 }
 
 /**
@@ -219,12 +233,92 @@ const buildContainerArgs = (settings: EncodingSettings): string[] => {
 };
 
 /**
+ * Pull the trailing extension (no leading dot, lowercased) from a path.
+ * Returns an empty string when there is no extension. Local to the builder
+ * — the renderer-side `extOf` helper isn't reachable from the main process.
+ */
+const extOf = (filePath: string): string => {
+  const name = filePath.split(/[\\/]/).pop() ?? filePath;
+  const dot = name.lastIndexOf('.');
+  if (dot <= 0 || dot === name.length - 1) return '';
+  return name.slice(dot + 1).toLowerCase();
+};
+
+/**
+ * v0.6.0 — "Mux, don't burn". Builds the ffmpeg arg array that stream-copies
+ * the source video + audio while muxing the external subtitle file in as a
+ * separate selectable track. No re-encode, no libass filter, no path escaping
+ * (args go straight to `spawn`). MKV only — the orchestrator forces the `.mkv`
+ * output extension upstream.
+ *
+ *   ffmpeg -i <video> -i <subs>
+ *     -map 0:v -map 0:a -map 1:0
+ *     -c copy -c:s <ass|srt|webvtt>
+ *     [-metadata:s:s:0 language=<lang>]
+ *     -disposition:s:0 default
+ *     -progress pipe:1 -nostats -y <out.mkv>
+ *
+ * Streams are mapped explicitly because a bare `-c copy` with two inputs only
+ * maps the first stream of each type — explicit maps guarantee every source
+ * video/audio track plus the external subtitle land in the output.
+ */
+const buildMuxArgs = (job: EncodeJob): string[] => {
+  const { videoPath, subtitlePath, outputPath, lang } = job;
+
+  // Derive the subtitle codec token from the external file's extension. An
+  // unsupported extension falls back to `copy` — the explicit form the
+  // roadmap specifies, which preserves an already-compatible stream.
+  const subCodec = subtitleCodecForExtension(extOf(subtitlePath)) ?? 'copy';
+
+  const args: string[] = [
+    '-i',
+    videoPath,
+    '-i',
+    subtitlePath,
+    '-map',
+    '0:v',
+    '-map',
+    '0:a',
+    '-map',
+    '1:0',
+    '-c',
+    'copy',
+    '-c:s',
+    subCodec,
+  ];
+
+  const trimmedLang = lang?.trim();
+  if (trimmedLang) {
+    args.push('-metadata:s:s:0', `language=${trimmedLang}`);
+  }
+
+  // Mark the freshly-muxed subtitle track as the default so players surface
+  // it without the user hunting through the track menu.
+  args.push('-disposition:s:0', 'default');
+
+  // Structured progress over stdout — the same parser the burn-in path uses.
+  // For a stream-copy the bar races to 100% in seconds; no separate I/O
+  // estimator is needed.
+  args.push('-progress', 'pipe:1', '-nostats');
+
+  args.push('-y', outputPath);
+
+  return args;
+};
+
+/**
  * Builds the complete ffmpeg argument array for the given encode job.
  * Arguments are returned as a string array — callers pass them directly
  * to `child_process.spawn` with no shell in the middle, so no additional
  * quoting is needed around paths.
  */
 export const buildEncodeArgs = (job: EncodeJob): string[] => {
+  // v0.6.0 — soft-sub mux bypasses the entire burn-in pipeline (filter chain,
+  // video encoder, container flags). Branch out before any of it runs.
+  if (job.mux) {
+    return buildMuxArgs(job);
+  }
+
   const { videoPath, subtitlePath, outputPath, settings, clipWindow, fontsDir } = job;
 
   const args: string[] = [];
