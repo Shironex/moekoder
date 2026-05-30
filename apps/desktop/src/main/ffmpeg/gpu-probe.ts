@@ -204,10 +204,13 @@ export async function verifyEncoderWorks(
 }
 
 /**
- * Verify every candidate encoder concurrently and drop the ones that fail.
+ * Verify every candidate encoder sequentially and drop the ones that fail.
  * Vendors left with zero working encoders are pruned from `available` and
- * their `details` entry set to `null`. Verification runs in parallel so total
- * added latency is ~one timeout regardless of encoder count.
+ * their `details` entry set to `null`. Verification runs one encoder at a time
+ * because hardware encoder drivers (NVENC/AMF/QSV) have concurrent-session
+ * limits and can race during GPU-context init, which would falsely drop
+ * working encoders; a 1-frame test-encode is fast (<100ms) so the added
+ * latency stays sub-second.
  */
 async function verifyAndFilter(
   base: GpuProbeResult,
@@ -220,7 +223,7 @@ async function verifyAndFilter(
     videotoolbox: null,
   };
 
-  // Flatten to (vendor, encoder) pairs and verify all at once.
+  // Flatten to (vendor, encoder) pairs and verify one at a time.
   const pairs: { vendor: GpuVendor; encoder: string }[] = [];
   for (const vendor of base.available) {
     for (const encoder of base.details[vendor]?.encoders ?? []) {
@@ -228,24 +231,20 @@ async function verifyAndFilter(
     }
   }
 
-  const outcomes = await Promise.allSettled(
-    pairs.map(p => verifyEncoderWorks(p.encoder, verifyOptions))
-  );
-
   const working: Record<GpuVendor, string[]> = {
     nvenc: [],
     qsv: [],
     amf: [],
     videotoolbox: [],
   };
-  pairs.forEach((p, i) => {
-    const o = outcomes[i];
-    if (o.status === 'fulfilled' && o.value === true) {
+  for (const p of pairs) {
+    const success = await verifyEncoderWorks(p.encoder, verifyOptions).catch(() => false);
+    if (success) {
       working[p.vendor].push(p.encoder);
     } else {
       log.info(`[gpu-probe] dropping non-functional encoder: ${p.encoder}`);
     }
-  });
+  }
 
   const available: GpuVendor[] = [];
   for (const vendor of base.available) {
