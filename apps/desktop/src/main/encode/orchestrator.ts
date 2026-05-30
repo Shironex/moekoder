@@ -42,9 +42,11 @@ import { probe, type ProbeAttachment } from '../ffmpeg/probe';
 import {
   BALANCED_BITRATE_KBPS,
   defaultsFor,
+  resolveHwAccel,
   type EncodingSettings,
   type VideoCodec,
 } from '../ffmpeg/settings';
+import { probeGpu, type GpuProbeResult } from '../ffmpeg/gpu-probe';
 import { getSetting } from '../store';
 import { getFfmpegPath } from '../utils/bin-paths';
 import { IpcError } from '../ipc/errors';
@@ -159,6 +161,15 @@ export interface OrchestratorDeps {
   ensureDir: (dir: string) => Promise<void>;
   /** UUID factory — swapped for a deterministic one in tests. */
   newJobId: () => string;
+  /**
+   * Best-effort GPU encoder probe. When present, its result reconciles the
+   * requested `hwAccel` against the encoders ffmpeg actually exposes (see
+   * {@link resolveHwAccel}) — chiefly so an AMD-only machine routes to the
+   * `amf` branch instead of emitting an `*_nvenc` token ffmpeg can't honour.
+   * Optional + soft-failing: absent or throwing leaves settings untouched so
+   * a probe hiccup never blocks an encode.
+   */
+  probeGpu?: () => Promise<GpuProbeResult>;
 }
 
 interface ActiveJob {
@@ -228,10 +239,25 @@ export const startEncode = async (
   // the discriminant linkage, so spreading an HEVC partial onto an H.264
   // default would silently produce a frankenstein blob.
   const codec = (input.settings?.codec as VideoCodec | undefined) ?? 'h264';
-  const settings = {
+  let settings = {
     ...defaultsFor(codec),
     ...(input.settings ?? {}),
   } as EncodingSettings;
+
+  // Reconcile the requested hardware encoder against what ffmpeg actually
+  // exposes. The GPU probe already detects `h264_amf` / `hevc_amf`; this is
+  // the seam that routes that detection into codec selection so an AMD-only
+  // machine doesn't emit an `*_nvenc` token ffmpeg can't honour. Best-effort:
+  // a probe failure degrades to the requested settings rather than blocking.
+  if (deps.probeGpu) {
+    try {
+      const probeResult = await deps.probeGpu();
+      settings = resolveHwAccel(settings, probeResult.available);
+    } catch {
+      // Soft failure — keep the requested settings. Mirrors the font-extractor
+      // degradation pattern below: a probe hiccup must never block an encode.
+    }
+  }
 
   const durationSec = await deps.probeDuration(input.videoPath);
   const outputDir = path.dirname(input.outputPath);
@@ -418,5 +444,6 @@ export const defaultOrchestratorDeps = (): OrchestratorDeps => {
       await fs.mkdir(dir, { recursive: true });
     },
     newJobId: () => randomUUID(),
+    probeGpu: () => probeGpu(),
   };
 };
