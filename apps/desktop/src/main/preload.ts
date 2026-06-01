@@ -233,7 +233,10 @@ const electronAPI = {
   },
   gpu: {
     probe: (): Promise<GpuProbeResult> =>
-      invokeWithTimeout<GpuProbeResult>(IPC_CHANNELS.GPU_PROBE, [], 10_000),
+      // 15s: encoders-list (~3s) + concurrent per-encoder verification
+      // (~one 5s timeout, run in parallel) with headroom, so a slow/hung
+      // test-encode can never hang the UI indefinitely.
+      invokeWithTimeout<GpuProbeResult>(IPC_CHANNELS.GPU_PROBE, [], 15_000),
   },
   encode: {
     /**

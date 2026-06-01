@@ -81,9 +81,17 @@ export interface EncodeJob {
  * pixfmt forcing filter.
  */
 const wantsTenBitFilter = (settings: EncodingSettings): boolean => {
-  if (settings.hwAccel !== 'nvenc') return false;
-  if (settings.codec === 'h264') return false;
-  return settings.tenBit;
+  if (settings.hwAccel === 'nvenc') {
+    if (settings.codec === 'h264') return false;
+    return settings.tenBit;
+  }
+  if (settings.hwAccel === 'amf') {
+    // h264_amf has no 10-bit path; hevc_amf 10-bit feeds `p010le` (handled by
+    // the AMF branch in buildFilterChain — this flag only gates HEVC).
+    if (settings.codec === 'h264') return false;
+    return settings.tenBit;
+  }
+  return false;
 };
 
 const buildFilterChain = (
@@ -108,6 +116,16 @@ const buildFilterChain = (
       // H.264 NVENC can't ingest 10-bit yuv420p10le directly; normalise upstream.
       parts.push('format=yuv420p');
     }
+  } else if (settings.hwAccel === 'amf') {
+    if (wantsTenBitFilter(settings)) {
+      // hevc_amf main10 — AMF's 10-bit surface is `p010le` (AV_PIX_FMT_P010,
+      // per libavcodec/amfenc.c `ff_amf_pix_fmts[]`), NOT NVENC's yuv420p10le.
+      parts.push('format=p010le');
+    } else {
+      // h264_amf + 8-bit hevc_amf ingest 8-bit yuv420p / nv12. Normalise to
+      // yuv420p so a 10-bit source doesn't reach an 8-bit encoder path.
+      parts.push('format=yuv420p');
+    }
   }
 
   return parts.join(',');
@@ -119,6 +137,19 @@ const buildFilterChain = (
  */
 const nvencRcToken = (rc: EncodingSettings['rateControl']): string => {
   return rc === 'cq' || rc === 'vbr_hq' ? 'vbr' : rc;
+};
+
+/**
+ * AMF rate-control args. AMF (`h264_amf` / `hevc_amf`) has no per-frame CQ
+ * knob like NVENC's `-cq:v`; constant quality is expressed as constant QP via
+ * `-rc cqp` with explicit `-qp_i` / `-qp_p` / `-qp_b` quantizers. The settings
+ * shape carries no bitrate field, so VBR/CBR are not expressible — we always
+ * emit `cqp` and feed `settings.cq` to every frame-type QP. Option spellings
+ * verified against the ffmpeg AMF AVOption table (libavcodec/amfenc_h264.c).
+ */
+const amfRcArgs = (cq: number): string[] => {
+  const qp = String(cq);
+  return ['-rc', 'cqp', '-qp_i', qp, '-qp_p', qp, '-qp_b', qp];
 };
 
 const NVENC_QUALITY_FLAGS = [
@@ -152,6 +183,10 @@ const buildVideoArgs = (settings: EncodingSettings): string[] => {
       return ['-c:v', 'h264_qsv', '-global_quality', String(settings.cq), '-look_ahead', '1'];
     }
 
+    if (settings.hwAccel === 'amf') {
+      return ['-c:v', 'h264_amf', '-quality', settings.amfQuality, ...amfRcArgs(settings.cq)];
+    }
+
     // libx264 — software fallback. CRF is the only quality mode we expose.
     return [
       '-c:v',
@@ -178,6 +213,10 @@ const buildVideoArgs = (settings: EncodingSettings): string[] => {
         String(settings.cq),
         ...NVENC_QUALITY_FLAGS,
       ];
+    }
+
+    if (settings.hwAccel === 'amf') {
+      return ['-c:v', 'hevc_amf', '-quality', settings.amfQuality, ...amfRcArgs(settings.cq)];
     }
 
     // libx265 software path. CRF mode + the libx265-specific preset family.

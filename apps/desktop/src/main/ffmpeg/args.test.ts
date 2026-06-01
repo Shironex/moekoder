@@ -4,6 +4,10 @@ import {
   AV1_BALANCED_PRESET,
   BALANCED_PRESET,
   HEVC_BALANCED_PRESET,
+  H264_AMF_BALANCED_PRESET,
+  H264_AMF_FAST_PRESET,
+  H264_AMF_PRISTINE_PRESET,
+  HEVC_AMF_BALANCED_PRESET,
   type EncodingSettings,
 } from './settings';
 import { escapeLibassPath } from './path-escape';
@@ -392,6 +396,155 @@ describe('buildEncodeArgs — libsvtav1 software', () => {
     // libsvtav1 has its own `-tune` namespace; v0.4 doesn't expose it yet.
     expect(args).not.toContain('-tune');
     expect(args).not.toContain('-spatial_aq');
+  });
+});
+
+// -----------------------------------------------------------------------------
+// AMF (AMD hardware) branches — H.264 + HEVC.
+//
+// IMPORTANT: these tests assert the ffmpeg argument-array SHAPE only. They do
+// NOT prove ffmpeg accepts the args — that needs an AMD GPU with drivers
+// exposing h264_amf / hevc_amf and a real 1-frame encode. The dev machine is
+// macOS with no AMD hardware, so these are tautological vs. runtime: if an AMF
+// option name ever drifts from the ffmpeg AVOption table (e.g. -quality vs -q,
+// -qp_i vs -qp), these still pass while real encodes fail. Token spellings here
+// were verified against libavcodec/amfenc_h264.c — re-verify on AMD before ship.
+// -----------------------------------------------------------------------------
+
+describe('buildEncodeArgs — AMF H.264 path', () => {
+  it('emits the expected h264_amf arg array for the Balanced preset', () => {
+    const args = buildEncodeArgs(baseJob({ settings: H264_AMF_BALANCED_PRESET }));
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=yuv420p`;
+
+    expect(args).toEqual([
+      '-i',
+      VIDEO,
+      '-vf',
+      expectedFilter,
+      '-c:v',
+      'h264_amf',
+      '-quality',
+      'balanced',
+      '-rc',
+      'cqp',
+      '-qp_i',
+      '19',
+      '-qp_p',
+      '19',
+      '-qp_b',
+      '19',
+      '-c:a',
+      'copy',
+      '-movflags',
+      '+faststart',
+      '-progress',
+      'pipe:1',
+      '-nostats',
+      '-y',
+      OUT_MP4,
+    ]);
+  });
+
+  it('normalises the filter chain to format=yuv420p (no 10-bit on h264_amf)', () => {
+    const args = buildEncodeArgs(baseJob({ settings: H264_AMF_BALANCED_PRESET }));
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toMatch(/,format=yuv420p$/);
+    expect(args[vfIdx + 1]).not.toContain('p010le');
+    expect(args[vfIdx + 1]).not.toContain('yuv420p10le');
+  });
+
+  it('maps the Fast preset to -quality speed + QP 23', () => {
+    const args = buildEncodeArgs(baseJob({ settings: H264_AMF_FAST_PRESET }));
+    const qIdx = args.indexOf('-quality');
+    expect(args[qIdx + 1]).toBe('speed');
+    const qpiIdx = args.indexOf('-qp_i');
+    expect(args[qpiIdx + 1]).toBe('23');
+  });
+
+  it('maps the Pristine preset to -quality quality + QP 16', () => {
+    const args = buildEncodeArgs(baseJob({ settings: H264_AMF_PRISTINE_PRESET }));
+    const qIdx = args.indexOf('-quality');
+    expect(args[qIdx + 1]).toBe('quality');
+    const qpiIdx = args.indexOf('-qp_i');
+    expect(args[qpiIdx + 1]).toBe('16');
+  });
+
+  it('always emits constant-QP (-rc cqp) with matching qp_i/qp_p/qp_b', () => {
+    const args = buildEncodeArgs(baseJob({ settings: H264_AMF_BALANCED_PRESET }));
+    const rcIdx = args.indexOf('-rc');
+    expect(args[rcIdx + 1]).toBe('cqp');
+    // No NVENC-flavoured tokens leak onto the AMF path.
+    expect(args).not.toContain('-cq:v');
+    expect(args).not.toContain('-rc:v');
+    expect(args).not.toContain('-spatial_aq');
+    // All three frame-type QPs carry the same cq value.
+    expect(args[args.indexOf('-qp_i') + 1]).toBe('19');
+    expect(args[args.indexOf('-qp_p') + 1]).toBe('19');
+    expect(args[args.indexOf('-qp_b') + 1]).toBe('19');
+  });
+});
+
+describe('buildEncodeArgs — AMF HEVC path', () => {
+  it('emits the expected hevc_amf arg array for the Balanced preset (10-bit)', () => {
+    const args = buildEncodeArgs(baseJob({ settings: HEVC_AMF_BALANCED_PRESET }));
+    // AMF 10-bit feeds `p010le`, NOT NVENC's yuv420p10le.
+    const expectedFilter = `subtitles='${escapeLibassPath(SUB)}',format=p010le`;
+
+    expect(args).toEqual([
+      '-i',
+      VIDEO,
+      '-vf',
+      expectedFilter,
+      '-c:v',
+      'hevc_amf',
+      '-quality',
+      'balanced',
+      '-rc',
+      'cqp',
+      '-qp_i',
+      '22',
+      '-qp_p',
+      '22',
+      '-qp_b',
+      '22',
+      '-c:a',
+      'copy',
+      '-movflags',
+      '+faststart',
+      '-tag:v',
+      'hvc1',
+      '-progress',
+      'pipe:1',
+      '-nostats',
+      '-y',
+      OUT_MP4,
+    ]);
+  });
+
+  it('feeds 8-bit yuv420p when tenBit is false', () => {
+    const args = buildEncodeArgs(
+      baseJob({ settings: { ...HEVC_AMF_BALANCED_PRESET, tenBit: false } })
+    );
+    const vfIdx = args.indexOf('-vf');
+    expect(args[vfIdx + 1]).toMatch(/,format=yuv420p$/);
+    expect(args[vfIdx + 1]).not.toContain('p010le');
+  });
+
+  it('still emits the hvc1 muxer tag for HEVC + MP4', () => {
+    const args = buildEncodeArgs(baseJob({ settings: HEVC_AMF_BALANCED_PRESET }));
+    expect(args).toContain('-tag:v');
+    expect(args).toContain('hvc1');
+  });
+
+  it('drops the hvc1 tag for MKV output', () => {
+    const args = buildEncodeArgs(
+      baseJob({
+        outputPath: OUT_MKV,
+        settings: { ...HEVC_AMF_BALANCED_PRESET, container: 'mkv' },
+      })
+    );
+    expect(args).not.toContain('-tag:v');
+    expect(args).not.toContain('hvc1');
   });
 });
 

@@ -121,6 +121,8 @@ export type GpuVendor = 'nvenc' | 'qsv' | 'amf' | 'videotoolbox';
 export interface GpuProbeResult {
   available: GpuVendor[];
   details: Record<GpuVendor, { encoders: string[] } | null>;
+  /** `true` once every advertised encoder passed a runtime 1-frame test-encode. */
+  verified: boolean;
 }
 
 /** Disk-space / preflight summary — mirrors `ffmpeg/disk-space` PreflightResult verbatim. */

@@ -155,6 +155,80 @@ describe('startEncode — happy path', () => {
     expect(getActiveJobIds()).toEqual([]);
   });
 
+  it('reroutes settings to AMF when probeGpu reports amf-only hardware', async () => {
+    // The default settings resolve to `hwAccel: 'nvenc'` (H.264 Balanced).
+    // On an AMD-only machine the probe returns `available: ['amf']`, and the
+    // orchestrator must rewrite the job's settings to the AMF branch BEFORE
+    // it reaches createProcessor — otherwise ffmpeg gets `h264_nvenc` and dies
+    // with "unknown encoder". This is the integration proof for the routing
+    // seam (resolveHwAccel is unit-tested separately in settings.test.ts).
+    const probeGpu = vi.fn(async () => ({
+      available: ['amf' as const],
+      details: {
+        nvenc: null,
+        qsv: null,
+        amf: { encoders: ['h264_amf', 'hevc_amf'] },
+        videotoolbox: null,
+      },
+      verified: true,
+    }));
+    const deps = makeDeps({ probeGpu });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    expect(probeGpu).toHaveBeenCalledTimes(1);
+    const createProcessor = deps.createProcessor as unknown as {
+      mock: { calls: Array<[{ settings: { hwAccel: string; codec: string } }]> };
+    };
+    const job = createProcessor.mock.calls[0]![0];
+    expect(job.settings.codec).toBe('h264');
+    expect(job.settings.hwAccel).toBe('amf');
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 48,
+      outputBytes: 1024,
+      elapsedMs: 30_000,
+    });
+    await drainActive();
+  });
+
+  it('keeps requested settings when probeGpu throws (soft failure)', async () => {
+    const probeGpu = vi.fn(async () => {
+      throw new Error('ffmpeg -encoders timed out');
+    });
+    const deps = makeDeps({ probeGpu });
+    const events = makeEvents();
+
+    await startEncode(
+      { videoPath: '/in/v.mkv', subtitlePath: '/in/s.ass', outputPath: '/out/v.mp4' },
+      events,
+      deps
+    );
+
+    const createProcessor = deps.createProcessor as unknown as {
+      mock: { calls: Array<[{ settings: { hwAccel: string } }]> };
+    };
+    const job = createProcessor.mock.calls[0]![0];
+    // Default H.264 Balanced stays on nvenc — the probe failure is a no-op.
+    expect(job.settings.hwAccel).toBe('nvenc');
+
+    processors[0]!.__finish({
+      outputPath: '/out/v.mp4',
+      durationSec: 60,
+      avgFps: 48,
+      outputBytes: 1024,
+      elapsedMs: 30_000,
+    });
+    await drainActive();
+  });
+
   it('forwards progress + log events with the jobId prefix', async () => {
     const deps = makeDeps();
     const events = makeEvents();
