@@ -3,15 +3,15 @@
   "status": {
     "live": "na żywo · ffmpeg",
     "transcoding": "kodowanie",
-    "waitingIdle": "oczekiwanie · stderr idle"
+    "waitingIdle": "oczekiwanie · cisza na stderr"
   },
   "logLines_one": "{{count}} linia",
   "logLines_few": "{{count}} linie",
   "logLines_many": "{{count}} linii",
   "logLines_other": "{{count}} linii",
   "log": {
-    "collapse": "Zwiń dziennik",
-    "expand": "Rozwiń dziennik"
+    "collapse": "Zwiń log",
+    "expand": "Rozwiń log"
   },
   "file": {
     "burning": "↓ wypalanie ↓"

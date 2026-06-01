@@ -19,8 +19,8 @@
   "diagnostics": {
     "ariaLabel": "Diagnostyka awarii",
     "title": "Diagnostyka",
-    "fatal": "fatal",
-    "stackTrace": "stack trace",
+    "fatal": "krytyczny",
+    "stackTrace": "ślad stosu",
     "stackHide": "Ukryj",
     "stackShow": "Pokaż",
     "unexpectedError": "Wystąpił nieoczekiwany błąd."

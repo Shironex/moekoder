@@ -1,6 +1,6 @@
 {
   "title": "Gotowe. Ładnie.",
-  "empty": "brak zapisu kodowania · 空",
+  "empty": "brak kodowania w historii · 空",
   "eyebrow": "ukończono · 完",
   "heading": {
     "prefix": "Zakończono",
@@ -18,6 +18,6 @@
   },
   "btn": {
     "openFolder": "Otwórz folder",
-    "encodeAnother": "Zakoduj kolejny"
+    "encodeAnother": "Zakoduj kolejny plik"
   }
 }

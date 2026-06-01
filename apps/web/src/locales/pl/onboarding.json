@@ -31,11 +31,11 @@
     "languageLabel": "Język",
     "title": {
       "greeting": "Witaj.",
-      "kettle": "Herbata już parzy."
+      "kettle": "Czajnik już nastawiony."
     },
     "subtitleIntro": "MoeKoder to mała aplikacja desktopowa, która wypala napisy w plikach wideo —",
     "subtitleEmphasis": "jedno MKV + jeden ASS = jedno MP4 z napisami wypalonymi w piksele",
-    "subtitleTrail": "Konfiguracja zajmuje ze dwie minuty, a potem aplikacja schodzi z drogi. Oto, w co wchodzisz.",
+    "subtitleTrail": "Konfiguracja zajmuje ze dwie minuty, a potem aplikacja schodzi z drogi. Oto, co cię czeka.",
     "bullets": {
       "burns": {
         "title": "Wypala",
@@ -45,7 +45,7 @@
       "gpu": {
         "titlePrefix": "Korzysta z twojego",
         "title": "GPU",
-        "body": "NVENC, Quick Sync albo AMF — cokolwiek masz. 6–12× szybciej niż w czasie rzeczywistym na nowej karcie. Procesor zostaje wolny."
+        "body": "NVENC, Quick Sync albo AMF — cokolwiek masz. 6–12× szybciej niż w czasie rzeczywistym na nowoczesnej karcie. Procesor zostaje wolny."
       },
       "quiet": {
         "titlePrefix": "Znika",
@@ -75,9 +75,9 @@
   "theme": {
     "title": "Wybierz",
     "titleEmphasis": "nastrój.",
-    "subtitleBefore": "Sześć motywów, każdy zapożyczający kanji z japońskich nazw kolorów.",
+    "subtitleBefore": "Sześć motywów, każdy z kanji zaczerpniętym z japońskich nazw kolorów.",
     "subtitlePlum": "Plum",
-    "subtitleAfter": "to domyślny — ciepły, fioletowy, przytulny. Zmiany widoczne są natychmiast, możesz poczuć je na tle kreatora.",
+    "subtitleAfter": "to domyślny — ciepły, fioletowy, przytulny. Zmiany widać natychmiast, więc możesz je poczuć na tle kreatora.",
     "hint": "można zmienić później · ustawienia · motyw"
   },
   "engine": {
@@ -90,7 +90,7 @@
       "subtitleTools": "ffmpeg + ffprobe",
       "subtitleDesc": "— narzędzia open-source do dekodowania wideo, wypalania napisów i muksowania wyjścia. Pobieramy oficjalny build",
       "subtitleBuild": "BtbN ffmpeg",
-      "subtitleVerify": "weryfikujemy go i wrzucamy binaria do AppData. Jednorazowo, około",
+      "subtitleVerify": ", weryfikujemy go i wrzucamy binaria do AppData. Jednorazowo, około",
       "subtitleSize": "~180 MB",
       "subtitleNeverAgain": ", potem nigdy więcej.",
       "willInstall": "Co zainstalujemy",
@@ -107,7 +107,7 @@
     "titleEmphasis": "silnik.",
     "subtitleIntro": "MoeKoder to ffmpeg w yukacie — i potrzebuje binariów. Pobieramy oficjalny build",
     "subtitleBuild": "BtbN ffmpeg n8.1",
-    "subtitleVerify": "weryfikujemy jego SHA-256 względem manifestu i wrzucamy go do AppData.",
+    "subtitleVerify": ", weryfikujemy jego SHA-256 względem manifestu i wrzucamy go do AppData.",
     "subtitleOneTime": "Jednorazowo, ~180 MB, potem nigdy więcej.",
     "status": {
       "done": "gotowe",
@@ -122,7 +122,7 @@
     "installFailed": "Instalacja nie powiodła się",
     "unknownError": "nieznany błąd",
     "log": {
-      "eyebrow": "engine · dziennik instalacji",
+      "eyebrow": "silnik · log instalacji",
       "waiting": "Oczekiwanie na zdarzenia instalacji…",
       "status": {
         "complete": "ukończono",
@@ -137,7 +137,7 @@
   "dl": {
     "resolve": {
       "label": "Ustalanie źródła",
-      "sub": "github releases"
+      "sub": "GitHub Releases"
     },
     "ffmpeg": {
       "label": "Pobieranie ffmpeg.exe",
@@ -159,14 +159,14 @@
   "hw": {
     "title": "Wykryłem twój",
     "titleEmphasis": "sprzęt.",
-    "subtitleProbing": "Sprawdzam kodery ffmpeg…",
+    "subtitleProbing": "Sprawdzam enkodery ffmpeg…",
     "subtitleProbingSuffix": "chwilę poczekaj.",
-    "subtitleError": "Sondowanie nie zwróciło wyników —",
+    "subtitleError": "Sondowanie nie zakończyło się poprawnie —",
     "subtitleErrorEmphasis": "użyjemy CPU (libx264) jako bezpiecznego zamiennika.",
     "subtitleErrorSuffix": "Możesz to zmienić w Ustawieniach.",
     "subtitleOk": "jest najszybszą opcją na tej maszynie — domyślnie jej użyjemy. Możesz to zmienić w Ustawieniach.",
     "subtitlePreamble": "Przeprowadziliśmy szybkie sondowanie.",
-    "probingBanner": "sondowanie koderów sprzętowych…",
+    "probingBanner": "sondowanie enkoderów sprzętowych…",
     "badge": {
       "notAvailable": "niedostępny",
       "chosen": "wybrany",
@@ -174,7 +174,7 @@
       "detected": "wykryty"
     },
     "specs": {
-      "encoder": "koder",
+      "encoder": "enkoder",
       "throughput": "wydajność",
       "chip": "układ"
     },
@@ -185,7 +185,7 @@
     },
     "cpuAlwaysOn": {
       "title": "CPU zawsze dostępny",
-      "mono": "software · libx264 · gwarantowany zamiennik"
+      "mono": "oprogramowanie · libx264 · gwarantowany zamiennik"
     }
   },
   "preset": {
@@ -197,7 +197,7 @@
     "subtitleAfter": "to właściwy wybór dla ~95% odcinków. Pozostałe są dla chwil, gdy nie masz ochoty myśleć.",
     "fast": {
       "name": "Szybki",
-      "hint": "Szybkie szkice — obejrzeć dziś wieczór, usunąć jutro."
+      "hint": "Szybkie szkice — obejrzysz dziś wieczór, usuniesz jutro."
     },
     "balanced": {
       "name": "Zrównoważony",
@@ -240,7 +240,7 @@
     "subtitleMp4": "MP4",
     "subtitleMp4Suffix": "działa na każdym urządzeniu.",
     "subtitleMkv": "MKV",
-    "subtitleMkvSuffix": "lepszy, gdy chcesz zachować wybór ścieżki audio.",
+    "subtitleMkvSuffix": "lepszy, gdy chcesz zachować wybór ścieżek audio.",
     "subtitleWebm": "WebM",
     "subtitleWebmSuffix": "mniejszy, ale wolniejszy.",
     "containerSuffix": "kontener",
@@ -279,23 +279,23 @@
       "body": "Każda linijka tego, co uruchamiasz, jest na GitHubie. Czytaj, audytuj, zgłaszaj problemy — patrz LICENSE w kwestii redystrybucji."
     },
     "seal": {
-      "quiet": "Zbudowany, by być",
+      "quiet": "Stworzony, by działać",
       "quietEmphasis": "cicho.",
-      "gone": "Zbudowany, by",
+      "gone": "Stworzony, by",
       "goneEmphasis": "zniknąć.",
       "pledge": "obietnica · edycja 夜"
     },
     "iUnderstand": "Rozumiem"
   },
   "done": {
-    "title": "Gotowy,",
+    "title": "Gotowe,",
     "titleEmphasis": "gdy ty",
-    "titleSuffix": "będziesz gotowy.",
+    "titleSuffix": "też.",
     "subtitleBefore": "Wszystko skonfigurowane. Kliknij",
     "subtitleCta": "Zacznij kodować",
-    "subtitleAfter": "i wybierz pierwsze wideo i napisy — pipeline przejmuje resztę.",
+    "subtitleAfter": "aby wybrać pierwsze wideo i napisy — potok przejmuje resztę.",
     "chips": {
-      "encoder": "koder",
+      "encoder": "enkoder",
       "preset": "profil",
       "container": "kontener",
       "save": "zapis",

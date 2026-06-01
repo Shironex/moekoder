@@ -30,7 +30,7 @@
   },
   "encoding": {
     "title": "Kodowanie",
-    "desc": "Kodek, enkoder sprzętowy i parametry jakości dla każdego kodowania. Użyj szybkich trybów Szybki/Zbalansowany/Nieskazitelny dla rozsądnych ustawień; dopasuj CQ i profile dla szczegółowej kontroli.",
+    "desc": "Kodek, enkoder sprzętowy i parametry jakości dla każdego kodowania. Użyj szybkich trybów Szybki/Zrównoważony/Nieskazitelny dla rozsądnych ustawień; dopasuj CQ i profile dla szczegółowej kontroli.",
     "codec": {
       "label": "Kodek",
       "hint": "H.264 ma największą zgodność. HEVC oszczędza ~40% rozmiaru, AV1 ~50%.",
@@ -43,7 +43,7 @@
     },
     "tier": {
       "label": "Poziom jakości",
-      "hint": "Profile jednym kliknięciem dla każdego kodeka. Szybki = podgląd, Zbalansowany = domyślny dla anime, Nieskazitelny = maksymalna jakość.",
+      "hint": "Profile jednym kliknięciem dla każdego kodeka. Szybki = podgląd, Zrównoważony = domyślny dla anime, Nieskazitelny = maksymalna jakość.",
       "ariaLabel": "Poziom jakości"
     },
     "cq": {
@@ -77,7 +77,7 @@
     },
     "mux": {
       "label": "Tylko muksowanie (miękkie napisy)",
-      "desc": "Bez wypalania — kopiuj strumień wideo i audio, a napisy dodaj jako osobną, wybieralną ścieżkę. Kończy się w sekundy (bez ponownego kodowania). Wymusza kontener MKV; kodek i ustawienia jakości powyżej są ignorowane, gdy ta opcja jest włączona.",
+      "desc": "Bez wypalania — kopiuj strumień wideo i audio, a napisy dodaj jako osobną, wybieralną ścieżkę. Kończy się w kilka sekund (bez ponownego kodowania). Wymusza kontener MKV; kodek i ustawienia jakości powyżej są ignorowane, gdy ta opcja jest włączona.",
       "trackLangLabel": "Język ścieżki",
       "trackLangPlaceholder": "auto (np. pol)",
       "trackLangAriaLabel": "Kod języka muksowanej ścieżki napisów",
@@ -102,14 +102,14 @@
     "title": "Osadzone czcionki",
     "desc": "Gdy źródłem jest plik MKV z dołączonymi czcionkami (domyślny format fansub), MoeKoder wypakowuje je do tymczasowego katalogu i przekazuje ścieżkę do libass — dzięki temu typesetting \\fn(CustomFont) renderuje się zgodnie z zamysłem twórcy. Wyłączone ⇒ libass korzysta wyłącznie z czcionek systemowych.",
     "checkboxLabel": "Używaj osadzonych czcionek (zalecane)",
-    "checkboxDesc": "Domyślnie włączone. Czcionki są usuwane po każdym kodowaniu — nic nie zostaje na dysku. Wyłącz, jeśli wolisz, by każdy napis renderował się w Arial."
+    "checkboxDesc": "Domyślnie włączone. Czcionki są usuwane po każdym kodowaniu — nic nie zostaje na dysku. Wyłącz, jeśli wolisz, by każdy napis renderował się Arialem."
   },
   "queue": {
     "title": "Kolejka",
     "desc": "Ustawienia potoku wsadowego. Współbieżność odzwierciedla kontrolkę na ekranie Kolejki — obie strony zapisują do electron-store, więc zmiany z każdej strony są trwałe.",
     "concurrency": {
       "label": "Współbieżność",
-      "hint": "Ile kodowań działa równolegle. Odzwierciedla kontrolkę na ekranie Kolejki. Wartość domyślna 1 zachowuje gwarancję jednego kodowania jednocześnie na trasie Pojedynczej.",
+      "hint": "Ile kodowań działa równolegle. Odzwierciedla kontrolkę na ekranie Kolejki. Wartość domyślna 1 zachowuje gwarancję jednego kodowania jednocześnie w trybie Pojedynczy.",
       "ariaLabel": "Współbieżność kolejki"
     },
     "maxRetries": {
@@ -129,7 +129,7 @@
     "defaultRoute": {
       "label": "Domyślny ekran przy uruchomieniu",
       "hint": "Zakładkę, którą MoeKoder otwiera przy starcie. Wybierz Kolejkę, jeśli głównie przetwarzasz wsadowo.",
-      "ariaLabel": "Domyślna trasa przy uruchomieniu",
+      "ariaLabel": "Domyślny ekran przy uruchomieniu",
       "single": "Pojedynczy",
       "queue": "Kolejka"
     }
@@ -167,18 +167,18 @@
   },
   "presets": {
     "title": "Własne ustawienia wstępne",
-    "desc": "Zapisz bieżący profil kodowania pod nazwą i zastosuj go później jednym kliknięciem. Do 20 profilów; nazwy muszą być unikalne. Przetrwają restart aplikacji.",
+    "desc": "Zapisz bieżący profil kodowania pod nazwą i zastosuj go później jednym kliknięciem. Do 20 profili; nazwy muszą być unikalne. Przetrwają restart aplikacji.",
     "saveForm": {
-      "label": "Zapisz bieżące jako profil",
+      "label": "Zapisz bieżące ustawienia jako profil",
       "desc": "Zachowuje to, co jest ustawione w sekcji Kodowanie powyżej. Przetrwa restart aplikacji."
     },
     "namePlaceholder": "Mój profil",
     "nameAriaLabel": "Nazwa profilu",
     "applyBtn": "Zastosuj",
     "deleteBtn": "Usuń",
-    "empty": "brak zapisanych profilów",
+    "empty": "brak zapisanych profili",
     "tooltip": {
-      "capReached": "Osiągnięto limit: maksymalnie {{max}} profilów",
+      "capReached": "Osiągnięto limit: maksymalnie {{max}} profili",
       "nameClash": "Profil o tej nazwie już istnieje",
       "nameRequired": "Nazwa jest wymagana",
       "save": "Zapisz profil"

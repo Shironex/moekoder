@@ -17,18 +17,18 @@
   "candidates": {
     "swapVideo": "Zamień źródło wideo",
     "swapSubtitle": "Zamień ścieżkę napisów",
-    "triggerVideo_one": "Zamień wideo ({{count}} kandydat)",
-    "triggerVideo_few": "Zamień wideo ({{count}} kandydatów)",
-    "triggerVideo_many": "Zamień wideo ({{count}} kandydatów)",
-    "triggerVideo_other": "Zamień wideo ({{count}} kandydatów)",
-    "triggerSubtitle_one": "Zamień napisy ({{count}} kandydat)",
-    "triggerSubtitle_few": "Zamień napisy ({{count}} kandydatów)",
-    "triggerSubtitle_many": "Zamień napisy ({{count}} kandydatów)",
-    "triggerSubtitle_other": "Zamień napisy ({{count}} kandydatów)",
-    "header_one": "{{count}} kandydat · {{kanji}}",
-    "header_few": "{{count}} kandydatów · {{kanji}}",
-    "header_many": "{{count}} kandydatów · {{kanji}}",
-    "header_other": "{{count}} kandydatów · {{kanji}}"
+    "triggerVideo_one": "Zamień wideo ({{count}} wariant)",
+    "triggerVideo_few": "Zamień wideo ({{count}} warianty)",
+    "triggerVideo_many": "Zamień wideo ({{count}} wariantów)",
+    "triggerVideo_other": "Zamień wideo ({{count}} wariantu)",
+    "triggerSubtitle_one": "Zamień napisy ({{count}} wariant)",
+    "triggerSubtitle_few": "Zamień napisy ({{count}} warianty)",
+    "triggerSubtitle_many": "Zamień napisy ({{count}} wariantów)",
+    "triggerSubtitle_other": "Zamień napisy ({{count}} wariantu)",
+    "header_one": "{{count}} wariant · {{kanji}}",
+    "header_few": "{{count}} warianty · {{kanji}}",
+    "header_many": "{{count}} wariantów · {{kanji}}",
+    "header_other": "{{count}} wariantu · {{kanji}}"
   },
   "cta": {
     "begin": "Rozpocznij kodowanie",
@@ -48,7 +48,7 @@
   },
   "rail": {
     "saveLabel": "zapis · folder",
-    "gpuLabel": "gpu · koder",
+    "gpuLabel": "gpu · enkoder",
     "codecLabel": "kodek · {{container}}",
     "codecLabelEmpty": "kodek · —"
   }
