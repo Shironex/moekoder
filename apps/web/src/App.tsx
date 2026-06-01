@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppShell, Sidebar, Titlebar } from '@/components/chrome';
 import { QueueSidebar } from '@/components/chrome/QueueSidebar';
 import { CrashFallback, ErrorBoundary } from '@/components/shared';
@@ -35,6 +36,7 @@ import {
   useHydratedSetting,
   useSetting,
   useSidebarToggle,
+  useUiLanguageSync,
 } from '@/hooks';
 import { applyTheme } from '@/lib/apply-theme';
 import { buildEncodingOverrides } from '@/lib/encoding-overrides';
@@ -66,6 +68,7 @@ const UnknownView = ({ name }: { name: string }) => (
  *   · local file-pick state piped through to Sidebar + screens
  */
 export const App = () => {
+  const { t } = useTranslation('crash');
   const api = useElectronAPI();
   const activeView = useAppStore(s => s.activeView);
   const setView = useAppStore(s => s.setView);
@@ -126,6 +129,11 @@ export const App = () => {
   useHydratedSetting('themeId', themeId, setThemeId);
   useHydratedSetting('sidebarCollapsed', sidebarCollapsed, setSidebarCollapsed);
   useHydratedSetting('queueDefaultRoute', route, setRoute);
+
+  // Reconcile the synchronously-detected boot language with the durable
+  // `uiLanguage` setting in electron-store (and persist the detected value on
+  // first run). Mounted exactly once here so it never re-fires per picker.
+  useUiLanguageSync();
   useEffect(() => {
     applyTheme(themeId);
   }, [themeId]);
@@ -385,7 +393,7 @@ export const App = () => {
       case 'about':
         return <About />;
       case 'crash':
-        return <CrashFallback message="Manual crash view — use the titlebar to return." />;
+        return <CrashFallback message={t('manualView')} />;
       default:
         return <UnknownView name={String(activeView)} />;
     }
