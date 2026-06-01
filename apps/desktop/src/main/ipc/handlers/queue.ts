@@ -42,6 +42,7 @@ import {
   queueUpdateOutputSchema,
 } from '../schemas/queue.schemas';
 import { getSetting } from '../../store';
+import { mainMessages } from '../../i18n';
 import type { IpcContext } from '../register';
 import { createMainLogger } from '../../logger';
 
@@ -71,9 +72,10 @@ export const buildQueueManagerEvents = (ctx: IpcContext): QueueManagerEvents => 
       if (!enabled) return;
       try {
         if (Notification.isSupported()) {
+          const m = mainMessages();
           new Notification({
-            title: 'Queue complete',
-            body: `${doneCount} file${doneCount === 1 ? '' : 's'} done.`,
+            title: m.queueCompleteTitle,
+            body: m.queueCompleteBody(doneCount),
           }).show();
         }
       } catch (err) {

@@ -1,4 +1,5 @@
 import type { ThemeId } from '../themes/types';
+import type { SupportedLanguage } from '../i18n';
 
 /**
  * Where the encoder should drop its output by default. Set in the onboarding
@@ -46,6 +47,15 @@ export type ContainerChoice = 'mp4' | 'mkv' | 'webm';
 export interface UserSettings {
   /** Has the user completed the first-run onboarding flow? */
   hasCompletedOnboarding: boolean;
+  /**
+   * Chosen UI language. `null` means "not yet chosen" — the renderer
+   * auto-detects from the OS locale on first run and then persists the
+   * detected value here, so a stored `null` is distinguishable from an
+   * explicit `'en'` pick. Once set (by detection or by the user), it is the
+   * durable source of truth; the renderer also mirrors it to localStorage
+   * for a flash-free synchronous boot.
+   */
+  uiLanguage: SupportedLanguage | null;
   /** Currently selected theme id. */
   themeId: ThemeId;
   /** Where the encoder writes output by default — chosen in onboarding. */
@@ -173,6 +183,7 @@ const DEFAULT_ENCODING_PROFILE: EncodingProfile = {
 
 export const USER_SETTINGS_DEFAULTS: UserSettings = {
   hasCompletedOnboarding: false,
+  uiLanguage: null,
   themeId: 'plum',
   saveTarget: 'moekoder',
   customSavePath: null,
