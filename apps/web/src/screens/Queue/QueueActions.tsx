@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { QueueStats } from '@moekoder/shared';
 import { IconPause, IconPlay, IconPlus, IconTrash } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
@@ -39,6 +40,8 @@ export const QueueActions = ({
   onAddPair,
   onConcurrencyChange,
 }: QueueActionsProps) => {
+  const { t } = useTranslation('queue');
+
   // CTA branch:
   //  · running + paused + active>0 → "Pausing… (N item(s) finishing)"
   //  · running + paused → "Paused — Resume"
@@ -52,32 +55,32 @@ export const QueueActions = ({
   let onCta: () => void = onStart;
 
   if (running && paused && stats.active > 0) {
-    ctaLabel = `Pausing… (${stats.active} item${stats.active === 1 ? '' : 's'} finishing)`;
-    ctaTitle = 'Soft-pause: in-flight encodes finish, dispatcher waits';
+    ctaLabel = t('cta.pausing', { count: stats.active });
+    ctaTitle = t('cta.pausingTitle');
     ctaDisabled = true;
     ctaIcon = <IconPause size={14} />;
   } else if (running && paused) {
-    ctaLabel = 'Resume queue';
-    ctaTitle = 'Resume the dispatcher';
+    ctaLabel = t('cta.resumeQueue');
+    ctaTitle = t('cta.resumeTitle');
     onCta = onResume;
     ctaIcon = <IconPlay size={14} />;
   } else if (running) {
-    ctaLabel = 'Pause queue';
-    ctaTitle = 'Soft-pause: in-flight encodes finish, dispatcher waits';
+    ctaLabel = t('cta.pauseQueue');
+    ctaTitle = t('cta.pausingTitle');
     onCta = onPause;
     ctaTone = 'ghost';
     ctaIcon = <IconPause size={14} />;
   } else if (singleEncodeActive) {
-    ctaLabel = 'Start queue';
-    ctaTitle = 'An encode is running on Single. Stop it first.';
+    ctaLabel = t('cta.startQueue');
+    ctaTitle = t('cta.startSingleActive');
     ctaDisabled = true;
   } else if (stats.wait === 0) {
-    ctaLabel = 'Start queue';
-    ctaTitle = 'Add at least one pair to start';
+    ctaLabel = t('cta.startQueue');
+    ctaTitle = t('cta.startNoItems');
     ctaDisabled = true;
   } else {
-    ctaLabel = 'Start queue';
-    ctaTitle = `Encode ${stats.wait} waiting item${stats.wait === 1 ? '' : 's'}`;
+    ctaLabel = t('cta.startQueue');
+    ctaTitle = t('cta.startItems', { count: stats.wait });
   }
 
   return (
@@ -106,18 +109,14 @@ export const QueueActions = ({
         className="flex items-center gap-2 rounded-md border border-border bg-card/30 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-foreground transition hover:border-primary/40 hover:text-primary"
       >
         <IconPlus size={14} />
-        <span>Add pair</span>
+        <span>{t('addPair')}</span>
       </button>
 
       <button
         type="button"
         onClick={onClearDone}
         disabled={stats.done === 0}
-        title={
-          stats.done === 0
-            ? 'Nothing to clear'
-            : `Clear ${stats.done} completed item${stats.done === 1 ? '' : 's'}`
-        }
+        title={stats.done === 0 ? t('nothingToClear') : t('clearDoneTitle', { count: stats.done })}
         className={cn(
           'flex items-center gap-2 rounded-md border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] transition',
           stats.done === 0
@@ -126,14 +125,14 @@ export const QueueActions = ({
         )}
       >
         <IconTrash size={14} />
-        <span>Clear done</span>
+        <span>{t('clearDone')}</span>
       </button>
 
       {/* Concurrency segmented control. Mirrors the Settings screen's
           control — single source of truth = electron-store. */}
       <div className="ml-auto flex items-center gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          並行 · concurrency
+          並行 · {t('concurrency')}
         </span>
         <div className="flex gap-0.5 rounded-md border border-border bg-card/30 p-0.5">
           {CONCURRENCY_OPTIONS.map(value => {
@@ -143,7 +142,7 @@ export const QueueActions = ({
                 key={value}
                 type="button"
                 onClick={() => onConcurrencyChange(value)}
-                title={`Run ${value} encode${value === 1 ? '' : 's'} in parallel`}
+                title={t('concurrencyTooltip', { count: value })}
                 className={cn(
                   'min-w-[28px] rounded-sm px-2 py-1 font-mono text-[11px] transition',
                   active

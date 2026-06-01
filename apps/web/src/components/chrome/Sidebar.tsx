@@ -1,5 +1,6 @@
 import { useState, type MouseEventHandler } from 'react';
 import * as Popover from '@radix-ui/react-popover';
+import { useTranslation } from 'react-i18next';
 import type { ContainerChoice, HwChoice, SaveTarget } from '@moekoder/shared';
 import { IconChevron, IconPlay } from '@/components/ui';
 import { basename } from '@/lib/paths';
@@ -129,6 +130,7 @@ const CandidatesMenu = ({
   kind = 'subtitle',
   onOpenChange,
 }: CandidatesMenuProps) => {
+  const { t } = useTranslation('sidebar');
   const [open, setOpen] = useState(false);
 
   const handleOpenChange = (next: boolean): void => {
@@ -137,10 +139,10 @@ const CandidatesMenu = ({
   };
 
   const isVideo = kind === 'video';
-  const trackLabel = isVideo ? 'Swap video source' : 'Swap subtitle track';
+  const trackLabel = isVideo ? t('candidates.swapVideo') : t('candidates.swapSubtitle');
   const triggerTitle = isVideo
-    ? `Swap video (${candidates.length} candidates)`
-    : `Swap subtitle (${candidates.length} candidates)`;
+    ? t('candidates.triggerVideo', { count: candidates.length })
+    : t('candidates.triggerSubtitle', { count: candidates.length });
   const headerKanji = isVideo ? '映像' : '字幕';
 
   return (
@@ -175,7 +177,7 @@ const CandidatesMenu = ({
           )}
         >
           <div className="mb-1 shrink-0 border-b border-border/60 px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
-            {candidates.length} candidates · {headerKanji}
+            {t('candidates.header', { count: candidates.length, kanji: headerKanji })}
           </div>
           {/* Plain button list — keyboard nav (roving tabindex / arrow keys)
               is deferred to a P2 follow-up, so the listbox/option ARIA is
@@ -250,6 +252,7 @@ const Stage = ({
   onSelectCandidate,
   candidatesKind,
 }: StageProps) => {
+  const { t } = useTranslation('sidebar');
   const filled = !!data;
   const resolvedExt = filled ? (ext ?? ('ext' in data! ? data!.ext : undefined)) : undefined;
   const handleClick: MouseEventHandler<HTMLButtonElement> = () => onPick();
@@ -317,7 +320,11 @@ const Stage = ({
           'absolute inset-0 z-0 cursor-pointer rounded-md',
           menuOpen && 'pointer-events-none'
         )}
-        aria-label={filled ? `Change ${label}: ${data!.name}` : `Pick ${label}`}
+        aria-label={
+          filled
+            ? t('stage.ariaChange', { label, name: data!.name })
+            : t('stage.ariaPick', { label })
+        }
       />
       <div className="pointer-events-none relative z-[1] flex flex-col items-center justify-center gap-2 border-r border-border/60 pr-2">
         <div
@@ -374,7 +381,11 @@ const Stage = ({
           {filled ? data!.name : placeholder}
         </div>
         <div className="truncate font-mono text-[10px] tracking-[0.06em] text-muted-foreground">
-          {filled ? data!.path : <em className="not-italic text-muted/80">click to pick</em>}
+          {filled ? (
+            data!.path
+          ) : (
+            <em className="not-italic text-muted/80">{t('stage.clickToPick')}</em>
+          )}
         </div>
       </div>
     </div>
@@ -436,13 +447,14 @@ export const Sidebar = ({
   videosCandidates,
   onSelectVideoCandidate,
 }: SidebarProps) => {
+  const { t } = useTranslation('sidebar');
   const filledCount = [video, subs, out].filter(Boolean).length;
   const armed = filledCount === 3 && !encoding;
   const ctaTooltip = encoding
-    ? 'Encoding in progress'
+    ? t('cta.tooltipEncoding')
     : armed
-      ? 'Begin encode'
-      : `${3 - filledCount} ingredient${3 - filledCount === 1 ? '' : 's'} to go`;
+      ? t('cta.begin')
+      : t('ingredientsToGo', { count: 3 - filledCount });
 
   return (
     <aside
@@ -465,9 +477,9 @@ export const Sidebar = ({
               三
             </span>
             <div className="flex min-w-0 flex-col">
-              <span className="font-display text-sm text-foreground">Pipeline</span>
+              <span className="font-display text-sm text-foreground">{t('header.title')}</span>
               <span className="truncate font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-                three ingredients · 三素材
+                {t('header.eyebrow')}
               </span>
             </div>
           </div>
@@ -484,8 +496,8 @@ export const Sidebar = ({
         <Stage
           n="壱"
           kanji="映"
-          label="Video source"
-          placeholder="MKV · MP4 · any video"
+          label={t('stage.videoLabel')}
+          placeholder={t('stage.videoPlaceholder')}
           data={video}
           onPick={onPickVideo}
           collapsed={collapsed}
@@ -496,8 +508,8 @@ export const Sidebar = ({
         <Stage
           n="弐"
           kanji="字"
-          label="Subtitle track"
-          placeholder="ASS · SSA · SRT"
+          label={t('stage.subsLabel')}
+          placeholder={t('stage.subsPlaceholder')}
           data={subs}
           onPick={onPickSubs}
           collapsed={collapsed}
@@ -508,8 +520,8 @@ export const Sidebar = ({
         <Stage
           n="参"
           kanji="出"
-          label="Output file"
-          placeholder="Save location"
+          label={t('stage.outputLabel')}
+          placeholder={t('stage.outputPlaceholder')}
           data={out}
           ext={outputExt}
           onPick={onPickOut}
@@ -549,14 +561,14 @@ export const Sidebar = ({
         {!collapsed && (
           <span className="flex flex-1 flex-col">
             <span className="font-display text-lg leading-tight text-foreground">
-              {encoding ? 'Encoding…' : 'Begin encode'}
+              {encoding ? t('cta.encoding') : t('cta.begin')}
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               {encoding
-                ? 'in progress · 進行'
+                ? t('cta.eyebrowInProgress')
                 : armed
-                  ? 'all three · ready'
-                  : `${3 - filledCount} to go`}
+                  ? t('cta.eyebrowReady')
+                  : t('cta.toGo', { count: 3 - filledCount })}
             </span>
           </span>
         )}
@@ -596,20 +608,20 @@ export const Sidebar = ({
           <RailStat
             kanji="貯"
             value={saveTarget ? saveTarget.toUpperCase() : '—'}
-            sublabel="save · folder"
+            sublabel={t('rail.saveLabel')}
           />
           <div className="w-px self-stretch bg-border" />
           <RailStat
             kanji="核"
             tone={hwChoice && hwChoice !== 'cpu' ? 'good' : 'default'}
             value={hwChoice ? hwChoice.toUpperCase() : '—'}
-            sublabel="gpu · encoder"
+            sublabel={t('rail.gpuLabel')}
           />
           <div className="w-px self-stretch bg-border" />
           <RailStat
             kanji="符"
             value="h264"
-            sublabel={container ? `codec · ${container}` : 'codec · —'}
+            sublabel={container ? t('rail.codecLabel', { container }) : t('rail.codecLabelEmpty')}
           />
         </div>
       )}
@@ -622,9 +634,9 @@ export const Sidebar = ({
         <button
           type="button"
           onClick={onToggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? t('toggle.expand') : t('toggle.collapse')}
           aria-expanded={!collapsed}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('toggle.expand') : t('toggle.collapse')}
           className={cn(
             'absolute right-0 top-1/2 z-20 flex h-12 w-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-sm border border-border bg-popover text-muted transition',
             'hover:border-primary/40 hover:bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] hover:text-primary'

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { QueueStats } from '@moekoder/shared';
 import { IconChevron, IconPause, IconPlay, IconPlus } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
@@ -39,37 +40,39 @@ export const QueueSidebar = ({
   collapsed = false,
   onToggleCollapsed,
 }: QueueSidebarProps) => {
+  const { t } = useTranslation('queue');
+
   // Mirror the action-bar CTA derivation so the rail and bar stay in sync
   // about pause-in-progress copy.
-  let ctaLabel = 'Start queue';
-  let ctaTitle = 'Run waiting items';
+  let ctaLabel = t('sidebar.ctaStart');
+  let ctaTitle = t('sidebar.ctaRunning');
   let ctaDisabled = false;
   let ctaIcon = <IconPlay size={16} />;
   let onCta = onStart;
   let ctaTone: 'primary' | 'ghost' = 'primary';
 
   if (running && paused && stats.active > 0) {
-    ctaLabel = 'Pausing…';
-    ctaTitle = `Soft-pause: ${stats.active} item${stats.active === 1 ? '' : 's'} finishing`;
+    ctaLabel = t('sidebar.ctaPausing');
+    ctaTitle = t('sidebar.ctaPausingTitle', { count: stats.active });
     ctaDisabled = true;
     ctaIcon = <IconPause size={16} />;
   } else if (running && paused) {
-    ctaLabel = 'Resume';
-    ctaTitle = 'Resume the dispatcher';
+    ctaLabel = t('sidebar.ctaResume');
+    ctaTitle = t('sidebar.ctaResumeTitle');
     onCta = onResume;
   } else if (running) {
-    ctaLabel = 'Pause';
-    ctaTitle = 'Soft-pause';
+    ctaLabel = t('sidebar.ctaPause');
+    ctaTitle = t('sidebar.ctaPauseTitle');
     onCta = onPause;
     ctaIcon = <IconPause size={16} />;
     ctaTone = 'ghost';
   } else if (singleEncodeActive) {
-    ctaLabel = 'Start queue';
-    ctaTitle = 'An encode is already running on Single';
+    ctaLabel = t('sidebar.ctaStart');
+    ctaTitle = t('sidebar.ctaSingleActive');
     ctaDisabled = true;
   } else if (stats.wait === 0) {
-    ctaLabel = 'Start queue';
-    ctaTitle = 'Add at least one pair to start';
+    ctaLabel = t('sidebar.ctaStart');
+    ctaTitle = t('sidebar.ctaNoItems');
     ctaDisabled = true;
   }
 
@@ -93,7 +96,7 @@ export const QueueSidebar = ({
               列
             </span>
             <div className="flex min-w-0 flex-col">
-              <span className="font-display text-sm text-foreground">Queue</span>
+              <span className="font-display text-sm text-foreground">{t('sidebar.queue')}</span>
               <span className="truncate font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 batch · 隊列
               </span>
@@ -110,9 +113,9 @@ export const QueueSidebar = ({
       {/* Stats triplet */}
       {!collapsed ? (
         <div className="grid grid-cols-3 gap-2">
-          <RailTile kanji="待" label="wait" value={stats.wait} tone="muted" />
-          <RailTile kanji="活" label="live" value={stats.active} tone="primary" />
-          <RailTile kanji="了" label="done" value={stats.done} tone="good" />
+          <RailTile kanji="待" label={t('stat.wait')} value={stats.wait} tone="muted" />
+          <RailTile kanji="活" label={t('stat.live')} value={stats.active} tone="primary" />
+          <RailTile kanji="了" label={t('stat.done')} value={stats.done} tone="good" />
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -125,7 +128,7 @@ export const QueueSidebar = ({
       {/* Concurrency pill (compact echo of the segmented control on the screen) */}
       {!collapsed && (
         <div className="flex items-center justify-between rounded-md border border-border bg-card/30 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.22em]">
-          <span className="text-muted">並行 · concurrency</span>
+          <span className="text-muted">並行 · {t('concurrency')}</span>
           <span className="text-primary">{concurrency}</span>
         </div>
       )}
@@ -186,7 +189,7 @@ export const QueueSidebar = ({
           className="flex items-center justify-center gap-2 rounded-md border border-border bg-card/30 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-foreground transition hover:border-primary/40 hover:text-primary"
         >
           <IconPlus size={14} />
-          <span>Add pair</span>
+          <span>{t('sidebar.addPair')}</span>
         </button>
       )}
 
@@ -196,9 +199,9 @@ export const QueueSidebar = ({
         <button
           type="button"
           onClick={onToggleCollapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? t('sidebar.expandSidebar') : t('sidebar.collapseSidebar')}
           aria-expanded={!collapsed}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('sidebar.expandSidebar') : t('sidebar.collapseSidebar')}
           className={cn(
             'absolute right-0 top-1/2 z-20 flex h-12 w-4 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-sm border border-border bg-popover text-muted transition',
             'hover:border-primary/40 hover:bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] hover:text-primary'

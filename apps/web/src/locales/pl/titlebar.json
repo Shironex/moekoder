@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "ariaLabel": "Główne widoki",
+    "single": "Pojedynczy",
+    "queue": "Kolejka"
+  },
+  "history": "Historia",
+  "extract": "Wyodrębnij napisy",
+  "settings": "Ustawienia",
+  "minimize": "Minimalizuj",
+  "maximize": "Maksymalizuj",
+  "close": "Zamknij"
+}

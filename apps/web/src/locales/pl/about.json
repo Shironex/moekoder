@@ -1,0 +1,28 @@
+{
+  "title": "O programie",
+  "tagline": "wypalarka napisów",
+  "blurb": "Wypalaj napisy w wideo, uroczyście. Dla fanów anime, którzy wiedzą, czego chcą — jeden MKV, jeden ASS, jeden MP4 na wyjściu. Bez chmury, bez telemetrii, bez reklam.",
+  "suite": {
+    "title": "Pakiet Shiro"
+  },
+  "siblings": {
+    "shiranami": "Śledzenie i odkrywanie anime. Tu żyje twoja lista.",
+    "shiroani": "Spokojniejszy sposób na oglądanie. Streaming bez szumu.",
+    "moekoder": "Wypalaj napisy w wideo, uroczyście. Jesteś tutaj.",
+    "kireimanga": "Czytnik mangi z klasą. Czyste strony, nic więcej."
+  },
+  "youAreHere": "· jesteś tutaj",
+  "meta": {
+    "version": "wersja",
+    "build": "build",
+    "license": "licencja",
+    "versionValue": "v{{version}}",
+    "buildValue": "{{hash}}",
+    "sourceAvailable": "Kod źródłowy dostępny",
+    "github": "GitHub · {{repo}}"
+  },
+  "credits": {
+    "title": "Zbudowane przez Shironex",
+    "body": "Projekt jednej osoby, złożony z ffmpeg, libass, Electron i wielu nocnych herbat. Zgłoszenia, PR-y i miłe słowa są mile widziane na GitHubie."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "header": {
+    "title": "Pipeline",
+    "eyebrow": "three ingredients · 三素材"
+  },
+  "stage": {
+    "videoLabel": "Video source",
+    "videoPlaceholder": "MKV · MP4 · any video",
+    "subsLabel": "Subtitle track",
+    "subsPlaceholder": "ASS · SSA · SRT",
+    "outputLabel": "Output file",
+    "outputPlaceholder": "Save location",
+    "clickToPick": "click to pick",
+    "ariaChange": "Change {{label}}: {{name}}",
+    "ariaPick": "Pick {{label}}"
+  },
+  "candidates": {
+    "swapVideo": "Swap video source",
+    "swapSubtitle": "Swap subtitle track",
+    "triggerVideo_one": "Swap video ({{count}} candidate)",
+    "triggerVideo_other": "Swap video ({{count}} candidates)",
+    "triggerSubtitle_one": "Swap subtitle ({{count}} candidate)",
+    "triggerSubtitle_other": "Swap subtitle ({{count}} candidates)",
+    "header_one": "{{count}} candidate · {{kanji}}",
+    "header_other": "{{count}} candidates · {{kanji}}"
+  },
+  "cta": {
+    "begin": "Begin encode",
+    "encoding": "Encoding…",
+    "tooltipEncoding": "Encoding in progress",
+    "eyebrowInProgress": "in progress · 進行",
+    "eyebrowReady": "all three · ready",
+    "toGo": "{{count}} to go"
+  },
+  "ingredientsToGo_one": "{{count}} ingredient to go",
+  "ingredientsToGo_other": "{{count}} ingredients to go",
+  "toggle": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
+  },
+  "rail": {
+    "saveLabel": "save · folder",
+    "gpuLabel": "gpu · encoder",
+    "codecLabel": "codec · {{container}}",
+    "codecLabelEmpty": "codec · —"
+  }
+}

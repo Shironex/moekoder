@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import mascotUrl from '@/assets/mascot.png';
+import { LanguagePicker } from '@/components/ui';
 
 /**
  * Step 01 · Welcome. Static intro card — introduces the app, the three
@@ -22,106 +24,125 @@ const Bullet = ({ kanji, title, body }: BulletProps) => (
   </div>
 );
 
-export const Welcome = () => (
-  <div className="mx-auto flex w-full max-w-[920px] flex-col gap-8">
-    {/* Eyebrow */}
-    <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-      <span className="font-display text-lg text-primary">迎</span>
-      <span>step 01 · welcome</span>
-      <span className="h-1 w-1 rounded-full bg-muted/50" />
-      <span>挨拶</span>
-    </div>
+export const Welcome = () => {
+  const { t } = useTranslation('onboarding');
 
-    {/* Title + mascot greeting */}
-    <div className="flex items-start gap-6">
-      <img
-        src={mascotUrl}
-        alt=""
-        aria-hidden="true"
-        width={160}
-        height={160}
-        className="hidden h-[160px] w-[160px] shrink-0 object-contain drop-shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_35%,transparent)] md:block"
-      />
-      <div className="flex flex-col gap-3">
-        <h1 className="font-display text-5xl leading-tight text-foreground">
-          Welcome. <em className="not-italic text-primary">The kettle&apos;s on.</em>
-        </h1>
-        <p className="max-w-[680px] text-base leading-relaxed text-muted-foreground">
-          MoeKoder is a tiny desktop app that burns subtitles into video files —{' '}
-          <b className="text-foreground">one MKV, one ASS, one MP4 out the other side</b>. Takes
-          about ninety seconds to set up, then it&apos;s out of your way. Here&apos;s what
-          you&apos;re getting into.
-        </p>
-      </div>
-    </div>
-
-    {/* Three bullets + seal */}
-    <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-      <div className="flex flex-col gap-3">
-        <Bullet
-          kanji="焼"
-          title={
-            <>
-              <em className="not-italic text-primary">Burns</em> subtitles into video
-            </>
-          }
-          body="One MKV + one ASS → one MP4, with the subs baked into the pixels. No external font packs needed on the receiving end."
-        />
-        <Bullet
-          kanji="速"
-          title={
-            <>
-              Uses your <em className="not-italic text-primary">GPU</em>
-            </>
-          }
-          body="NVENC, Quick Sync, or AMF — whichever you have. 6–12× real-time on a modern card. Your CPU stays free."
-        />
-        <Bullet
-          kanji="夜"
-          title={
-            <>
-              Goes <em className="not-italic text-primary">quiet</em> when done
-            </>
-          }
-          body="No sign-in, no cloud, no telemetry. Launches into a dark window, does one job, disappears from your notifications."
-        />
+  return (
+    <div className="mx-auto flex w-full max-w-[920px] flex-col gap-8">
+      {/* Eyebrow */}
+      <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+        <span className="font-display text-lg text-primary">迎</span>
+        <span>step 01 · welcome</span>
+        <span className="h-1 w-1 rounded-full bg-muted/50" />
+        <span>挨拶</span>
       </div>
 
-      <aside className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card/25 p-5 text-center">
-        <span className="font-display text-6xl leading-none text-primary">持</span>
+      {/* Language picker — placed right after eyebrow so users can switch before reading */}
+      <div className="flex flex-col items-start gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          持 · bring your own
+          {t('welcome.languageLabel')}
         </span>
-        <b className="font-display text-xl text-foreground">
-          <em className="not-italic text-primary">Bring</em> your own files.
-        </b>
-        <p className="text-[13px] leading-relaxed text-muted-foreground">
-          MoeKoder ships with no video, no subs, no content — and never will. You point it at files{' '}
-          <b className="text-foreground">you already own</b>, it hands back a burned copy.
-          That&apos;s the whole deal.
-        </p>
-      </aside>
-    </div>
-
-    {/* What you'll need */}
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/25 p-5">
-      <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-        <span className="font-display text-base text-primary">具</span>
-        <span>what you&apos;ll need</span>
+        <LanguagePicker ariaLabel={t('welcome.languageLabel')} />
       </div>
-      <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-        <li>
-          · <b className="text-foreground">~180 MB free disk</b> for the ffmpeg + ffprobe binaries
-          (one-time download)
-        </li>
-        <li>
-          · <b className="text-foreground">A network connection</b> for that first fetch — after
-          that, every byte stays local
-        </li>
-        <li>
-          · <b className="text-foreground">A minute or two</b> to pick your defaults
-        </li>
-      </ul>
+
+      {/* Title + mascot greeting */}
+      <div className="flex items-start gap-6">
+        <img
+          src={mascotUrl}
+          alt=""
+          aria-hidden="true"
+          width={160}
+          height={160}
+          className="hidden h-[160px] w-[160px] shrink-0 object-contain drop-shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_35%,transparent)] md:block"
+        />
+        <div className="flex flex-col gap-3">
+          <h1 className="font-display text-5xl leading-tight text-foreground">
+            {t('welcome.title.greeting')}{' '}
+            <em className="not-italic text-primary">{t('welcome.title.kettle')}</em>
+          </h1>
+          <p className="max-w-[680px] text-base leading-relaxed text-muted-foreground">
+            {t('welcome.subtitleIntro')}{' '}
+            <b className="text-foreground">{t('welcome.subtitleEmphasis')}</b>
+            {'. '}
+            {t('welcome.subtitleTrail')}
+          </p>
+        </div>
+      </div>
+
+      {/* Three bullets + seal */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+        <div className="flex flex-col gap-3">
+          <Bullet
+            kanji="焼"
+            title={
+              <>
+                <em className="not-italic text-primary">{t('welcome.bullets.burns.title')}</em>{' '}
+                {t('welcome.bullets.burns.titleSuffix')}
+              </>
+            }
+            body={t('welcome.bullets.burns.body')}
+          />
+          <Bullet
+            kanji="速"
+            title={
+              <>
+                {t('welcome.bullets.gpu.titlePrefix')}{' '}
+                <em className="not-italic text-primary">{t('welcome.bullets.gpu.title')}</em>
+              </>
+            }
+            body={t('welcome.bullets.gpu.body')}
+          />
+          <Bullet
+            kanji="夜"
+            title={
+              <>
+                {t('welcome.bullets.quiet.titlePrefix')}{' '}
+                <em className="not-italic text-primary">{t('welcome.bullets.quiet.title')}</em>{' '}
+                {t('welcome.bullets.quiet.titleSuffix')}
+              </>
+            }
+            body={t('welcome.bullets.quiet.body')}
+          />
+        </div>
+
+        <aside className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card/25 p-5 text-center">
+          <span className="font-display text-6xl leading-none text-primary">持</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+            {t('welcome.seal.eyebrow')}
+          </span>
+          <b className="font-display text-xl text-foreground">
+            <em className="not-italic text-primary">{t('welcome.seal.titlePrefix')}</em>{' '}
+            {t('welcome.seal.titleSuffix')}
+          </b>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            {t('welcome.seal.bodyBefore')}{' '}
+            <b className="text-foreground">{t('welcome.seal.bodyEmphasis')}</b>
+            {t('welcome.seal.bodyAfter')}
+          </p>
+        </aside>
+      </div>
+
+      {/* What you'll need */}
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/25 p-5">
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+          <span className="font-display text-base text-primary">具</span>
+          <span>{t('welcome.needs.eyebrow')}</span>
+        </div>
+        <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          <li>
+            · <b className="text-foreground">{t('welcome.needs.disk')}</b>{' '}
+            {t('welcome.needs.diskSuffix')}
+          </li>
+          <li>
+            · <b className="text-foreground">{t('welcome.needs.network')}</b>{' '}
+            {t('welcome.needs.networkSuffix')}
+          </li>
+          <li>
+            · <b className="text-foreground">{t('welcome.needs.time')}</b>{' '}
+            {t('welcome.needs.timeSuffix')}
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
-);
+  );
+};

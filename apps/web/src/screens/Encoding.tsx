@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Filmstrip,
   IconBitrate,
@@ -35,6 +36,7 @@ interface LogPanelProps {
 }
 
 const LogPanel = ({ logs, open, onToggle }: LogPanelProps) => {
+  const { t } = useTranslation('encoding');
   const bodyRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new entry. Reading `logs.length` keeps the effect
@@ -55,14 +57,14 @@ const LogPanel = ({ logs, open, onToggle }: LogPanelProps) => {
         type="button"
         onClick={onToggle}
         className="flex h-10 items-center gap-2 border-b border-border px-3 text-left hover:bg-card"
-        title={open ? 'Collapse log' : 'Expand log'}
+        title={open ? t('log.collapse') : t('log.expand')}
       >
         <span className="font-display text-base text-primary">録</span>
         {open ? (
           <>
             <span className="font-display text-sm text-foreground">ffmpeg · stderr</span>
             <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-              {logs.length} lines
+              {t('logLines', { count: logs.length })}
             </span>
           </>
         ) : (
@@ -77,7 +79,7 @@ const LogPanel = ({ logs, open, onToggle }: LogPanelProps) => {
           ))}
           {logs.length === 0 && (
             <div className="py-6 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-              waiting · stderr idle
+              {t('status.waitingIdle')}
             </div>
           )}
         </div>
@@ -96,6 +98,7 @@ const LogPanel = ({ logs, open, onToggle }: LogPanelProps) => {
  * so a cross-platform pause needs a native suspend binding (future work).
  */
 export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
+  const { t } = useTranslation('encoding');
   const api = useElectronAPI();
   const progress = useEncodeStore(s => s.progress);
   const logs = useEncodeStore(s => s.logs);
@@ -120,10 +123,10 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
       <PageHead
         screen="encoding"
         route="single"
-        title="Encoding. Stay cozy."
+        title={t('title')}
         right={
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-            <span className="text-good">live · ffmpeg</span>
+            <span className="text-good">{t('status.live')}</span>
             <span className="text-foreground">
               <b>{video?.name ?? '—'}</b>
             </span>
@@ -139,11 +142,11 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
             <div className="inline-flex items-center gap-2 rounded-sm border border-border bg-popover px-2.5 py-1">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-good" />
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
-                transcoding
+                {t('status.transcoding')}
               </span>
             </div>
             <Button variant="danger" size="sm" onClick={handleCancel}>
-              <IconClose size={12} /> Cancel
+              <IconClose size={12} /> {t('cancel', { ns: 'common' })}
             </Button>
           </div>
 
@@ -162,7 +165,9 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
                   {subs?.name ?? 'subs.ass'}
                 </span>
               </div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-muted">↓ burning ↓</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-muted">
+                {t('file.burning')}
+              </div>
               <div className="flex items-center gap-2">
                 <span className="font-display text-xl text-good">出</span>
                 <span className="truncate text-foreground" title={out?.name}>
@@ -175,15 +180,20 @@ export const EncodingScreen = ({ video, subs, out }: EncodingProps) => {
           <Filmstrip pct={progress.pct} count={14} />
 
           <div className="grid grid-cols-4 gap-3">
-            <Metric icon={IconFilm} label="FPS" value={progress.fps.toFixed(0)} />
-            <Metric icon={IconGauge} label="Speed" value={progress.speed.toFixed(1)} unit="x" />
+            <Metric icon={IconFilm} label={t('metric.fps')} value={progress.fps.toFixed(0)} />
+            <Metric
+              icon={IconGauge}
+              label={t('metric.speed')}
+              value={progress.speed.toFixed(1)}
+              unit="x"
+            />
             <Metric
               icon={IconBitrate}
-              label="Bitrate"
+              label={t('metric.bitrate')}
               value={(progress.bitrateKbps / 1000).toFixed(1)}
               unit="Mb/s"
             />
-            <Metric icon={IconClock} label="Elapsed" value={elapsed} />
+            <Metric icon={IconClock} label={t('metric.elapsed')} value={elapsed} />
           </div>
         </div>
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { THEMES_BY_ID, type ThemeId } from '@moekoder/shared';
 import {
   HW_OPTIONS_TEMPLATE,
@@ -45,6 +46,7 @@ const Chip = ({ k, label, value }: ChipProps) => (
  * component just renders.
  */
 export const Done = ({ inputs, hwOptions = [...HW_OPTIONS_TEMPLATE] }: DoneProps) => {
+  const { t } = useTranslation('onboarding');
   const hw = hwOptions.find(o => o.id === inputs.hwChoice) ?? hwOptions[hwOptions.length - 1];
   const preset = OB_PRESETS.find(p => p.id === inputs.presetChoice) ?? OB_PRESETS[1];
   const save = OB_SAVES.find(s => s.id === inputs.saveTarget) ?? OB_SAVES[0];
@@ -52,7 +54,9 @@ export const Done = ({ inputs, hwOptions = [...HW_OPTIONS_TEMPLATE] }: DoneProps
   const theme = THEMES_BY_ID[inputs.themeId];
 
   const hwShort = hw.name.split('·')[0]?.trim() ?? hw.name;
-  const saveShort = save.label.split('·')[0]?.trim() ?? save.label;
+  // Resolve the translated save label first, then trim the short form
+  const saveLabel = t(save.labelKey);
+  const saveShort = saveLabel.split('·')[0]?.trim() ?? saveLabel;
 
   return (
     <div className="mx-auto flex w-full max-w-[820px] flex-col items-center gap-8 text-center">
@@ -69,21 +73,22 @@ export const Done = ({ inputs, hwOptions = [...HW_OPTIONS_TEMPLATE] }: DoneProps
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-5xl leading-tight text-foreground">
-          Ready <em className="not-italic text-primary">when you</em> are.
+          {t('done.title')} <em className="not-italic text-primary">{t('done.titleEmphasis')}</em>{' '}
+          {t('done.titleSuffix')}
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-muted-foreground">
-          Everything&apos;s wired up. Hit <b className="text-foreground">Start encoding</b> to pick
-          your first video and subtitle — the pipeline takes it from there.
+          {t('done.subtitleBefore')} <b className="text-foreground">{t('done.subtitleCta')}</b>{' '}
+          {t('done.subtitleAfter')}
         </p>
       </div>
 
       {/* Summary chips */}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <Chip k={hw.k} label="encoder" value={hwShort} />
-        <Chip k={preset.k} label="preset" value={preset.name} />
-        <Chip k="器" label="container" value={`.${cont.ext}`} />
-        <Chip k={save.k} label="save" value={saveShort} />
-        <Chip k={theme.kanji} label="theme" value={theme.name} />
+        <Chip k={hw.k} label={t('done.chips.encoder')} value={hwShort} />
+        <Chip k={preset.k} label={t('done.chips.preset')} value={t(preset.nameKey)} />
+        <Chip k="器" label={t('done.chips.container')} value={`.${cont.ext}`} />
+        <Chip k={save.k} label={t('done.chips.save')} value={saveShort} />
+        <Chip k={theme.kanji} label={t('done.chips.theme')} value={theme.name} />
       </div>
     </div>
   );

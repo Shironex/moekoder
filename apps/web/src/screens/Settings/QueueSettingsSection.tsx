@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useElectronAPI, useSetting } from '@/hooks';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/cn';
@@ -6,10 +7,7 @@ import { cn } from '@/lib/cn';
 const log = logger('queue-settings');
 
 const CONCURRENCY_OPTIONS: ReadonlyArray<1 | 2 | 3 | 4> = [1, 2, 3, 4];
-const ROUTE_OPTIONS: ReadonlyArray<{ value: 'single' | 'queue'; label: string }> = [
-  { value: 'single', label: 'Single' },
-  { value: 'queue', label: 'Queue' },
-];
+const ROUTE_OPTION_VALUES: ReadonlyArray<'single' | 'queue'> = ['single', 'queue'];
 
 /** Hard limits for the retry-budget input — generous range, but the
  *  manager already clamps `maxRetries` and the user has zero reason to
@@ -83,6 +81,7 @@ const Segmented = <T extends string | number>({
  *     that on hydration to pick `single-idle` vs `queue` as the boot view.
  */
 export const QueueSettingsSection = () => {
+  const { t } = useTranslation('settings');
   const api = useElectronAPI();
   const [concurrency, setConcurrency] = useSetting('queueConcurrency');
   const [maxRetries, setMaxRetries] = useSetting('queueMaxRetries');
@@ -155,27 +154,27 @@ export const QueueSettingsSection = () => {
       {/* Concurrency */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Concurrency</span>
-          <span className="text-[12px] text-muted-foreground">
-            How many encodes run in parallel. Mirrors the Queue screen control. Default 1 keeps the
-            Single route's one-encode-at-a-time guarantee untouched.
+          <span className="font-display text-sm text-foreground">
+            {t('queue.concurrency.label')}
           </span>
+          <span className="text-[12px] text-muted-foreground">{t('queue.concurrency.hint')}</span>
         </div>
         <Segmented
           value={concurrencyValue}
           options={CONCURRENCY_OPTIONS.map(v => ({ value: v, label: String(v) }))}
           onChange={onConcurrencyChange}
-          ariaLabel="Queue concurrency"
+          ariaLabel={t('queue.concurrency.ariaLabel')}
         />
       </div>
 
       {/* Max retries */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Max retries</span>
+          <span className="font-display text-sm text-foreground">
+            {t('queue.maxRetries.label')}
+          </span>
           <span className="text-[12px] text-muted-foreground">
-            How many times a failed item retries before it gives up. Total attempts ={' '}
-            {maxRetriesValue + 1}.
+            {t('queue.maxRetries.hint', { totalAttempts: maxRetriesValue + 1 })}
           </span>
         </div>
         <input
@@ -185,7 +184,7 @@ export const QueueSettingsSection = () => {
           step={1}
           value={maxRetriesValue}
           onChange={e => onMaxRetriesChange(e.target.value)}
-          aria-label="Maximum retries per item"
+          aria-label={t('queue.maxRetries.ariaLabel')}
           className="w-[88px] rounded-md border border-border bg-card/40 px-3 py-1.5 text-right font-mono text-sm text-foreground focus:border-primary focus:outline-none"
         />
       </div>
@@ -193,10 +192,13 @@ export const QueueSettingsSection = () => {
       {/* Retry backoff */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Retry backoff</span>
+          <span className="font-display text-sm text-foreground">{t('queue.backoff.label')}</span>
           <span className="text-[12px] text-muted-foreground">
-            Wait between retry attempts. Doubles each retry: {backoffSecondsValue.toFixed(0)}s →{' '}
-            {(backoffSecondsValue * 2).toFixed(0)}s → {(backoffSecondsValue * 4).toFixed(0)}s…
+            {t('queue.backoff.hint', {
+              a: backoffSecondsValue.toFixed(0),
+              b: (backoffSecondsValue * 2).toFixed(0),
+              c: (backoffSecondsValue * 4).toFixed(0),
+            })}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -207,7 +209,7 @@ export const QueueSettingsSection = () => {
             step={1}
             value={backoffSecondsValue}
             onChange={e => onBackoffSecondsChange(e.target.value)}
-            aria-label="Base retry backoff in seconds"
+            aria-label={t('queue.backoff.ariaLabel')}
             className="w-[88px] rounded-md border border-border bg-card/40 px-3 py-1.5 text-right font-mono text-sm text-foreground focus:border-primary focus:outline-none"
           />
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">s</span>
@@ -223,27 +225,27 @@ export const QueueSettingsSection = () => {
           onChange={e => onNotifyChange(e.target.checked)}
         />
         <span className="flex flex-col leading-tight">
-          <b className="font-display text-sm text-foreground">Notify when queue finishes</b>
-          <span className="text-[12px] text-muted-foreground">
-            Show a desktop notification when the queue drains so you can walk away and still know
-            when to come back.
-          </span>
+          <b className="font-display text-sm text-foreground">{t('queue.notify.label')}</b>
+          <span className="text-[12px] text-muted-foreground">{t('queue.notify.desc')}</span>
         </span>
       </label>
 
       {/* Default route */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Default screen on launch</span>
-          <span className="text-[12px] text-muted-foreground">
-            Which tab Moekoder opens on launch. Pick Queue if you mostly batch.
+          <span className="font-display text-sm text-foreground">
+            {t('queue.defaultRoute.label')}
           </span>
+          <span className="text-[12px] text-muted-foreground">{t('queue.defaultRoute.hint')}</span>
         </div>
         <Segmented
           value={routeValue}
-          options={ROUTE_OPTIONS}
+          options={ROUTE_OPTION_VALUES.map(v => ({
+            value: v,
+            label: t(`queue.defaultRoute.${v}`),
+          }))}
           onChange={onDefaultRouteChange}
-          ariaLabel="Default route on launch"
+          ariaLabel={t('queue.defaultRoute.ariaLabel')}
         />
       </div>
     </div>

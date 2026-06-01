@@ -1,0 +1,34 @@
+{
+  "headline": {
+    "tripped": "potknął się.",
+    "getMoving": "Zaraz ruszymy dalej.",
+    "fallback": "Coś posypało się w połowie renderowania."
+  },
+  "body": {
+    "safeSettings": "Twoje ustawienia są bezpieczne — zapisane na dysku. Przeładuj aplikację, żeby zacząć od nowa, albo skopiuj raport awarii i zgłoś błąd."
+  },
+  "actions": {
+    "reloadApp": "Przeładuj aplikację",
+    "copied": "Skopiowano",
+    "copyReport": "Kopiuj raport",
+    "resetView": "Resetuj widok"
+  },
+  "pills": {
+    "sessionCrashed": "sesja · awaria"
+  },
+  "diagnostics": {
+    "ariaLabel": "Diagnostyka awarii",
+    "title": "Diagnostyka",
+    "fatal": "fatal",
+    "stackTrace": "stack trace",
+    "stackHide": "Ukryj",
+    "stackShow": "Pokaż",
+    "unexpectedError": "Wystąpił nieoczekiwany błąd."
+  },
+  "eb": {
+    "crashedApp": "Aplikacja uległa awarii",
+    "crashedView": "Ten widok uległ awarii",
+    "viewLabel": "Widok · {{viewName}}"
+  },
+  "manualView": "Ręczny widok awarii — użyj paska tytułowego, aby wrócić."
+}

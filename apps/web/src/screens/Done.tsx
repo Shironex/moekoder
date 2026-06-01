@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button, IconOpen, IconPlay, PageHead } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { useAppStore, useEncodeStore } from '@/stores';
@@ -32,6 +33,7 @@ const Stat = ({ value, label }: StatProps) => (
  * ships the user back to idle.
  */
 export const DoneScreen = ({ onReset }: DoneProps) => {
+  const { t } = useTranslation('done');
   const api = useElectronAPI();
   const result = useEncodeStore(s => s.result);
   const reset = useEncodeStore(s => s.reset);
@@ -43,7 +45,7 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
     return (
       <section className="flex flex-1 items-center justify-center">
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          no encode on record · 空
+          {t('empty')}
         </div>
       </section>
     );
@@ -82,14 +84,14 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
       <PageHead
         screen="done"
         route="single"
-        title="Done. Nicely."
+        title={t('title')}
         right={
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-            <span className="text-good">session complete</span>
+            <span className="text-good">{t('status.sessionComplete')}</span>
             <span className="text-foreground">
               <b>{basename(result.file)}</b>
             </span>
-            <span>saved</span>
+            <span>{t('status.saved')}</span>
           </div>
         }
       />
@@ -104,10 +106,11 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
 
         <div className="flex flex-col gap-2">
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            complete · 完
+            {t('eyebrow')}
           </span>
           <h2 className="font-display text-5xl leading-[1.05] text-foreground">
-            Finished <em className="not-italic text-primary">encoding.</em>
+            {t('heading.prefix')}{' '}
+            <em className="not-italic text-primary">{t('heading.highlight')}</em>
           </h2>
           <div className="truncate font-mono text-xs text-muted-foreground" title={result.file}>
             {result.file}
@@ -115,18 +118,18 @@ export const DoneScreen = ({ onReset }: DoneProps) => {
         </div>
 
         <div className="grid w-full max-w-[720px] grid-cols-4 gap-3">
-          <Stat value={formatDuration(result.durationSec)} label="duration" />
-          <Stat value={avgFpsLabel} label="avg fps" />
-          <Stat value={formatBytes(result.bytes)} label="output size" />
-          <Stat value={`${speedup}x`} label="realtime" />
+          <Stat value={formatDuration(result.durationSec)} label={t('stat.duration')} />
+          <Stat value={avgFpsLabel} label={t('stat.avgFps')} />
+          <Stat value={formatBytes(result.bytes)} label={t('stat.outputSize')} />
+          <Stat value={`${speedup}x`} label={t('stat.realtime')} />
         </div>
 
         <div className="flex items-center gap-2 pt-2">
           <Button variant="ghost" onClick={handleOpenFolder}>
-            <IconOpen size={12} /> Open folder
+            <IconOpen size={12} /> {t('btn.openFolder')}
           </Button>
           <Button variant="primary" onClick={handleReset}>
-            <IconPlay size={12} /> Encode another
+            <IconPlay size={12} /> {t('btn.encodeAnother')}
           </Button>
         </div>
       </div>

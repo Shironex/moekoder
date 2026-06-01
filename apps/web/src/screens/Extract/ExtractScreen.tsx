@@ -1,4 +1,5 @@
 import { ArrowLeft, CheckCircle2, FileVideo, FolderOpen, Subtitles, XCircle } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui';
 import { useSubtitleExtract } from '@/hooks';
 import { useAppStore } from '@/stores';
@@ -10,10 +11,14 @@ import type { ExtractTrack, TrackResult } from '@/hooks';
 const langLabel = (track: ExtractTrack): string => track.language ?? (track.title ? '' : '—');
 
 /** Output-format options for the segmented selector. ASS leads (the default). */
-const FORMAT_OPTIONS: ReadonlyArray<{ value: SubtitleOutputFormat; label: string }> = [
+const FORMAT_OPTIONS: ReadonlyArray<{
+  value: SubtitleOutputFormat;
+  label?: string;
+  labelKey?: string;
+}> = [
   { value: 'ass', label: 'ASS' },
   { value: 'srt', label: 'SRT' },
-  { value: 'source', label: 'Match source' },
+  { value: 'source', labelKey: 'format.matchSource' },
 ];
 
 /**
@@ -28,6 +33,7 @@ const FORMAT_OPTIONS: ReadonlyArray<{ value: SubtitleOutputFormat; label: string
  * `subtitle:extract` IPC channel.
  */
 export const ExtractScreen = () => {
+  const { t } = useTranslation('extract');
   const setView = useAppStore(s => s.setView);
   const {
     source,
@@ -48,7 +54,7 @@ export const ExtractScreen = () => {
     reset,
   } = useSubtitleExtract();
 
-  const selectableCount = tracks.filter(t => t.selectable).length;
+  const selectableCount = tracks.filter(tr => tr.selectable).length;
   const allSelected = selectableCount > 0 && selected.size === selectableCount;
   const canExtract =
     Boolean(source) && Boolean(outputDir) && selected.size > 0 && phase !== 'extracting';
@@ -57,7 +63,7 @@ export const ExtractScreen = () => {
   // lossy direction (override tags + positioning are dropped on convert).
   const srtDropsStyling =
     format === 'srt' &&
-    tracks.some(t => selected.has(t.ordinal) && (t.codec === 'ass' || t.codec === 'ssa'));
+    tracks.some(tr => selected.has(tr.ordinal) && (tr.codec === 'ass' || tr.codec === 'ssa'));
 
   return (
     <main className="relative flex flex-1 flex-col overflow-hidden bg-background text-foreground">
@@ -80,7 +86,7 @@ export const ExtractScreen = () => {
           }}
         >
           <ArrowLeft size={14} />
-          Back
+          {t('back', { ns: 'common' })}
         </Button>
         <div className="flex items-center gap-3">
           <span className="font-display text-3xl leading-none text-primary">抽</span>
@@ -88,7 +94,7 @@ export const ExtractScreen = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               extract · 抽出 · chūshutsu
             </span>
-            <h1 className="font-display text-xl text-foreground">Extract subtitles</h1>
+            <h1 className="font-display text-xl text-foreground">{t('title')}</h1>
           </div>
         </div>
       </header>
@@ -103,11 +109,11 @@ export const ExtractScreen = () => {
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                   source · 元 · moto
                 </span>
-                <h2 className="font-display text-lg text-foreground">Source file</h2>
+                <h2 className="font-display text-lg text-foreground">{t('source.title')}</h2>
               </div>
               <Button variant="ghost" size="sm" onClick={pickSource} disabled={probing}>
                 <FileVideo size={14} />
-                {source ? 'Choose another' : 'Browse'}
+                {source ? t('source.chooseAnother') : t('browse', { ns: 'common' })}
               </Button>
             </div>
             <div className="flex items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3 font-mono text-[12px]">
@@ -119,7 +125,7 @@ export const ExtractScreen = () => {
                 aria-hidden="true"
               />
               <span className="truncate text-foreground">
-                {probing ? 'probing…' : (source?.name ?? 'No file selected')}
+                {probing ? t('source.probing') : (source?.name ?? t('source.noFile'))}
               </span>
             </div>
             {error && (
@@ -140,18 +146,18 @@ export const ExtractScreen = () => {
                   <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                     tracks · 字幕 · jimaku
                   </span>
-                  <h2 className="font-display text-lg text-foreground">Embedded subtitle tracks</h2>
+                  <h2 className="font-display text-lg text-foreground">{t('tracks.title')}</h2>
                 </div>
                 {selectableCount > 0 && (
                   <Button variant="ghost" size="sm" onClick={toggleAll}>
-                    {allSelected ? 'Deselect all' : 'Select all'}
+                    {allSelected ? t('tracks.deselectAll') : t('tracks.selectAll')}
                   </Button>
                 )}
               </div>
 
               {tracks.length === 0 ? (
                 <p className="rounded-lg border border-border bg-popover/30 px-4 py-6 text-center text-sm text-muted-foreground">
-                  No subtitle tracks found in this file.
+                  {t('tracks.empty')}
                 </p>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
@@ -159,22 +165,22 @@ export const ExtractScreen = () => {
                     <thead>
                       <tr className="border-b border-border bg-popover/40 text-left font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
                         <th className="w-10 px-3 py-2" scope="col">
-                          <span className="sr-only">Select</span>
+                          <span className="sr-only">{t('table.selectHeader')}</span>
                         </th>
                         <th className="w-14 px-3 py-2" scope="col">
                           #
                         </th>
                         <th className="px-3 py-2" scope="col">
-                          Codec
+                          {t('table.codec')}
                         </th>
                         <th className="px-3 py-2" scope="col">
-                          Lang
+                          {t('table.lang')}
                         </th>
                         <th className="px-3 py-2" scope="col">
-                          Title
+                          {t('table.trackTitle')}
                         </th>
                         <th className="px-3 py-2 text-right" scope="col">
-                          Result
+                          {t('table.result')}
                         </th>
                       </tr>
                     </thead>
@@ -205,13 +211,13 @@ export const ExtractScreen = () => {
                     format · 形式 · keishiki
                   </span>
                   <span className="text-[12px] text-muted-foreground">
-                    Output format for the extracted subtitles
+                    {t('format.description')}
                   </span>
                 </div>
                 <div
                   className="flex overflow-hidden rounded-md border border-border"
                   role="group"
-                  aria-label="Output format"
+                  aria-label={t('format.ariaLabel')}
                 >
                   {FORMAT_OPTIONS.map(opt => (
                     <button
@@ -226,16 +232,21 @@ export const ExtractScreen = () => {
                           : 'text-muted hover:bg-popover/40'
                       )}
                     >
-                      {opt.label}
+                      {opt.label ?? (opt.labelKey ? t(opt.labelKey) : '')}
                     </button>
                   ))}
                 </div>
               </div>
               {srtDropsStyling && (
                 <p className="rounded-md border border-border/60 bg-popover/30 px-3 py-2 text-[12px] text-muted-foreground">
-                  Converting ASS → SRT drops styling, positioning, and override tags. Choose{' '}
-                  <span className="text-foreground">ASS</span> or{' '}
-                  <span className="text-foreground">Match source</span> to keep them.
+                  <Trans
+                    t={t}
+                    i18nKey="format.assWarning"
+                    components={{
+                      ass: <span className="text-foreground" />,
+                      match: <span className="text-foreground" />,
+                    }}
+                  />
                 </p>
               )}
 
@@ -245,23 +256,23 @@ export const ExtractScreen = () => {
                     output · 先 · saki
                   </span>
                   <span className="truncate font-mono text-[12px] text-foreground">
-                    {outputDir ?? 'No folder selected'}
+                    {outputDir ?? t('output.noFolder')}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={pickOutputDir}>
                   <FolderOpen size={14} />
-                  Output folder
+                  {t('output.folderButton')}
                 </Button>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
                 <span className="font-mono text-[11px] text-muted">
-                  {selected.size} selected
-                  {phase === 'done' && ' · done'}
+                  {t('selectedCount', { count: selected.size })}
+                  {phase === 'done' && ` ${t('doneSuffix')}`}
                 </span>
                 <Button variant="primary" size="sm" onClick={extract} disabled={!canExtract}>
                   <Subtitles size={14} />
-                  {phase === 'extracting' ? 'Extracting…' : 'Extract selected'}
+                  {phase === 'extracting' ? t('extracting') : t('extractSelected')}
                 </Button>
               </div>
             </section>
@@ -280,6 +291,7 @@ interface TrackRowProps {
 }
 
 const TrackRow = ({ track, checked, result, onToggle }: TrackRowProps) => {
+  const { t } = useTranslation('extract');
   const hint = imageSubtitleHint(track.codec);
   return (
     <tr
@@ -296,7 +308,7 @@ const TrackRow = ({ track, checked, result, onToggle }: TrackRowProps) => {
           checked={checked}
           disabled={!track.selectable}
           onChange={onToggle}
-          aria-label={`Select subtitle track ${track.ordinal}`}
+          aria-label={t('table.selectTrack', { ordinal: track.ordinal })}
         />
       </td>
       <td className="px-3 py-2 align-middle font-mono text-[12px] text-muted">
@@ -306,7 +318,7 @@ const TrackRow = ({ track, checked, result, onToggle }: TrackRowProps) => {
         {track.codec}
         {!track.selectable && (
           <span className="ml-2 rounded-sm bg-muted/30 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted">
-            image
+            {t('table.imageBadge')}
           </span>
         )}
       </td>
@@ -320,7 +332,7 @@ const TrackRow = ({ track, checked, result, onToggle }: TrackRowProps) => {
         {result?.kind === 'ok' && (
           <span className="inline-flex items-center gap-1 text-[12px] text-good">
             <CheckCircle2 size={14} />
-            saved
+            {t('result.saved')}
           </span>
         )}
         {result?.kind === 'error' && (
@@ -329,7 +341,7 @@ const TrackRow = ({ track, checked, result, onToggle }: TrackRowProps) => {
             title={result.message}
           >
             <XCircle size={14} />
-            failed
+            {t('result.failed')}
           </span>
         )}
       </td>

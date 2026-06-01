@@ -1,0 +1,306 @@
+{
+  "layout": {
+    "setupInProgress": "konfiguracja w toku",
+    "gettingSetUp": "Konfiguracja",
+    "stepOf": "krok {{current}} z {{total}}",
+    "windowControls": {
+      "minimize": "Minimalizuj",
+      "maximize": "Maksymalizuj",
+      "close": "Zamknij"
+    }
+  },
+  "footer": {
+    "skipForNow": "Pomiń na razie",
+    "continue": "Dalej",
+    "finishSetup": "Zakończ konfigurację",
+    "startEncoding": "Zacznij kodować",
+    "downloading": "Pobieranie…"
+  },
+  "steps": {
+    "welcome": "Witaj",
+    "theme": "Motyw",
+    "engine": "Silnik",
+    "hw": "Sprzęt",
+    "preset": "Profil",
+    "save": "Zapis",
+    "cont": "Kontener",
+    "privacy": "Prywatność",
+    "done": "Do dzieła"
+  },
+  "welcome": {
+    "languageLabel": "Język",
+    "title": {
+      "greeting": "Witaj.",
+      "kettle": "Herbata już parzy."
+    },
+    "subtitleIntro": "MoeKoder to mała aplikacja desktopowa, która wypala napisy w plikach wideo —",
+    "subtitleEmphasis": "jedno MKV + jeden ASS = jedno MP4 z napisami wypalonymi w piksele",
+    "subtitleTrail": "Konfiguracja zajmuje ze dwie minuty, a potem aplikacja schodzi z drogi. Oto, w co wchodzisz.",
+    "bullets": {
+      "burns": {
+        "title": "Wypala",
+        "titleSuffix": "napisy w wideo",
+        "body": "MKV + ASS → MP4 z napisami wpieczonymi w obraz. Żadnych zewnętrznych paczek czcionek po drugiej stronie."
+      },
+      "gpu": {
+        "titlePrefix": "Korzysta z twojego",
+        "title": "GPU",
+        "body": "NVENC, Quick Sync albo AMF — cokolwiek masz. 6–12× szybciej niż w czasie rzeczywistym na nowej karcie. Procesor zostaje wolny."
+      },
+      "quiet": {
+        "titlePrefix": "Znika",
+        "title": "po cichu",
+        "titleSuffix": "gdy skończy",
+        "body": "Żadnego logowania, chmury ani telemetrii. Odpala się w ciemnym oknie, robi swoją robotę i znika z powiadomień."
+      }
+    },
+    "seal": {
+      "eyebrow": "持 · przynieś swoje pliki",
+      "titlePrefix": "Przynieś",
+      "titleSuffix": "własne pliki.",
+      "bodyBefore": "MoeKoder nie zawiera żadnych filmów, napisów ani treści — i nigdy nie będzie. Wskazujesz pliki,",
+      "bodyEmphasis": "które już posiadasz",
+      "bodyAfter": ", a aplikacja oddaje kopię z wypalonymi napisami. Taka jest umowa."
+    },
+    "needs": {
+      "eyebrow": "czego będziesz potrzebować",
+      "disk": "~180 MB wolnego miejsca",
+      "diskSuffix": "na binaria ffmpeg + ffprobe (jednorazowe pobieranie)",
+      "network": "Połączenie z siecią",
+      "networkSuffix": "tylko przy pierwszym pobraniu — potem wszystko zostaje lokalnie",
+      "time": "Minuta lub dwie",
+      "timeSuffix": "na ustawienie domyślnych wartości"
+    }
+  },
+  "theme": {
+    "title": "Wybierz",
+    "titleEmphasis": "nastrój.",
+    "subtitleBefore": "Sześć motywów, każdy zapożyczający kanji z japońskich nazw kolorów.",
+    "subtitlePlum": "Plum",
+    "subtitleAfter": "to domyślny — ciepły, fioletowy, przytulny. Zmiany widoczne są natychmiast, możesz poczuć je na tle kreatora.",
+    "hint": "można zmienić później · ustawienia · motyw"
+  },
+  "engine": {
+    "gate": {
+      "titleProbing": "Sprawdzam",
+      "titleProbingEmphasis": "silnik…",
+      "titleReady": "Potrzebujemy kilku",
+      "titleReadyEmphasis": "narzędzi.",
+      "subtitleIntro": "MoeKoder działa na",
+      "subtitleTools": "ffmpeg + ffprobe",
+      "subtitleDesc": "— narzędzia open-source do dekodowania wideo, wypalania napisów i muksowania wyjścia. Pobieramy oficjalny build",
+      "subtitleBuild": "BtbN ffmpeg",
+      "subtitleVerify": "weryfikujemy go i wrzucamy binaria do AppData. Jednorazowo, około",
+      "subtitleSize": "~180 MB",
+      "subtitleNeverAgain": ", potem nigdy więcej.",
+      "willInstall": "Co zainstalujemy",
+      "destination": "cel · %LOCALAPPDATA%\\moekoder\\bin",
+      "ffmpegDesc": "· koduje wideo, wypala napisy",
+      "ffprobeDesc": "· odczytuje czas trwania, ścieżki, załączniki",
+      "shaDesc": "· weryfikacja przed instalacją",
+      "lookingForInstall": "szukam istniejącej instalacji…",
+      "readyWhenYouAre": "gotowe, gdy będziesz gotowy",
+      "checking": "Sprawdzam…",
+      "installFfmpeg": "Zainstaluj ffmpeg"
+    },
+    "title": "Pobieram",
+    "titleEmphasis": "silnik.",
+    "subtitleIntro": "MoeKoder to ffmpeg w yukacie — i potrzebuje binariów. Pobieramy oficjalny build",
+    "subtitleBuild": "BtbN ffmpeg n8.1",
+    "subtitleVerify": "weryfikujemy jego SHA-256 względem manifestu i wrzucamy go do AppData.",
+    "subtitleOneTime": "Jednorazowo, ~180 MB, potem nigdy więcej.",
+    "status": {
+      "done": "gotowe",
+      "working": "w toku"
+    },
+    "downloaded": "pobrano",
+    "alreadyInstalled": "Już zainstalowany.",
+    "engineReady": "Silnik gotowy.",
+    "downloadFailed": "Pobieranie nie powiodło się.",
+    "localBinariesFound": "znaleziono lokalne binaria",
+    "retryToTryAgain": "ponów, aby spróbować ponownie",
+    "installFailed": "Instalacja nie powiodła się",
+    "unknownError": "nieznany błąd",
+    "log": {
+      "eyebrow": "engine · dziennik instalacji",
+      "waiting": "Oczekiwanie na zdarzenia instalacji…",
+      "status": {
+        "complete": "ukończono",
+        "error": "błąd",
+        "running": "w toku"
+      }
+    },
+    "stageRail": {
+      "eyebrow": "etapy"
+    }
+  },
+  "dl": {
+    "resolve": {
+      "label": "Ustalanie źródła",
+      "sub": "github releases"
+    },
+    "ffmpeg": {
+      "label": "Pobieranie ffmpeg.exe",
+      "sub": "BtbN · n8.1"
+    },
+    "ffprobe": {
+      "label": "Pobieranie ffprobe.exe",
+      "sub": "BtbN · n8.1"
+    },
+    "verify": {
+      "label": "Weryfikacja SHA-256",
+      "sub": "sprawdzenie integralności"
+    },
+    "install": {
+      "label": "Instalacja do AppData",
+      "sub": "%LOCALAPPDATA%\\MoeKoder\\bin"
+    }
+  },
+  "hw": {
+    "title": "Wykryłem twój",
+    "titleEmphasis": "sprzęt.",
+    "subtitleProbing": "Sprawdzam kodery ffmpeg…",
+    "subtitleProbingSuffix": "chwilę poczekaj.",
+    "subtitleError": "Sondowanie nie zwróciło wyników —",
+    "subtitleErrorEmphasis": "użyjemy CPU (libx264) jako bezpiecznego zamiennika.",
+    "subtitleErrorSuffix": "Możesz to zmienić w Ustawieniach.",
+    "subtitleOk": "jest najszybszą opcją na tej maszynie — domyślnie jej użyjemy. Możesz to zmienić w Ustawieniach.",
+    "subtitlePreamble": "Przeprowadziliśmy szybkie sondowanie.",
+    "probingBanner": "sondowanie koderów sprzętowych…",
+    "badge": {
+      "notAvailable": "niedostępny",
+      "chosen": "wybrany",
+      "recommended": "zalecany",
+      "detected": "wykryty"
+    },
+    "specs": {
+      "encoder": "koder",
+      "throughput": "wydajność",
+      "chip": "układ"
+    },
+    "chip": {
+      "detected": "wykryto",
+      "notDetected": "nie wykryto",
+      "always": "oprogramowanie · zawsze dostępne"
+    },
+    "cpuAlwaysOn": {
+      "title": "CPU zawsze dostępny",
+      "mono": "software · libx264 · gwarantowany zamiennik"
+    }
+  },
+  "preset": {
+    "title": "Jak bardzo",
+    "titleEmphasis": "wymagający",
+    "titleSuffix": "jesteś?",
+    "subtitleBefore": "To tylko wartość domyślna — możesz ją zmienić przy każdym kodowaniu.",
+    "subtitleBalanced": "Zrównoważony",
+    "subtitleAfter": "to właściwy wybór dla ~95% odcinków. Pozostałe są dla chwil, gdy nie masz ochoty myśleć.",
+    "fast": {
+      "name": "Szybki",
+      "hint": "Szybkie szkice — obejrzeć dziś wieczór, usunąć jutro."
+    },
+    "balanced": {
+      "name": "Zrównoważony",
+      "hint": "Ustawienie na co dzień. 95% jakości przy 40% bitrate'u."
+    },
+    "pristine": {
+      "name": "Nieskazitelny",
+      "hint": "Archiwalne kopie do zachowania. Herbata zdąży zaparzyć się dwa razy."
+    }
+  },
+  "save": {
+    "title": "Gdzie MoeKoder ma",
+    "titleEmphasis": "zapisać plik?",
+    "subtitleBefore": "Wyjście domyślnie trafia w to miejsce.",
+    "subtitleBeside": "Obok źródła",
+    "subtitleMid": "jest najbezpieczniejszą opcją — MoeKoder nigdy nie nadpisuje oryginału, zapisuje do podfolderu",
+    "subtitleFolder": "moekoder/",
+    "subtitleAfter": "obok niego.",
+    "browsePlaceholder": "kliknij \"Przeglądaj…\", aby wybrać folder",
+    "noFolderPicked": "Nie wybrano jeszcze folderu.",
+    "change": "Zmień",
+    "browseEllipsis": "Przeglądaj…",
+    "moekoder": {
+      "label": "Obok źródła · w ./moekoder/"
+    },
+    "same": {
+      "label": "Ten sam folder co źródło"
+    },
+    "subbed": {
+      "label": "Dedykowany folder \"subbed\""
+    },
+    "custom": {
+      "label": "Własna ścieżka — sam wybiorę"
+    }
+  },
+  "cont": {
+    "title": "Który",
+    "titleEmphasis": "kontener?",
+    "subtitleBefore": "Format zewnętrzny — to, czym kończy się plik.",
+    "subtitleMp4": "MP4",
+    "subtitleMp4Suffix": "działa na każdym urządzeniu.",
+    "subtitleMkv": "MKV",
+    "subtitleMkvSuffix": "lepszy, gdy chcesz zachować wybór ścieżki audio.",
+    "subtitleWebm": "WebM",
+    "subtitleWebmSuffix": "mniejszy, ale wolniejszy.",
+    "containerSuffix": "kontener",
+    "mp4": {
+      "blurb": "Uniwersalny. Działa wszędzie — Plex, telefony, stare telewizory."
+    },
+    "mkv": {
+      "blurb": "Wiele ścieżek. Najlepszy do multi-audio i miękkich napisów."
+    },
+    "webm": {
+      "blurb": "Otwarty kodek. Mniejsze pliki, wolniejsze kodowanie."
+    }
+  },
+  "privacy": {
+    "title": "Jedna",
+    "titleEmphasis": "obietnica.",
+    "subtitle": "Przeczytaj listę. Nie ma za nią żadnego drobnego druku.",
+    "noAccount": {
+      "title": "Żadnego konta, logowania ani e-maila",
+      "body": "MoeKoder nie wie, kim jesteś. Nie ma żadnego serwera, który mógłby to wiedzieć."
+    },
+    "noTelemetry": {
+      "title": "Zero telemetrii, zero analityki",
+      "body": "Żadnych zdarzeń, raportów awarii ani \"wskaźników użytkowania produktu\". Jedyne połączenie sieciowe to pobieranie ffmpeg, które właśnie widziałeś."
+    },
+    "noNags": {
+      "title": "Żadnych natrętnych aktualizacji",
+      "body": "Sprawdzanie aktualizacji w tle jest domyślnie wyłączone. Kliknij Ustawienia → Aktualizacje → Sprawdź, aby poszukać nowej wersji, lub włącz przełącznik, jeśli chcesz, by aplikacja robiła to sama."
+    },
+    "filesLocal": {
+      "title": "Twoje pliki zostają na dysku",
+      "body": "Każdy bajt każdego kodowania jest lokalny. Żadnego mirroru w chmurze, tymczasowego przesyłania ani \"inteligentnej pamięci podręcznej\"."
+    },
+    "sourceAvailable": {
+      "title": "Kod źródłowy dostępny · możliwy do audytu",
+      "body": "Każda linijka tego, co uruchamiasz, jest na GitHubie. Czytaj, audytuj, zgłaszaj problemy — patrz LICENSE w kwestii redystrybucji."
+    },
+    "seal": {
+      "quiet": "Zbudowany, by być",
+      "quietEmphasis": "cicho.",
+      "gone": "Zbudowany, by",
+      "goneEmphasis": "zniknąć.",
+      "pledge": "obietnica · edycja 夜"
+    },
+    "iUnderstand": "Rozumiem"
+  },
+  "done": {
+    "title": "Gotowy,",
+    "titleEmphasis": "gdy ty",
+    "titleSuffix": "będziesz gotowy.",
+    "subtitleBefore": "Wszystko skonfigurowane. Kliknij",
+    "subtitleCta": "Zacznij kodować",
+    "subtitleAfter": "i wybierz pierwsze wideo i napisy — pipeline przejmuje resztę.",
+    "chips": {
+      "encoder": "koder",
+      "preset": "profil",
+      "container": "kontener",
+      "save": "zapis",
+      "theme": "motyw"
+    },
+    "startEncoding": "Zacznij kodować"
+  }
+}

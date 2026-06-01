@@ -1,0 +1,15 @@
+{
+  "title": "Wypalamy napisy.",
+  "subtitle": "Wrzuć MKV i plik ASS — MoeKoder wypali napisy przez GPU, zanim herbata zdąży ostygnąć. Zero podglądu. Zero wyskakujących okienek.",
+  "heading": "Gotowe, kiedy <em>Ty</em> jesteś.",
+  "body": "Wybierz film, plik napisów i folder docelowy w bocznym panelu — albo po prostu upuść je na okno, a MoeKoder sam to poustawia. Nic nie opuszcza Twojego komputera, żadnych podglądów.",
+  "meta": {
+    "session": "sesja"
+  },
+  "step": {
+    "video": "wideo",
+    "subs": "napisy",
+    "output": "wyjście"
+  },
+  "ready": "wszystkie trzy · gotowe · kliknij start w panelu bocznym"
+}

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconTerminal } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { formatClockTime } from '@/lib/format';
@@ -24,6 +25,7 @@ interface EngineLogPanelProps {
  * append and shows a pulsing bullet line while the install is running.
  */
 export const EngineLogPanel = ({ log, phase, activeStage }: EngineLogPanelProps) => {
+  const { t } = useTranslation('onboarding');
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -32,26 +34,27 @@ export const EngineLogPanel = ({ log, phase, activeStage }: EngineLogPanelProps)
     el.scrollTop = el.scrollHeight;
   }, [log]);
 
+  const statusLabel =
+    phase === 'done' || phase === 'already'
+      ? t('engine.log.status.complete')
+      : phase === 'error'
+        ? t('engine.log.status.error')
+        : t('engine.log.status.running');
+
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-popover/70">
       <div className="flex items-center gap-2 border-b border-border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <IconTerminal size={13} className="text-primary" aria-hidden="true" />
-        <span>engine · install log</span>
+        <span>{t('engine.log.eyebrow')}</span>
         <div className="flex-1" />
-        <span className={cn(phase === 'error' ? 'text-bad' : 'text-primary')}>
-          {phase === 'done' || phase === 'already'
-            ? 'complete'
-            : phase === 'error'
-              ? 'error'
-              : 'running'}
-        </span>
+        <span className={cn(phase === 'error' ? 'text-bad' : 'text-primary')}>{statusLabel}</span>
       </div>
       <div
         ref={scrollRef}
         className="max-h-[240px] overflow-y-auto px-4 py-3 font-mono text-[11.5px] leading-5"
       >
         {log.length === 0 ? (
-          <div className="text-muted">Waiting for install events…</div>
+          <div className="text-muted">{t('engine.log.waiting')}</div>
         ) : (
           log.map((line, i) => (
             <div key={i} className="flex gap-3">
@@ -70,7 +73,7 @@ export const EngineLogPanel = ({ log, phase, activeStage }: EngineLogPanelProps)
             <span className="shrink-0 text-muted">{formatClockTime()}</span>
             <span className="shrink-0 uppercase tracking-[0.18em] text-primary">dl</span>
             <span className="text-foreground">
-              {activeStage.label.toLowerCase()}{' '}
+              {t(activeStage.labelKey).toLowerCase()}{' '}
               <span className="inline-block w-[0.5ch] animate-pulse">▊</span>
             </span>
           </div>

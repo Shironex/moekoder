@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, RefreshCw, X } from 'lucide-react';
 import { UPDATER_EVENT_CHANNELS } from '@moekoder/shared';
 import { Button } from '@/components/ui';
@@ -77,6 +78,7 @@ const pickProgress = (payload: unknown): number | null => {
  * new event arrives mid-countdown.
  */
 export const Updater = () => {
+  const { t } = useTranslation('updater');
   const api = useElectronAPI();
   const [phase, setPhase] = useState<UpdaterPhase>('idle');
   const [version, setVersion] = useState<string | null>(null);
@@ -195,43 +197,37 @@ export const Updater = () => {
       {/* Common header pill */}
       <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <span className="font-display text-base tracking-normal text-primary">新</span>
-        <span>{phase === 'error' ? 'update · error' : 'update · 新 · shin'}</span>
+        <span>{phase === 'error' ? t('status.error') : 'update · 新 · shin'}</span>
         <div className="flex-1" />
         <button
           type="button"
           onClick={handleDismiss}
           className="text-muted transition hover:text-foreground"
-          aria-label="Dismiss"
+          aria-label={t('dismiss')}
         >
           <X size={14} />
         </button>
       </div>
 
       {phase === 'checking' && (
-        <p className="font-mono text-[11px] text-muted-foreground">Checking for updates…</p>
+        <p className="font-mono text-[11px] text-muted-foreground">{t('status.checking')}</p>
       )}
 
       {phase === 'available' && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <b className="font-display text-base text-foreground">Update available</b>
+            <b className="font-display text-base text-foreground">{t('available.title')}</b>
             <span className="font-mono text-[11px] text-muted-foreground">
-              {version ? (
-                <>
-                  New version · <span className="text-primary">v{version}</span>
-                </>
-              ) : (
-                'A new MoeKoder release is ready to download.'
-              )}
+              {version ? t('available.newVersion', { version }) : t('available.subtitle')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="primary" size="sm" onClick={handleDownload}>
               <Download size={14} />
-              Download
+              {t('cta.download')}
             </Button>
             <Button variant="ghost" size="sm" onClick={handleDismiss}>
-              Later
+              {t('cta.later')}
             </Button>
           </div>
         </div>
@@ -240,8 +236,10 @@ export const Updater = () => {
       {phase === 'downloading' && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
-            <b className="font-display text-base text-foreground">Downloading update</b>
-            <span className="font-mono text-[11px] text-primary">{pctLabel}</span>
+            <b className="font-display text-base text-foreground">{t('downloading.title')}</b>
+            <span className="font-mono text-[11px] text-primary">
+              {t('downloading.pct', { pct: pctLabel })}
+            </span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-card">
             <div
@@ -258,31 +256,25 @@ export const Updater = () => {
       {phase === 'downloaded' && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <b className="font-display text-base text-foreground">Update ready to install</b>
+            <b className="font-display text-base text-foreground">{t('downloaded.title')}</b>
             <span className="font-mono text-[11px] text-muted-foreground">
-              MoeKoder will close, install, and reopen.
-              {version && (
-                <>
-                  {' '}
-                  <span className="text-primary">v{version}</span>
-                </>
-              )}
+              {version ? t('downloaded.subtitle', { version }) : t('downloaded.subtitleNoVersion')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="primary" size="sm" onClick={handleInstall}>
               <RefreshCw size={14} />
-              Restart & install
+              {t('cta.restartInstall')}
             </Button>
             <Button variant="ghost" size="sm" onClick={handleDismiss}>
-              Later
+              {t('cta.later')}
             </Button>
           </div>
         </div>
       )}
 
       {phase === 'error' && (
-        <p className="font-mono text-[11px] text-muted-foreground">Update check failed.</p>
+        <p className="font-mono text-[11px] text-muted-foreground">{t('status.failed')}</p>
       )}
     </div>
   );

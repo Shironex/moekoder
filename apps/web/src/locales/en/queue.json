@@ -1,0 +1,81 @@
+{
+  "title_one": "Queue. {{count}} file.",
+  "title_other": "Queue. {{count}} files.",
+  "subtitle": "Stack up your batches. MoeKoder will chew through them one by one — pause anytime, retries are automatic.",
+  "stat": {
+    "wait": "wait",
+    "live": "live",
+    "done": "done"
+  },
+  "errors_one": "{{count}} error",
+  "errors_other": "{{count}} errors",
+  "cta": {
+    "pausing_one": "Pausing… ({{count}} item finishing)",
+    "pausing_other": "Pausing… ({{count}} items finishing)",
+    "pausingTitle": "Soft-pause: in-flight encodes finish, dispatcher waits",
+    "resumeQueue": "Resume queue",
+    "resumeTitle": "Resume the dispatcher",
+    "pauseQueue": "Pause queue",
+    "startQueue": "Start queue",
+    "startSingleActive": "An encode is running on Single. Stop it first.",
+    "startNoItems": "Add at least one pair to start",
+    "startItems_one": "Encode {{count}} waiting item",
+    "startItems_other": "Encode {{count}} waiting items"
+  },
+  "addPair": "Add pair",
+  "clearDone": "Clear done",
+  "clearDoneTitle_one": "Clear {{count}} completed item",
+  "clearDoneTitle_other": "Clear {{count}} completed items",
+  "nothingToClear": "Nothing to clear",
+  "concurrency": "concurrency",
+  "concurrencyTooltip_one": "Run {{count}} encode in parallel",
+  "concurrencyTooltip_other": "Run {{count}} encodes in parallel",
+  "statusLabel": {
+    "wait": "Wait",
+    "active": "Live",
+    "done": "Done",
+    "error": "Error",
+    "cancelled": "Stopped"
+  },
+  "item": "Item {{index}}",
+  "hideLog": "Hide log",
+  "viewLog": "View log",
+  "forceStop": "Force stop this item",
+  "forceStopLabel": "Force stop",
+  "retryItem": "Retry this item",
+  "removeFromQueue": "Remove from queue",
+  "removeLabel": "Remove",
+  "confirmRemove": "Click again to confirm",
+  "confirmRemoveLabel": "Confirm remove",
+  "empty": {
+    "heading": "No items yet.",
+    "body": "Drop a video and a subtitle file onto this screen, or click below to add a pair through the picker.",
+    "cta": "Add a pair"
+  },
+  "log": {
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines",
+    "nothingToCopy": "Nothing to copy yet",
+    "copied": "Copied",
+    "copy": "Copy",
+    "copyTitle": "Copy log to clipboard",
+    "empty": "no log lines yet"
+  },
+  "sidebar": {
+    "queue": "Queue",
+    "ctaStart": "Start queue",
+    "ctaRunning": "Run waiting items",
+    "ctaPausing": "Pausing…",
+    "ctaPausingTitle_one": "Soft-pause: {{count}} item finishing",
+    "ctaPausingTitle_other": "Soft-pause: {{count}} items finishing",
+    "ctaResume": "Resume",
+    "ctaResumeTitle": "Resume the dispatcher",
+    "ctaPause": "Pause",
+    "ctaPauseTitle": "Soft-pause",
+    "ctaSingleActive": "An encode is already running on Single",
+    "ctaNoItems": "Add at least one pair to start",
+    "addPair": "Add pair",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar"
+  }
+}

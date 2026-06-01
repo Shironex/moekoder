@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { IconCheck } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { OB_CONTS, type ObContainerExt } from '../data';
@@ -12,6 +13,8 @@ interface ContainerStepProps {
  * Default is MP4 so Continue enables immediately.
  */
 export const Container = ({ value, onChange }: ContainerStepProps) => {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
@@ -23,12 +26,13 @@ export const Container = ({ value, onChange }: ContainerStepProps) => {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          Which <em className="not-italic text-primary">container?</em>
+          {t('cont.title')} <em className="not-italic text-primary">{t('cont.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          The outer format — what the file ends in. <b className="text-foreground">MP4</b> plays on
-          every device ever made. <b className="text-foreground">MKV</b> is better if you want to
-          keep your audio choices. <b className="text-foreground">WebM</b> is smaller but slower.
+          {t('cont.subtitleBefore')} <b className="text-foreground">{t('cont.subtitleMp4')}</b>{' '}
+          {t('cont.subtitleMp4Suffix')} <b className="text-foreground">{t('cont.subtitleMkv')}</b>{' '}
+          {t('cont.subtitleMkvSuffix')} <b className="text-foreground">{t('cont.subtitleWebm')}</b>{' '}
+          {t('cont.subtitleWebmSuffix')}
         </p>
       </div>
 
@@ -59,8 +63,10 @@ export const Container = ({ value, onChange }: ContainerStepProps) => {
                   {c.ext}
                 </em>
               </div>
-              <b className="font-display text-xl text-foreground">{c.name} container</b>
-              <p className="text-sm leading-relaxed text-muted-foreground">{c.blurb}</p>
+              <b className="font-display text-xl text-foreground">
+                {c.name} {t('cont.containerSuffix')}
+              </b>
+              <p className="text-sm leading-relaxed text-muted-foreground">{t(c.blurbKey)}</p>
             </button>
           );
         })}

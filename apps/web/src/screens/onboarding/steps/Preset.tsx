@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { IconCheck } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { OB_PRESETS, type ObPresetId } from '../data';
@@ -13,6 +14,8 @@ interface PresetStepProps {
  * immediately without forcing a pick.
  */
 export const Preset = ({ value, onChange }: PresetStepProps) => {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
@@ -24,12 +27,14 @@ export const Preset = ({ value, onChange }: PresetStepProps) => {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          How <em className="not-italic text-primary">fussy</em> are you?
+          {t('preset.title')}{' '}
+          <em className="not-italic text-primary">{t('preset.titleEmphasis')}</em>{' '}
+          {t('preset.titleSuffix')}
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          This is just the default — you can change it per-encode.{' '}
-          <b className="text-foreground">Balanced</b> is the right answer for ~95% of episodes. The
-          others are there for when you&apos;re not in the mood to think.
+          {t('preset.subtitleBefore')}{' '}
+          <b className="text-foreground">{t('preset.subtitleBalanced')}</b>{' '}
+          {t('preset.subtitleAfter')}
         </p>
       </div>
 
@@ -56,8 +61,8 @@ export const Preset = ({ value, onChange }: PresetStepProps) => {
               )}
 
               <span className="font-display text-5xl leading-none text-primary">{p.k}</span>
-              <b className="font-display text-2xl text-foreground">{p.name}</b>
-              <span className="text-sm leading-relaxed text-muted-foreground">{p.hint}</span>
+              <b className="font-display text-2xl text-foreground">{t(p.nameKey)}</b>
+              <span className="text-sm leading-relaxed text-muted-foreground">{t(p.hintKey)}</span>
 
               <div className="mt-1 flex w-full flex-wrap gap-2">
                 {p.specs.map(([k, v]) => (

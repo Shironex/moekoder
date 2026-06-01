@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type PageHeadScreen = 'idle' | 'encoding' | 'queue' | 'done';
 export type PageHeadRoute = 'single' | 'queue';
@@ -36,15 +37,16 @@ const SCREEN_KANJI: Record<PageHeadScreen, string> = {
  * heading scaffolding).
  */
 export const PageHead = ({ screen, route, title, subtitle, right, children }: PageHeadProps) => {
+  const { t } = useTranslation('common');
   const kanji = SCREEN_KANJI[screen];
   return (
     <div className="page-head">
       <div className="title-block">
         <div className="crumbs">
-          <span className="accent">{route === 'queue' ? 'Queue' : 'Single file'}</span>
+          <span className="accent">{route === 'queue' ? t('route.queue') : t('route.single')}</span>
           <span>/</span>
           <span>
-            {kanji} {screen}
+            {kanji} {t(`screen.${screen}`)}
           </span>
         </div>
         <h1>{title}</h1>

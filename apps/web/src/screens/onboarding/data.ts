@@ -26,9 +26,9 @@ export interface OnboardingStepMeta {
   n: string;
   /** Single-kanji sigil for the step. */
   kanji: string;
-  /** English step label shown in the rail. */
-  label: string;
-  /** Mono subtitle like "ffmpeg · 引擎". */
+  /** i18n key for the step label shown in the rail. */
+  labelKey: string;
+  /** Mono subtitle like "ffmpeg · 引擎" — decorative, left inline. */
   mono: string;
   /** Whether the step exposes a "Skip for now" footer affordance. */
   skippable: boolean;
@@ -40,15 +40,71 @@ export interface OnboardingStepMeta {
 // still run ffmpeg/GPU probes on mount, so shifting them right doesn't
 // change the timing of either IPC roundtrip.
 export const OB_STEPS: readonly OnboardingStepMeta[] = [
-  { id: 'welcome', n: '壱', kanji: '迎', label: 'Welcome', mono: 'intro · 挨拶', skippable: false },
-  { id: 'theme', n: '弐', kanji: '色', label: 'Theme', mono: 'look · 色', skippable: true },
-  { id: 'engine', n: '参', kanji: '引', label: 'Engine', mono: 'ffmpeg · 引擎', skippable: false },
-  { id: 'hw', n: '肆', kanji: '核', label: 'Hardware', mono: 'gpu · 核', skippable: false },
-  { id: 'preset', n: '伍', kanji: '設', label: 'Preset', mono: 'quality · 設', skippable: true },
-  { id: 'save', n: '陸', kanji: '箱', label: 'Save to', mono: 'output · 保存', skippable: true },
-  { id: 'cont', n: '漆', kanji: '器', label: 'Container', mono: 'format · 器', skippable: true },
-  { id: 'privacy', n: '捌', kanji: '静', label: 'Privacy', mono: 'quiet · 静', skippable: false },
-  { id: 'done', n: '玖', kanji: '始', label: 'Get started', mono: 'finish · 始', skippable: false },
+  {
+    id: 'welcome',
+    n: '壱',
+    kanji: '迎',
+    labelKey: 'steps.welcome',
+    mono: 'intro · 挨拶',
+    skippable: false,
+  },
+  {
+    id: 'theme',
+    n: '弐',
+    kanji: '色',
+    labelKey: 'steps.theme',
+    mono: 'look · 色',
+    skippable: true,
+  },
+  {
+    id: 'engine',
+    n: '参',
+    kanji: '引',
+    labelKey: 'steps.engine',
+    mono: 'ffmpeg · 引擎',
+    skippable: false,
+  },
+  { id: 'hw', n: '肆', kanji: '核', labelKey: 'steps.hw', mono: 'gpu · 核', skippable: false },
+  {
+    id: 'preset',
+    n: '伍',
+    kanji: '設',
+    labelKey: 'steps.preset',
+    mono: 'quality · 設',
+    skippable: true,
+  },
+  {
+    id: 'save',
+    n: '陸',
+    kanji: '箱',
+    labelKey: 'steps.save',
+    mono: 'output · 保存',
+    skippable: true,
+  },
+  {
+    id: 'cont',
+    n: '漆',
+    kanji: '器',
+    labelKey: 'steps.cont',
+    mono: 'format · 器',
+    skippable: true,
+  },
+  {
+    id: 'privacy',
+    n: '捌',
+    kanji: '静',
+    labelKey: 'steps.privacy',
+    mono: 'quiet · 静',
+    skippable: false,
+  },
+  {
+    id: 'done',
+    n: '玖',
+    kanji: '始',
+    labelKey: 'steps.done',
+    mono: 'finish · 始',
+    skippable: false,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -59,22 +115,24 @@ export interface DlStage {
   id: 'resolve' | 'ffmpeg' | 'ffprobe' | 'verify' | 'install';
   /** Kanji glyph shown inside the stage node. */
   k: string;
-  label: string;
-  sub: string;
+  /** i18n key for the stage label. */
+  labelKey: string;
+  /** i18n key for the sub/secondary label. */
+  subKey: string;
   /** Approximate download size in megabytes. `null` for non-network stages. */
   size: number | null;
 }
 
 export const DL_STAGES: readonly DlStage[] = [
-  { id: 'resolve', k: '尋', label: 'Resolve mirror', sub: 'github releases', size: null },
-  { id: 'ffmpeg', k: '録', label: 'Download ffmpeg.exe', sub: 'BtbN · n8.1', size: 88.4 },
-  { id: 'ffprobe', k: '測', label: 'Download ffprobe.exe', sub: 'BtbN · n8.1', size: 88.1 },
-  { id: 'verify', k: '印', label: 'Verify SHA-256', sub: 'tamper check', size: null },
+  { id: 'resolve', k: '尋', labelKey: 'dl.resolve.label', subKey: 'dl.resolve.sub', size: null },
+  { id: 'ffmpeg', k: '録', labelKey: 'dl.ffmpeg.label', subKey: 'dl.ffmpeg.sub', size: 88.4 },
+  { id: 'ffprobe', k: '測', labelKey: 'dl.ffprobe.label', subKey: 'dl.ffprobe.sub', size: 88.1 },
+  { id: 'verify', k: '印', labelKey: 'dl.verify.label', subKey: 'dl.verify.sub', size: null },
   {
     id: 'install',
     k: '置',
-    label: 'Install to AppData',
-    sub: '%LOCALAPPDATA%\\MoeKoder\\bin',
+    labelKey: 'dl.install.label',
+    subKey: 'dl.install.sub',
     size: null,
   },
 ] as const;
@@ -178,8 +236,10 @@ export type ObPresetId = 'fast' | 'balanced' | 'pristine';
 export interface ObPreset {
   id: ObPresetId;
   k: string;
-  name: string;
-  hint: string;
+  /** i18n key for the display name. */
+  nameKey: string;
+  /** i18n key for the hint text. */
+  hintKey: string;
   specs: ReadonlyArray<readonly [string, string]>;
 }
 
@@ -187,8 +247,8 @@ export const OB_PRESETS: readonly ObPreset[] = [
   {
     id: 'fast',
     k: '速',
-    name: 'Fast',
-    hint: 'Quick drafts — watch tonight, delete tomorrow.',
+    nameKey: 'preset.fast.name',
+    hintKey: 'preset.fast.hint',
     specs: [
       ['ffmpeg', 'p2'],
       ['cq', '23'],
@@ -198,8 +258,8 @@ export const OB_PRESETS: readonly ObPreset[] = [
   {
     id: 'balanced',
     k: '均',
-    name: 'Balanced',
-    hint: 'The everyday setting. 95% of the quality at 40% of the bitrate.',
+    nameKey: 'preset.balanced.name',
+    hintKey: 'preset.balanced.hint',
     specs: [
       ['ffmpeg', 'p4'],
       ['cq', '19'],
@@ -209,8 +269,8 @@ export const OB_PRESETS: readonly ObPreset[] = [
   {
     id: 'pristine',
     k: '極',
-    name: 'Pristine',
-    hint: 'Archival rips for the kept folder. Leave the kettle on twice.',
+    nameKey: 'preset.pristine.name',
+    hintKey: 'preset.pristine.hint',
     specs: [
       ['ffmpeg', 'p7'],
       ['cq', '16'],
@@ -228,7 +288,8 @@ export type ObSaveId = 'moekoder' | 'same' | 'subbed' | 'custom';
 export interface ObSave {
   id: ObSaveId;
   k: string;
-  label: string;
+  /** i18n key for the label. */
+  labelKey: string;
   /** Example path string — `null` for the custom option (user picks). */
   path: string | null;
 }
@@ -237,25 +298,25 @@ export const OB_SAVES: readonly ObSave[] = [
   {
     id: 'moekoder',
     k: '隣',
-    label: 'Beside source · in ./moekoder/',
+    labelKey: 'save.moekoder.label',
     path: '<source-folder>/moekoder/',
   },
   {
     id: 'same',
     k: '同',
-    label: 'Same folder as source',
+    labelKey: 'save.same.label',
     path: '<source-folder>/',
   },
   {
     id: 'subbed',
     k: '済',
-    label: 'A dedicated "subbed" folder',
+    labelKey: 'save.subbed.label',
     path: '<source-folder>/subbed/',
   },
   {
     id: 'custom',
     k: '択',
-    label: "Custom path — I'll pick",
+    labelKey: 'save.custom.label',
     path: null,
   },
 ] as const;
@@ -269,11 +330,12 @@ export type ObContainerExt = 'mp4' | 'mkv' | 'webm';
 export interface ObContainer {
   ext: ObContainerExt;
   name: string;
-  blurb: string;
+  /** i18n key for the blurb text. */
+  blurbKey: string;
 }
 
 export const OB_CONTS: readonly ObContainer[] = [
-  { ext: 'mp4', name: 'MP4', blurb: 'Universal. Plays everywhere — Plex, phones, old TVs.' },
-  { ext: 'mkv', name: 'MKV', blurb: 'Many tracks. Best for multi-audio & soft-subs.' },
-  { ext: 'webm', name: 'WebM', blurb: 'Open codec. Smaller files, slower encode.' },
+  { ext: 'mp4', name: 'MP4', blurbKey: 'cont.mp4.blurb' },
+  { ext: 'mkv', name: 'MKV', blurbKey: 'cont.mkv.blurb' },
+  { ext: 'webm', name: 'WebM', blurbKey: 'cont.webm.blurb' },
 ] as const;

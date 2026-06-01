@@ -1,0 +1,23 @@
+{
+  "title": "Encoding. Stay cozy.",
+  "status": {
+    "live": "live · ffmpeg",
+    "transcoding": "transcoding",
+    "waitingIdle": "waiting · stderr idle"
+  },
+  "logLines_one": "{{count}} line",
+  "logLines_other": "{{count}} lines",
+  "log": {
+    "collapse": "Collapse log",
+    "expand": "Expand log"
+  },
+  "file": {
+    "burning": "↓ burning ↓"
+  },
+  "metric": {
+    "fps": "FPS",
+    "speed": "Speed",
+    "bitrate": "Bitrate",
+    "elapsed": "Elapsed"
+  }
+}
