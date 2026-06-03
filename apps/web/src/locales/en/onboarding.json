@@ -243,7 +243,7 @@
     "subtitleMkvSuffix": "is better if you want to keep your audio choices.",
     "subtitleWebm": "WebM",
     "subtitleWebmSuffix": "is smaller but slower.",
-    "containerSuffix": "container",
+    "containerLabel": "{{name}} container",
     "mp4": {
       "blurb": "Universal. Plays everywhere — Plex, phones, old TVs."
     },

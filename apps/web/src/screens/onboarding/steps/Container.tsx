@@ -64,7 +64,7 @@ export const Container = ({ value, onChange }: ContainerStepProps) => {
                 </em>
               </div>
               <b className="font-display text-xl text-foreground">
-                {c.name} {t('cont.containerSuffix')}
+                {t('cont.containerLabel', { name: c.name })}
               </b>
               <p className="text-sm leading-relaxed text-muted-foreground">{t(c.blurbKey)}</p>
             </button>
