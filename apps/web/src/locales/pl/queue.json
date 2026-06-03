@@ -55,6 +55,7 @@
   "forceStop": "Wymuś zatrzymanie",
   "forceStopLabel": "Wymuś zatrzymanie",
   "retryItem": "Ponów ten element",
+  "retryLabel": "Ponów",
   "removeFromQueue": "Usuń z kolejki",
   "removeLabel": "Usuń",
   "confirmRemove": "Kliknij ponownie, aby potwierdzić",

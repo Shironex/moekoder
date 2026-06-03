@@ -222,7 +222,7 @@ export const QueueCard = ({
               type="button"
               onClick={() => onRetry(item.id)}
               title={t('retryItem')}
-              aria-label={t('retry', { ns: 'common' })}
+              aria-label={t('retryLabel')}
               className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-primary/60 hover:text-primary"
             >
               <IconPlay size={12} />

@@ -43,6 +43,7 @@
   "forceStop": "Force stop this item",
   "forceStopLabel": "Force stop",
   "retryItem": "Retry this item",
+  "retryLabel": "Retry",
   "removeFromQueue": "Remove from queue",
   "removeLabel": "Remove",
   "confirmRemove": "Click again to confirm",
