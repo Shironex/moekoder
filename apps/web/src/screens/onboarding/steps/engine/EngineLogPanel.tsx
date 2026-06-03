@@ -73,7 +73,7 @@ export const EngineLogPanel = ({ log, phase, activeStage }: EngineLogPanelProps)
             <span className="shrink-0 text-muted">{formatClockTime()}</span>
             <span className="shrink-0 uppercase tracking-[0.18em] text-primary">dl</span>
             <span className="text-foreground">
-              {t(activeStage.labelKey).toLowerCase()}{' '}
+              {t(activeStage.labelKey)}{' '}
               <span className="inline-block w-[0.5ch] animate-pulse">▊</span>
             </span>
           </div>
