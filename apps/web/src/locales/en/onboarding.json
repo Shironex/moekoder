@@ -94,7 +94,7 @@
       "subtitleSize": "~180 MB",
       "subtitleNeverAgain": ", then never again.",
       "willInstall": "What we'll install",
-      "destination": "destination · %LOCALAPPDATA%\\moekoder\\bin",
+      "destination": "destination · %LOCALAPPDATA%\\Moekoder\\bin",
       "ffmpegDesc": "· encodes video, burns subtitles",
       "ffprobeDesc": "· reads duration, streams, attachments",
       "shaDesc": "· tamper check before install",
@@ -153,7 +153,7 @@
     },
     "install": {
       "label": "Install to AppData",
-      "sub": "%LOCALAPPDATA%\\MoeKoder\\bin"
+      "sub": "%LOCALAPPDATA%\\Moekoder\\bin"
     }
   },
   "hw": {

@@ -94,7 +94,7 @@
       "subtitleSize": "~180 MB",
       "subtitleNeverAgain": ", potem nigdy więcej.",
       "willInstall": "Co zainstalujemy",
-      "destination": "cel · %LOCALAPPDATA%\\moekoder\\bin",
+      "destination": "cel · %LOCALAPPDATA%\\Moekoder\\bin",
       "ffmpegDesc": "· koduje wideo, wypala napisy",
       "ffprobeDesc": "· odczytuje czas trwania, ścieżki, załączniki",
       "shaDesc": "· weryfikacja przed instalacją",
@@ -153,7 +153,7 @@
     },
     "install": {
       "label": "Instalacja do AppData",
-      "sub": "%LOCALAPPDATA%\\MoeKoder\\bin"
+      "sub": "%LOCALAPPDATA%\\Moekoder\\bin"
     }
   },
   "hw": {
