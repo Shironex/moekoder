@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { QueueItem } from '@moekoder/shared';
 import { IconChevronDown, IconClose, IconPlay, IconStop } from '@/components/ui/icons';
 import { useQueueStore, selectItemProgress } from '@/stores/useQueueStore';
@@ -40,11 +41,11 @@ interface QueueCardProps {
 }
 
 const STATUS_LABEL: Record<QueueItem['status'], string> = {
-  wait: 'Wait',
-  active: 'Live',
-  done: 'Done',
-  error: 'Error',
-  cancelled: 'Stopped',
+  wait: 'statusLabel.wait',
+  active: 'statusLabel.active',
+  done: 'statusLabel.done',
+  error: 'statusLabel.error',
+  cancelled: 'statusLabel.cancelled',
 };
 
 /**
@@ -71,6 +72,8 @@ export const QueueCard = ({
   expanded,
   onToggleExpand,
 }: QueueCardProps) => {
+  const { t } = useTranslation('queue');
+
   // Subscribe to this item's progress with a TARGETED selector so a tick on
   // item B doesn't re-render item A's card. Same pattern that v0.1 added
   // to useEncodeStore.
@@ -118,7 +121,7 @@ export const QueueCard = ({
             'flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-border font-display text-xl',
             isActive ? 'border-primary/50 text-primary' : 'text-foreground/70'
           )}
-          title={`Item ${index + 1}`}
+          title={t('item', { index: index + 1 })}
         >
           {formatPosition(index)}
         </div>
@@ -180,7 +183,7 @@ export const QueueCard = ({
             STATUS_TONE[item.status]
           )}
         >
-          {STATUS_LABEL[item.status]}
+          {t(STATUS_LABEL[item.status])}
         </span>
 
         {/* Actions */}
@@ -188,8 +191,8 @@ export const QueueCard = ({
           <button
             type="button"
             onClick={() => onToggleExpand(item.id)}
-            title={expanded ? 'Hide log' : 'View log'}
-            aria-label={expanded ? 'Hide log' : 'View log'}
+            title={expanded ? t('hideLog') : t('viewLog')}
+            aria-label={expanded ? t('hideLog') : t('viewLog')}
             aria-expanded={expanded}
             className={cn(
               'flex h-7 w-7 items-center justify-center rounded-sm border transition',
@@ -207,8 +210,8 @@ export const QueueCard = ({
             <button
               type="button"
               onClick={() => onCancel(item.id)}
-              title="Force stop this item"
-              aria-label="Force stop"
+              title={t('forceStop')}
+              aria-label={t('forceStopLabel')}
               className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-destructive/60 hover:text-destructive"
             >
               <IconStop size={12} />
@@ -218,8 +221,8 @@ export const QueueCard = ({
             <button
               type="button"
               onClick={() => onRetry(item.id)}
-              title="Retry this item"
-              aria-label="Retry"
+              title={t('retryItem')}
+              aria-label={t('retryLabel')}
               className="flex h-7 w-7 items-center justify-center rounded-sm border border-border text-muted transition hover:border-primary/60 hover:text-primary"
             >
               <IconPlay size={12} />
@@ -237,8 +240,8 @@ export const QueueCard = ({
                   window.setTimeout(() => setConfirmRemove(false), 2200);
                 }
               }}
-              title={confirmRemove ? 'Click again to confirm' : 'Remove from queue'}
-              aria-label={confirmRemove ? 'Confirm remove' : 'Remove'}
+              title={confirmRemove ? t('confirmRemove') : t('removeFromQueue')}
+              aria-label={confirmRemove ? t('confirmRemoveLabel') : t('removeLabel')}
               className={cn(
                 'flex h-7 w-7 items-center justify-center rounded-sm border text-muted transition',
                 confirmRemove

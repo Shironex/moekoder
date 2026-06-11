@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useQueueStore, selectStats } from '@/stores/useQueueStore';
 import { useElectronAPI, useFilePicks, useQueueDrag, useSetting } from '@/hooks';
@@ -29,6 +30,7 @@ interface QueueScreenProps {
  * a single drag.
  */
 export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
+  const { t } = useTranslation('queue');
   const api = useElectronAPI();
   const items = useQueueStore(s => s.items);
   const running = useQueueStore(s => s.running);
@@ -152,19 +154,17 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
         <PageHead
           screen="queue"
           route="queue"
-          title={`Queue. ${items.length} ${items.length === 1 ? 'file' : 'files'}.`}
-          subtitle="Stack up your batches. MoeKoder will chew through them one by one — pause anytime, retries are automatic."
+          title={t('title', { count: items.length })}
+          subtitle={t('subtitle')}
           right={
             <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
               <span>
-                wait <span className="text-foreground">{stats.wait}</span> · live{' '}
-                <span className="text-foreground">{stats.active}</span> · done{' '}
-                <span className="text-foreground">{stats.done}</span>
+                {t('stat.wait')} <span className="text-foreground">{stats.wait}</span> ·{' '}
+                {t('stat.live')} <span className="text-foreground">{stats.active}</span> ·{' '}
+                {t('stat.done')} <span className="text-foreground">{stats.done}</span>
               </span>
               {stats.error > 0 && (
-                <span className="text-destructive">
-                  {stats.error} error{stats.error === 1 ? '' : 's'}
-                </span>
+                <span className="text-destructive">{t('errors', { count: stats.error })}</span>
               )}
             </div>
           }
@@ -206,6 +206,7 @@ export const QueueScreen = ({ onAddPair }: QueueScreenProps) => {
       </section>
     ),
     [
+      t,
       items,
       stats,
       running,

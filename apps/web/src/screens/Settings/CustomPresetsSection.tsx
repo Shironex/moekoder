@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useSetting } from '@/hooks';
@@ -29,6 +30,7 @@ const MAX_NAME_LEN = 40;
  * doc; v0.4 only supports save/apply/delete in-app.
  */
 export const CustomPresetsSection = () => {
+  const { t } = useTranslation('settings');
   const [encoding, setEncoding] = useSetting('encoding');
   const [presets, setPresets] = useSetting('customPresets');
   const [draftName, setDraftName] = useState('');
@@ -75,10 +77,10 @@ export const CustomPresetsSection = () => {
       {/* Save form */}
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex min-w-[220px] flex-1 flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Save current as preset</span>
-          <span className="text-[12px] text-muted-foreground">
-            Captures whatever's set in the Encoding section above. Survives an app restart.
+          <span className="font-display text-sm text-foreground">
+            {t('presets.saveForm.label')}
           </span>
+          <span className="text-[12px] text-muted-foreground">{t('presets.saveForm.desc')}</span>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -86,8 +88,8 @@ export const CustomPresetsSection = () => {
             value={draftName}
             onChange={e => setDraftName(e.target.value.slice(0, MAX_NAME_LEN))}
             maxLength={MAX_NAME_LEN}
-            placeholder="My preset"
-            aria-label="Preset name"
+            placeholder={t('presets.namePlaceholder')}
+            aria-label={t('presets.nameAriaLabel')}
             className="w-[200px] rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
           />
           <Button
@@ -97,16 +99,16 @@ export const CustomPresetsSection = () => {
             disabled={!canSave}
             title={
               atCap
-                ? `Cap reached: ${MAX_PRESETS} presets max`
+                ? t('presets.tooltip.capReached', { max: MAX_PRESETS })
                 : nameClash
-                  ? 'A preset with that name already exists'
+                  ? t('presets.tooltip.nameClash')
                   : trimmedName.length === 0
-                    ? 'Name required'
-                    : 'Save preset'
+                    ? t('presets.tooltip.nameRequired')
+                    : t('presets.tooltip.save')
             }
           >
             <Plus size={14} />
-            Save
+            {t('save', { ns: 'common' })}
           </Button>
         </div>
       </div>
@@ -114,7 +116,7 @@ export const CustomPresetsSection = () => {
       {/* List */}
       {list.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-popover/20 px-4 py-6 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-          no saved presets yet
+          {t('presets.empty')}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -136,11 +138,11 @@ export const CustomPresetsSection = () => {
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={() => onApply(preset)}>
                     <Upload size={14} />
-                    Apply
+                    {t('presets.applyBtn')}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => onDelete(preset.id)}>
                     <Trash2 size={14} />
-                    Delete
+                    {t('presets.deleteBtn')}
                   </Button>
                 </div>
               </li>

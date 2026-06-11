@@ -1,0 +1,217 @@
+{
+  "pageTitle": "Ustawienia",
+  "app": {
+    "languageTitle": "Język",
+    "languageDesc": "Wybierz język interfejsu. Zmiana obowiązuje od razu."
+  },
+  "appearance": {
+    "title": "Wygląd",
+    "desc": "Sześć motywów — każdy zaczerpnięty z japońskich nazw kolorów. Zmiany działają natychmiast."
+  },
+  "onboarding": {
+    "title": "Odtwórz pierwsze uruchomienie",
+    "desc": "Przejdź ponownie przez kreator pierwszego uruchomienia i wybierz ustawienia domyślne. Obecne ustawienia są zachowane aż do zakończenia kreatora.",
+    "replayBtn": "Odtwórz pierwsze uruchomienie"
+  },
+  "ffmpeg": {
+    "title": "Silnik FFmpeg",
+    "desc": "MoeKoder dołącza ffmpeg i ffprobe do katalogu danych użytkownika. Przeinstaluj, jeśli pliki binarne wyglądają na uszkodzone lub chcesz świeżą kopię.",
+    "statusChecking": "sprawdzam…",
+    "statusInstalled": "zainstalowano",
+    "statusNotInstalled": "niezainstalowany",
+    "statusNoVersion": "nie znaleziono pliku",
+    "reinstalling": "Instaluję ponownie…",
+    "reinstallBtn": "Przeinstaluj ffmpeg"
+  },
+  "logs": {
+    "title": "Logi",
+    "desc": "Otwórz folder z logami w menedżerze plików. Przydatne przy zgłaszaniu błędu — spakuj folder i dołącz go.",
+    "openBtn": "Otwórz folder z logami"
+  },
+  "encoding": {
+    "title": "Kodowanie",
+    "desc": "Kodek, enkoder sprzętowy i parametry jakości dla każdego kodowania. Użyj szybkich trybów Szybki/Zrównoważony/Nieskazitelny dla rozsądnych ustawień; dopasuj CQ i profile dla szczegółowej kontroli.",
+    "codec": {
+      "label": "Kodek",
+      "hint": "H.264 ma największą zgodność. HEVC oszczędza ~40% rozmiaru, AV1 ~50%.",
+      "ariaLabel": "Kodek wideo"
+    },
+    "hwEncoder": {
+      "label": "Enkoder",
+      "hint": "Enkodery sprzętowe są szybsze; enkodery programowe dają dokładniejszą kontrolę jakości. Opcje NVENC są wyłączone, gdy GPU nie zgłasza enkodera.",
+      "ariaLabel": "Enkoder sprzętowy"
+    },
+    "tier": {
+      "label": "Poziom jakości",
+      "hint": "Profile jednym kliknięciem dla każdego kodeka. Szybki = podgląd, Zrównoważony = domyślny dla anime, Nieskazitelny = maksymalna jakość.",
+      "ariaLabel": "Poziom jakości"
+    },
+    "cq": {
+      "label": "Jakość (CQ)",
+      "hint": "Niżej = lepiej. Zakres {{min}}–{{max}} dla bieżącego enkodera.",
+      "ariaLabel": "Wartość stałej jakości"
+    },
+    "nvencPreset": {
+      "label": "Profil NVENC",
+      "hint": "Wyższe numery = wolniej + lepsza jakość. Optymalne archiwizowanie anime to p4–p7.",
+      "ariaLabel": "Profil NVENC"
+    },
+    "libx265Preset": {
+      "label": "Profil libx265",
+      "hint": "Wolniejsze profile dają lepszą kompresję kosztem czasu kodowania.",
+      "ariaLabel": "Profil libx265"
+    },
+    "svtPreset": {
+      "label": "Profil SVT-AV1",
+      "hint": "0 = najwyższa jakość / najwolniej, 13 = najszybciej. Archiwizacja anime najlepiej wychodzi przy 4–8.",
+      "ariaLabel": "Profil SVT-AV1"
+    },
+    "tenBit": {
+      "label": "Wyjście 10-bitowe (main10)",
+      "desc": "Kodowania HEVC + AV1 main10 lepiej zachowują szczegóły w ciemnych scenach. Trochę wolniej; powszechnie obsługiwane przez nowoczesne odtwarzacze."
+    },
+    "container": {
+      "label": "Kontener",
+      "hint": "MP4 działa wszędzie; MKV zachowuje pełen zestaw funkcji i obsługuje kopiowanie strumienia dowolnego kodeka audio.",
+      "ariaLabel": "Kontener wyjściowy"
+    },
+    "mux": {
+      "label": "Tylko muksowanie (miękkie napisy)",
+      "desc": "Bez wypalania — kopiuj strumień wideo i audio, a napisy dodaj jako osobną, wybieralną ścieżkę. Kończy się w kilka sekund (bez ponownego kodowania). Wymusza kontener MKV; kodek i ustawienia jakości powyżej są ignorowane, gdy ta opcja jest włączona.",
+      "trackLangLabel": "Język ścieżki",
+      "trackLangPlaceholder": "auto (np. pol)",
+      "trackLangAriaLabel": "Kod języka muksowanej ścieżki napisów",
+      "trackLangHint": "Kod ISO-639-2 (eng, pol, jpn), którym odtwarzacz opisuje ścieżkę. Zostaw puste, by wykryć automatycznie z sufiksu pliku napisów (np. <0>.pl.ass</0> → pol).",
+      "mp4Warning": "MP4 nie obsługuje miękkich napisów <0>.ass</0> — plik wyjściowy zostanie zapisany jako MKV."
+    },
+    "benchmark": {
+      "label": "Benchmark",
+      "desc": "Koduje 10-sekundową próbkę względem trzech profili kandydatów i porównuje rozmiar, czas oraz PSNR. Wyniki obowiązują tylko w tej sesji.",
+      "runBtn": "Uruchom benchmark"
+    },
+    "hw": {
+      "detectingGpu": "Wykrywam GPU…",
+      "noQsv": "Nie wykryto enkodera Intel QSV",
+      "noNvenc": "Nie wykryto enkodera NVENC",
+      "noAv1Nvenc": "AV1 NVENC wymaga GPU RTX serii 40",
+      "noHevcNvenc": "HEVC NVENC niedostępny na tym GPU",
+      "noH264Nvenc": "H.264 NVENC niedostępny"
+    }
+  },
+  "fonts": {
+    "title": "Osadzone czcionki",
+    "desc": "Gdy źródłem jest plik MKV z dołączonymi czcionkami (domyślny format fansub), MoeKoder wypakowuje je do tymczasowego katalogu i przekazuje ścieżkę do libass — dzięki temu typesetting \\fn(CustomFont) renderuje się zgodnie z zamysłem twórcy. Wyłączone ⇒ libass korzysta wyłącznie z czcionek systemowych.",
+    "checkboxLabel": "Używaj osadzonych czcionek (zalecane)",
+    "checkboxDesc": "Domyślnie włączone. Czcionki są usuwane po każdym kodowaniu — nic nie zostaje na dysku. Wyłącz, jeśli wolisz, by każdy napis renderował się Arialem."
+  },
+  "queue": {
+    "title": "Kolejka",
+    "desc": "Ustawienia potoku wsadowego. Współbieżność odzwierciedla kontrolkę na ekranie Kolejki — obie strony zapisują do electron-store, więc zmiany z każdej strony są trwałe.",
+    "concurrency": {
+      "label": "Współbieżność",
+      "hint": "Ile kodowań działa równolegle. Odzwierciedla kontrolkę na ekranie Kolejki. Wartość domyślna 1 zachowuje gwarancję jednego kodowania jednocześnie w trybie Pojedynczy.",
+      "ariaLabel": "Współbieżność kolejki"
+    },
+    "maxRetries": {
+      "label": "Maksymalne ponowienia",
+      "hint": "Ile razy nieudany element ponawia próbę przed poddaniem się. Łączna liczba prób = {{totalAttempts}}.",
+      "ariaLabel": "Maksymalna liczba ponowień na element"
+    },
+    "backoff": {
+      "label": "Opóźnienie ponowienia",
+      "hint": "Oczekiwanie między próbami. Podwaja się przy każdym ponowieniu: {{a}}s → {{b}}s → {{c}}s…",
+      "ariaLabel": "Bazowe opóźnienie ponowienia w sekundach"
+    },
+    "notify": {
+      "label": "Powiadom, gdy kolejka skończy",
+      "desc": "Wyświetl powiadomienie pulpitu, gdy kolejka się opróżni — możesz odejść i wiedzieć, kiedy wrócić."
+    },
+    "defaultRoute": {
+      "label": "Domyślny ekran przy uruchomieniu",
+      "hint": "Zakładkę, którą MoeKoder otwiera przy starcie. Wybierz Kolejkę, jeśli głównie przetwarzasz wsadowo.",
+      "ariaLabel": "Domyślny ekran przy uruchomieniu",
+      "single": "Pojedynczy",
+      "queue": "Kolejka"
+    }
+  },
+  "updates": {
+    "title": "Aktualizacje",
+    "desc": "MoeKoder nie kontaktuje się z siecią, dopóki nie klikniesz Sprawdź — to obietnica. Włącz poniżej, jeśli wolisz, by aplikacja sprawdzała w tle (raz 5 s po uruchomieniu, potem co godzinę).",
+    "autoCheck": {
+      "label": "Sprawdzaj aktualizacje automatycznie",
+      "desc": "Domyślnie wyłączone. Gdy włączone, MoeKoder odpytuje GitHub Releases przy starcie i raz na godzinę. Aktualizacje nigdy nie są instalowane bez Twojego kliknięcia."
+    },
+    "statusLabel": "status",
+    "checkBtn": "Sprawdź aktualizacje teraz",
+    "checking": "Sprawdzam…",
+    "chip": {
+      "idle": "brak sprawdzeń w tej sesji",
+      "checking": "sprawdzam…",
+      "upToDate": "masz najnowszą wersję",
+      "available": "dostępna aktualizacja · v{{version}}",
+      "availableNoVersion": "dostępna aktualizacja",
+      "downloaded": "gotowe do instalacji · v{{version}}",
+      "downloadedNoVersion": "gotowe do instalacji",
+      "error": "ostatnie sprawdzenie nie powiodło się"
+    }
+  },
+  "about": {
+    "title": "O MoeKoder",
+    "desc": "Wersja, build, podziękowania i linki do reszty Shiro Suite.",
+    "btn": "O MoeKoder"
+  },
+  "version": {
+    "title": "Wersja i źródło",
+    "appLabel": "aplikacja",
+    "githubBtn": "Zobacz repozytorium na GitHub"
+  },
+  "presets": {
+    "title": "Własne ustawienia wstępne",
+    "desc": "Zapisz bieżący profil kodowania pod nazwą i zastosuj go później jednym kliknięciem. Do 20 profili; nazwy muszą być unikalne. Przetrwają restart aplikacji.",
+    "saveForm": {
+      "label": "Zapisz bieżące ustawienia jako profil",
+      "desc": "Zachowuje to, co jest ustawione w sekcji Kodowanie powyżej. Przetrwa restart aplikacji."
+    },
+    "namePlaceholder": "Mój profil",
+    "nameAriaLabel": "Nazwa profilu",
+    "applyBtn": "Zastosuj",
+    "deleteBtn": "Usuń",
+    "empty": "brak zapisanych profili",
+    "tooltip": {
+      "capReached": "Osiągnięto limit: maksymalnie {{max}} profili",
+      "nameClash": "Profil o tej nazwie już istnieje",
+      "nameRequired": "Nazwa jest wymagana",
+      "save": "Zapisz profil"
+    }
+  },
+  "benchmark": {
+    "title": "Kandydaci do benchmarku",
+    "ariaLabel": "Benchmark",
+    "body": "Koduje 10-sekundową próbkę wybranego wideo dla każdego kandydata, mierząc rozmiar wyjściowy, czas kodowania i PSNR. Wybierz charakterystyczną scenę — przejścia między jednolitymi kolorami lub szybki ruch najlepiej uwidaczniają różnice.",
+    "candidatesLabel": "kandydaci",
+    "closeBtn": "Zamknij",
+    "runBtn": "Uruchom benchmark",
+    "running": "Trwa…",
+    "progress": "Kandydat {{index}} z {{total}} · {{phase}}",
+    "filePick": {
+      "video": "Wideo",
+      "subtitles": "Napisy",
+      "notPicked": "nie wybrano",
+      "pick": "Wybierz",
+      "change": "Zmień"
+    },
+    "phase": {
+      "pending": "w kolejce",
+      "encoding": "kodowanie…",
+      "measuringPsnr": "obliczam PSNR…",
+      "done": "gotowe",
+      "error": "błąd"
+    },
+    "table": {
+      "candidate": "Kandydat",
+      "size": "Rozmiar",
+      "time": "Czas",
+      "psnr": "PSNR"
+    }
+  }
+}

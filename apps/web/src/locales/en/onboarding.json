@@ -1,0 +1,306 @@
+{
+  "layout": {
+    "setupInProgress": "setup in progress",
+    "gettingSetUp": "Getting set up",
+    "stepOf": "step {{current}} of {{total}}",
+    "windowControls": {
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "close": "Close"
+    }
+  },
+  "footer": {
+    "skipForNow": "Skip for now",
+    "continue": "Continue",
+    "finishSetup": "Finish setup",
+    "startEncoding": "Start encoding",
+    "downloading": "Downloading…"
+  },
+  "steps": {
+    "welcome": "Welcome",
+    "theme": "Theme",
+    "engine": "Engine",
+    "hw": "Hardware",
+    "preset": "Preset",
+    "save": "Save to",
+    "cont": "Container",
+    "privacy": "Privacy",
+    "done": "Get started"
+  },
+  "welcome": {
+    "languageLabel": "Language",
+    "title": {
+      "greeting": "Welcome.",
+      "kettle": "The kettle's on."
+    },
+    "subtitleIntro": "MoeKoder is a tiny desktop app that burns subtitles into video files —",
+    "subtitleEmphasis": "one MKV, one ASS, one MP4 out the other side",
+    "subtitleTrail": "Takes about ninety seconds to set up, then it's out of your way. Here's what you're getting into.",
+    "bullets": {
+      "burns": {
+        "title": "Burns",
+        "titleSuffix": "subtitles into video",
+        "body": "One MKV + one ASS → one MP4, with the subs baked into the pixels. No external font packs needed on the receiving end."
+      },
+      "gpu": {
+        "titlePrefix": "Uses your",
+        "title": "GPU",
+        "body": "NVENC, Quick Sync, or AMF — whichever you have. 6–12× real-time on a modern card. Your CPU stays free."
+      },
+      "quiet": {
+        "titlePrefix": "Goes",
+        "title": "quiet",
+        "titleSuffix": "when done",
+        "body": "No sign-in, no cloud, no telemetry. Launches into a dark window, does one job, disappears from your notifications."
+      }
+    },
+    "seal": {
+      "eyebrow": "持 · bring your own",
+      "titlePrefix": "Bring",
+      "titleSuffix": "your own files.",
+      "bodyBefore": "MoeKoder ships with no video, no subs, no content — and never will. You point it at files",
+      "bodyEmphasis": "you already own",
+      "bodyAfter": ", it hands back a burned copy. That's the whole deal."
+    },
+    "needs": {
+      "eyebrow": "what you'll need",
+      "disk": "~180 MB free disk",
+      "diskSuffix": "for the ffmpeg + ffprobe binaries (one-time download)",
+      "network": "A network connection",
+      "networkSuffix": "for that first fetch — after that, every byte stays local",
+      "time": "A minute or two",
+      "timeSuffix": "to pick your defaults"
+    }
+  },
+  "theme": {
+    "title": "Pick a",
+    "titleEmphasis": "mood.",
+    "subtitleBefore": "Six themes, all borrowing their kanji from Japanese color names.",
+    "subtitlePlum": "Plum",
+    "subtitleAfter": "is the default — warm, purple, cozy. Changes apply immediately so you can feel them against the wizard.",
+    "hint": "changeable later · settings · theme"
+  },
+  "engine": {
+    "gate": {
+      "titleProbing": "Checking the",
+      "titleProbingEmphasis": "engine…",
+      "titleReady": "We need a couple of",
+      "titleReadyEmphasis": "tools.",
+      "subtitleIntro": "MoeKoder runs on",
+      "subtitleTools": "ffmpeg + ffprobe",
+      "subtitleDesc": "— the open-source tools that decode video, burn subtitles, and mux the output. We fetch the official",
+      "subtitleBuild": "BtbN ffmpeg",
+      "subtitleVerify": "build, verify it, and drop the binaries in your AppData. One-time, around",
+      "subtitleSize": "~180 MB",
+      "subtitleNeverAgain": ", then never again.",
+      "willInstall": "What we'll install",
+      "destination": "destination · %LOCALAPPDATA%\\Moekoder\\bin",
+      "ffmpegDesc": "· encodes video, burns subtitles",
+      "ffprobeDesc": "· reads duration, streams, attachments",
+      "shaDesc": "· tamper check before install",
+      "lookingForInstall": "looking for an existing install…",
+      "readyWhenYouAre": "ready when you are",
+      "checking": "Checking…",
+      "installFfmpeg": "Install ffmpeg"
+    },
+    "title": "Fetching the",
+    "titleEmphasis": "engine.",
+    "subtitleIntro": "MoeKoder is ffmpeg wearing a yukata — and it needs the binaries. We download the official",
+    "subtitleBuild": "BtbN ffmpeg n8.1",
+    "subtitleVerify": "build, verify its SHA-256 against the manifest, and drop it in your AppData.",
+    "subtitleOneTime": "One-time, ~180 MB, then never again.",
+    "status": {
+      "done": "done",
+      "working": "working"
+    },
+    "downloaded": "downloaded",
+    "alreadyInstalled": "Already installed.",
+    "engineReady": "Engine ready.",
+    "downloadFailed": "Download failed.",
+    "localBinariesFound": "local binaries found",
+    "retryToTryAgain": "retry to try again",
+    "installFailed": "Install failed",
+    "unknownError": "unknown error",
+    "log": {
+      "eyebrow": "engine · install log",
+      "waiting": "Waiting for install events…",
+      "status": {
+        "complete": "complete",
+        "error": "error",
+        "running": "running"
+      }
+    },
+    "stageRail": {
+      "eyebrow": "stages"
+    }
+  },
+  "dl": {
+    "resolve": {
+      "label": "Resolve mirror",
+      "sub": "github releases"
+    },
+    "ffmpeg": {
+      "label": "Download ffmpeg.exe",
+      "sub": "BtbN · n8.1"
+    },
+    "ffprobe": {
+      "label": "Download ffprobe.exe",
+      "sub": "BtbN · n8.1"
+    },
+    "verify": {
+      "label": "Verify SHA-256",
+      "sub": "tamper check"
+    },
+    "install": {
+      "label": "Install to AppData",
+      "sub": "%LOCALAPPDATA%\\Moekoder\\bin"
+    }
+  },
+  "hw": {
+    "title": "Picked up your",
+    "titleEmphasis": "hardware.",
+    "subtitleProbing": "Probing ffmpeg encoders…",
+    "subtitleProbingSuffix": "this takes a second.",
+    "subtitleError": "Probe didn't return cleanly —",
+    "subtitleErrorEmphasis": "we'll use CPU (libx264) as a safe fallback.",
+    "subtitleErrorSuffix": "You can change this anytime in Settings.",
+    "subtitleOk": "is the fastest option on this machine — we'll use it by default. You can change this anytime in Settings.",
+    "subtitlePreamble": "We ran a quick probe.",
+    "probingBanner": "probing hardware encoders…",
+    "badge": {
+      "notAvailable": "not available",
+      "chosen": "chosen",
+      "recommended": "recommended",
+      "detected": "detected"
+    },
+    "specs": {
+      "encoder": "encoder",
+      "throughput": "throughput",
+      "chip": "chip"
+    },
+    "chip": {
+      "detected": "detected",
+      "notDetected": "not detected",
+      "always": "software · always available"
+    },
+    "cpuAlwaysOn": {
+      "title": "CPU is always on",
+      "mono": "software · libx264 · fallback is guaranteed"
+    }
+  },
+  "preset": {
+    "title": "How",
+    "titleEmphasis": "fussy",
+    "titleSuffix": "are you?",
+    "subtitleBefore": "This is just the default — you can change it per-encode.",
+    "subtitleBalanced": "Balanced",
+    "subtitleAfter": "is the right answer for ~95% of episodes. The others are there for when you're not in the mood to think.",
+    "fast": {
+      "name": "Fast",
+      "hint": "Quick drafts — watch tonight, delete tomorrow."
+    },
+    "balanced": {
+      "name": "Balanced",
+      "hint": "The everyday setting. 95% of the quality at 40% of the bitrate."
+    },
+    "pristine": {
+      "name": "Pristine",
+      "hint": "Archival rips for the kept folder. Leave the kettle on twice."
+    }
+  },
+  "save": {
+    "title": "Where should MoeKoder",
+    "titleEmphasis": "drop the file?",
+    "subtitleBefore": "The output gets this location by default.",
+    "subtitleBeside": "Beside source",
+    "subtitleMid": "is the safest — MoeKoder never overwrites your original, it writes to a",
+    "subtitleFolder": "moekoder/",
+    "subtitleAfter": "subfolder next to it.",
+    "browsePlaceholder": "click \"Browse…\" to pick a folder",
+    "noFolderPicked": "No folder picked yet.",
+    "change": "Change",
+    "browseEllipsis": "Browse…",
+    "moekoder": {
+      "label": "Beside source · in ./moekoder/"
+    },
+    "same": {
+      "label": "Same folder as source"
+    },
+    "subbed": {
+      "label": "A dedicated \"subbed\" folder"
+    },
+    "custom": {
+      "label": "Custom path — I'll pick"
+    }
+  },
+  "cont": {
+    "title": "Which",
+    "titleEmphasis": "container?",
+    "subtitleBefore": "The outer format — what the file ends in.",
+    "subtitleMp4": "MP4",
+    "subtitleMp4Suffix": "plays on every device ever made.",
+    "subtitleMkv": "MKV",
+    "subtitleMkvSuffix": "is better if you want to keep your audio choices.",
+    "subtitleWebm": "WebM",
+    "subtitleWebmSuffix": "is smaller but slower.",
+    "containerLabel": "{{name}} container",
+    "mp4": {
+      "blurb": "Universal. Plays everywhere — Plex, phones, old TVs."
+    },
+    "mkv": {
+      "blurb": "Many tracks. Best for multi-audio & soft-subs."
+    },
+    "webm": {
+      "blurb": "Open codec. Smaller files, slower encode."
+    }
+  },
+  "privacy": {
+    "title": "One",
+    "titleEmphasis": "promise.",
+    "subtitle": "Read the list. There's no fine print behind it.",
+    "noAccount": {
+      "title": "No account, no sign-in, no email",
+      "body": "MoeKoder doesn't know who you are. There is no server to know who you are."
+    },
+    "noTelemetry": {
+      "title": "Zero telemetry, zero analytics",
+      "body": "No events, no crash reports, no \"product usage metrics\". The only network call is the ffmpeg download you just watched."
+    },
+    "noNags": {
+      "title": "No update nags",
+      "body": "Background update checks are off by default. Click Settings → Updates → Check to look for a new version, or flip the toggle there if you want the app to check on its own."
+    },
+    "filesLocal": {
+      "title": "Your files stay on your disk",
+      "body": "Every byte of every encode is local. No cloud mirror, no temp upload, no \"intelligent cache\"."
+    },
+    "sourceAvailable": {
+      "title": "Source-available · auditable",
+      "body": "Every line of what you're running is on GitHub. Read it, audit it, file issues — see the LICENSE for redistribution terms."
+    },
+    "seal": {
+      "quiet": "Built to be",
+      "quietEmphasis": "quiet.",
+      "gone": "Built to be",
+      "goneEmphasis": "gone.",
+      "pledge": "the pledge · 夜 edition"
+    },
+    "iUnderstand": "I understand"
+  },
+  "done": {
+    "title": "Ready",
+    "titleEmphasis": "when you",
+    "titleSuffix": "are.",
+    "subtitleBefore": "Everything's wired up. Hit",
+    "subtitleCta": "Start encoding",
+    "subtitleAfter": "to pick your first video and subtitle — the pipeline takes it from there.",
+    "chips": {
+      "encoder": "encoder",
+      "preset": "preset",
+      "container": "container",
+      "save": "save",
+      "theme": "theme"
+    },
+    "startEncoding": "Start encoding"
+  }
+}

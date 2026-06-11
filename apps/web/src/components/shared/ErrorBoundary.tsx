@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ClipboardCopy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { logger } from '@/lib/logger';
@@ -77,9 +78,10 @@ const Fallback = ({
   onCopyReport,
   reportCopied,
 }: FallbackProps) => {
+  const { t } = useTranslation('crash');
   const isRoot = variant === 'root';
-  const title = isRoot ? 'Something crashed the app' : 'This view crashed';
-  const primaryLabel = isRoot ? 'Reload app' : 'Reset view';
+  const title = isRoot ? t('eb.crashedApp') : t('eb.crashedView');
+  const primaryLabel = isRoot ? t('actions.reloadApp') : t('actions.resetView');
 
   const wrapperStyle: React.CSSProperties = {
     display: 'flex',
@@ -121,7 +123,7 @@ const Fallback = ({
           </h2>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #a0a0b0)' }}>
-          {error.message || 'An unexpected error occurred.'}
+          {error.message || t('diagnostics.unexpectedError')}
         </p>
         {viewName && (
           <div
@@ -133,12 +135,12 @@ const Fallback = ({
               color: 'var(--muted, #707080)',
             }}
           >
-            View · {viewName}
+            {t('eb.viewLabel', { viewName })}
           </div>
         )}
         <details style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 11 }}>
           <summary style={{ cursor: 'pointer', color: 'var(--muted-foreground, #a0a0b0)' }}>
-            Stack trace
+            {t('diagnostics.stackTrace')}
           </summary>
           <pre
             style={{
@@ -163,7 +165,7 @@ const Fallback = ({
           </Button>
           <Button variant="ghost" size="sm" onClick={onCopyReport}>
             <ClipboardCopy size={14} />
-            {reportCopied ? 'Copied' : 'Copy report'}
+            {reportCopied ? t('actions.copied') : t('actions.copyReport')}
           </Button>
         </div>
       </div>

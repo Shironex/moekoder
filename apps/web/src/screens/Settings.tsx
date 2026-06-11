@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink, FolderOpen, Info, RefreshCw, RotateCcw } from 'lucide-react';
 import { APP_NAME, GITHUB_REPO, UPDATER_EVENT_CHANNELS, type ThemeId } from '@moekoder/shared';
-import { Button, ThemePicker } from '@/components/ui';
+import { Button, LanguagePicker, ThemePicker } from '@/components/ui';
 import { useElectronAPI, useFfmpegStatus, useSetting } from '@/hooks';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { applyTheme, persistTheme } from '@/lib/apply-theme';
@@ -27,20 +28,24 @@ type UpdaterChipState =
   | { kind: 'downloaded'; version: string | null }
   | { kind: 'error' };
 
-const updaterChipLabel = (s: UpdaterChipState): string => {
+const updaterChipKey = (s: UpdaterChipState): { key: string; version?: string } => {
   switch (s.kind) {
     case 'idle':
-      return 'no checks yet this session';
+      return { key: 'updates.chip.idle' };
     case 'checking':
-      return 'checking…';
+      return { key: 'updates.chip.checking' };
     case 'up-to-date':
-      return `you're on the latest version`;
+      return { key: 'updates.chip.upToDate' };
     case 'available':
-      return s.version ? `update available · v${s.version}` : 'update available';
+      return s.version
+        ? { key: 'updates.chip.available', version: s.version }
+        : { key: 'updates.chip.availableNoVersion' };
     case 'downloaded':
-      return s.version ? `ready to install · v${s.version}` : 'ready to install';
+      return s.version
+        ? { key: 'updates.chip.downloaded', version: s.version }
+        : { key: 'updates.chip.downloadedNoVersion' };
     case 'error':
-      return 'last check failed';
+      return { key: 'updates.chip.error' };
   }
 };
 
@@ -90,6 +95,7 @@ const Section = ({ kanji, mono, title, description, children }: SectionProps) =>
  *   · Meta         — app version + GitHub link
  */
 export const Settings = () => {
+  const { t } = useTranslation('settings');
   const api = useElectronAPI();
   const themeId = useAppStore(s => s.themeId);
   const setThemeId = useAppStore(s => s.setThemeId);
@@ -261,7 +267,7 @@ export const Settings = () => {
       <header className="relative z-10 flex shrink-0 items-center gap-4 border-b border-border bg-popover/40 px-10 py-5 backdrop-blur">
         <Button variant="ghost" size="sm" onClick={() => setView('single-idle')}>
           <ArrowLeft size={14} />
-          Back
+          {t('back', { ns: 'common' })}
         </Button>
         <div className="flex items-center gap-3">
           <span className="font-display text-3xl leading-none text-primary">設</span>
@@ -269,7 +275,7 @@ export const Settings = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               config · 設 · settei
             </span>
-            <h1 className="font-display text-xl text-foreground">Settings</h1>
+            <h1 className="font-display text-xl text-foreground">{t('pageTitle')}</h1>
           </div>
         </div>
       </header>
@@ -280,29 +286,40 @@ export const Settings = () => {
           <Section
             kanji="色"
             mono="look · 色 · appearance"
-            title="Appearance"
-            description="Six themes, all borrowing their kanji from Japanese color names. Changes apply immediately."
+            title={t('appearance.title')}
+            description={t('appearance.desc')}
           >
-            <ThemePicker value={themeId} onChange={onThemePick} />
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+                <div className="flex flex-col gap-1">
+                  <span className="font-display text-sm text-foreground">
+                    {t('app.languageTitle')}
+                  </span>
+                  <span className="text-[12px] text-muted-foreground">{t('app.languageDesc')}</span>
+                </div>
+                <LanguagePicker ariaLabel={t('app.languageTitle')} />
+              </div>
+              <ThemePicker value={themeId} onChange={onThemePick} />
+            </div>
           </Section>
 
           <Section
             kanji="初"
             mono="first run · 初 · shō"
-            title="Replay onboarding"
-            description="Walk through the first-run wizard again to re-pick defaults. Your current settings are preserved until you finish the wizard."
+            title={t('onboarding.title')}
+            description={t('onboarding.desc')}
           >
             <Button variant="ghost" size="sm" onClick={onReplayOnboarding}>
               <RotateCcw size={14} />
-              Replay onboarding
+              {t('onboarding.replayBtn')}
             </Button>
           </Section>
 
           <Section
             kanji="引"
             mono="ffmpeg · 引擎 · engine"
-            title="FFmpeg engine"
-            description="MoeKoder bundles ffmpeg + ffprobe under your user data directory. Reinstall if the binaries look damaged or you want a fresh copy."
+            title={t('ffmpeg.title')}
+            description={t('ffmpeg.desc')}
           >
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3 font-mono text-[11px]">
@@ -311,11 +328,15 @@ export const Settings = () => {
                   aria-hidden="true"
                 />
                 <span className="uppercase tracking-[0.18em] text-muted">
-                  {ffmpeg.loading ? 'checking…' : ffmpeg.installed ? 'installed' : 'not installed'}
+                  {ffmpeg.loading
+                    ? t('ffmpeg.statusChecking')
+                    : ffmpeg.installed
+                      ? t('ffmpeg.statusInstalled')
+                      : t('ffmpeg.statusNotInstalled')}
                 </span>
                 <span className="text-muted">·</span>
                 <span className="text-foreground">
-                  {ffmpeg.version ?? (ffmpeg.loading ? '…' : 'no binary found')}
+                  {ffmpeg.version ?? (ffmpeg.loading ? '…' : t('ffmpeg.statusNoVersion'))}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -326,7 +347,7 @@ export const Settings = () => {
                   disabled={busy === 'ffmpeg'}
                 >
                   <RefreshCw size={14} />
-                  {busy === 'ffmpeg' ? 'Reinstalling…' : 'Reinstall ffmpeg'}
+                  {busy === 'ffmpeg' ? t('ffmpeg.reinstalling') : t('ffmpeg.reinstallBtn')}
                 </Button>
               </div>
             </div>
@@ -335,20 +356,20 @@ export const Settings = () => {
           <Section
             kanji="録"
             mono="logs · 録 · roku"
-            title="Logs"
-            description="Open the log folder in your file manager. Useful when filing an issue — zip the folder and attach it."
+            title={t('logs.title')}
+            description={t('logs.desc')}
           >
             <Button variant="ghost" size="sm" onClick={onOpenLogs} disabled={busy === 'logs'}>
               <FolderOpen size={14} />
-              Open logs folder
+              {t('logs.openBtn')}
             </Button>
           </Section>
 
           <Section
             kanji="符"
             mono="encoding · 符 · fugō"
-            title="Encoding"
-            description="Codec, hardware encoder, and quality knobs for every encode the app starts. Quick-set Fast/Balanced/Pristine for sane defaults; tune CQ + presets for fine control."
+            title={t('encoding.title')}
+            description={t('encoding.desc')}
           >
             <EncodingSection />
           </Section>
@@ -356,8 +377,8 @@ export const Settings = () => {
           <Section
             kanji="集"
             mono="presets · 集 · shū"
-            title="Custom presets"
-            description="Save the current encoding profile under a name and apply it later in one click. Up to 20 presets; names must be unique. Survives app restart."
+            title={t('presets.title')}
+            description={t('presets.desc')}
           >
             <CustomPresetsSection />
           </Section>
@@ -365,8 +386,8 @@ export const Settings = () => {
           <Section
             kanji="字"
             mono="fonts · 字 · ji"
-            title="Embedded fonts"
-            description="When the source is an MKV with attached fonts (the fansub default), MoeKoder extracts them into a per-job temp dir and feeds the path to libass so \\fn(CustomFont) typesetting renders as the author intended. Off ⇒ libass falls back to system fonts only, matching v0.4 behaviour."
+            title={t('fonts.title')}
+            description={t('fonts.desc')}
           >
             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
               <input
@@ -376,13 +397,8 @@ export const Settings = () => {
                 onChange={e => void onToggleUseEmbeddedFonts(e.target.checked)}
               />
               <span className="flex flex-col leading-tight">
-                <b className="font-display text-sm text-foreground">
-                  Use embedded fonts (recommended)
-                </b>
-                <span className="text-[12px] text-muted-foreground">
-                  On by default. Cleans up after every encode — no fonts are left on disk. Toggle
-                  off if you'd rather every typeset cue render in Arial.
-                </span>
+                <b className="font-display text-sm text-foreground">{t('fonts.checkboxLabel')}</b>
+                <span className="text-[12px] text-muted-foreground">{t('fonts.checkboxDesc')}</span>
               </span>
             </label>
           </Section>
@@ -390,8 +406,8 @@ export const Settings = () => {
           <Section
             kanji="列"
             mono="queue · 列 · retsu"
-            title="Queue"
-            description="Knobs for the batch pipeline. Concurrency mirrors the segmented control on the Queue screen — both write to electron-store, so changes from either side stick."
+            title={t('queue.title')}
+            description={t('queue.desc')}
           >
             <QueueSettingsSection />
           </Section>
@@ -399,8 +415,8 @@ export const Settings = () => {
           <Section
             kanji="新"
             mono="updates · 新 · shin"
-            title="Updates"
-            description="MoeKoder never phones home unless you click Check — that's the pledge. Opt in below if you'd rather the app check in the background (once 5 s after launch, then hourly)."
+            title={t('updates.title')}
+            description={t('updates.desc')}
           >
             <div className="flex flex-col gap-4">
               <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
@@ -412,11 +428,10 @@ export const Settings = () => {
                 />
                 <span className="flex flex-col leading-tight">
                   <b className="font-display text-sm text-foreground">
-                    Check for updates automatically
+                    {t('updates.autoCheck.label')}
                   </b>
                   <span className="text-[12px] text-muted-foreground">
-                    Off by default. When on, MoeKoder queries GitHub Releases on launch + once per
-                    hour. Updates are never installed without your click.
+                    {t('updates.autoCheck.desc')}
                   </span>
                 </span>
               </label>
@@ -433,9 +448,16 @@ export const Settings = () => {
                   }`}
                   aria-hidden="true"
                 />
-                <span className="uppercase tracking-[0.18em] text-muted">status</span>
+                <span className="uppercase tracking-[0.18em] text-muted">
+                  {t('updates.statusLabel')}
+                </span>
                 <span className="text-muted">·</span>
-                <span className="text-foreground">{updaterChipLabel(updaterChip)}</span>
+                <span className="text-foreground">
+                  {(() => {
+                    const { key, version } = updaterChipKey(updaterChip);
+                    return t(key, version !== undefined ? { version } : undefined);
+                  })()}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -445,7 +467,7 @@ export const Settings = () => {
                   disabled={busy === 'update-check'}
                 >
                   <RefreshCw size={14} />
-                  {busy === 'update-check' ? 'Checking…' : 'Check for updates now'}
+                  {busy === 'update-check' ? t('updates.checking') : t('updates.checkBtn')}
                 </Button>
               </div>
             </div>
@@ -454,19 +476,21 @@ export const Settings = () => {
           <Section
             kanji="解"
             mono="about · 解 · kai"
-            title="About MoeKoder"
-            description="Version, build, credits, and links to the rest of the Shiro Suite."
+            title={t('about.title')}
+            description={t('about.desc')}
           >
             <Button variant="ghost" size="sm" onClick={() => setView('about')}>
               <Info size={14} />
-              About MoeKoder
+              {t('about.btn')}
             </Button>
           </Section>
 
-          <Section kanji="版" mono="version · 版 · han" title="Version & source">
+          <Section kanji="版" mono="version · 版 · han" title={t('version.title')}>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3 font-mono text-[11px]">
-                <span className="uppercase tracking-[0.18em] text-muted">app</span>
+                <span className="uppercase tracking-[0.18em] text-muted">
+                  {t('version.appLabel')}
+                </span>
                 <span className="text-foreground">
                   <b>{APP_NAME}</b> v{appVersion ?? '…'}
                 </span>
@@ -479,7 +503,7 @@ export const Settings = () => {
                   disabled={busy === 'github'}
                 >
                   <ExternalLink size={14} />
-                  View repository on GitHub
+                  {t('version.githubBtn')}
                 </Button>
               </div>
             </div>

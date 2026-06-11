@@ -1,4 +1,5 @@
 import { Subtitles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { APP_EDITION, APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { IconClose, IconHistory, IconMax, IconMin, IconSettings } from '@/components/ui/icons';
 import { useWindowControls } from '@/hooks';
@@ -52,6 +53,7 @@ export const Titlebar = ({
   onMax,
   onClose,
 }: TitlebarProps) => {
+  const { t } = useTranslation('titlebar');
   const controls = useWindowControls('titlebar');
   const handleMin = onMin ?? controls.onMin;
   const handleMax = onMax ?? controls.onMax;
@@ -71,20 +73,20 @@ export const Titlebar = ({
 
       {onRouteChange && (
         <>
-          <nav className="title-nav" aria-label="Main routes">
+          <nav className="title-nav" aria-label={t('nav.ariaLabel')}>
             <button
               type="button"
               className={route === 'single' ? 'active' : ''}
               onClick={() => onRouteChange('single')}
             >
-              Single
+              {t('nav.single')}
             </button>
             <button
               type="button"
               className={route === 'queue' ? 'active' : ''}
               onClick={() => onRouteChange('queue')}
             >
-              Queue
+              {t('nav.queue')}
             </button>
           </nav>
 
@@ -94,7 +96,7 @@ export const Titlebar = ({
 
       <div className="title-actions">
         {onHistory && (
-          <button type="button" className="title-icon-btn" onClick={onHistory} title="History">
+          <button type="button" className="title-icon-btn" onClick={onHistory} title={t('history')}>
             <IconHistory size={16} />
           </button>
         )}
@@ -103,31 +105,41 @@ export const Titlebar = ({
             type="button"
             className="title-icon-btn"
             onClick={onExtract}
-            title="Extract subtitles"
-            aria-label="Extract subtitles"
+            title={t('extract')}
+            aria-label={t('extract')}
           >
             <Subtitles size={16} />
           </button>
         )}
-        <button type="button" className="title-icon-btn" onClick={onSettings} title="Settings">
+        <button type="button" className="title-icon-btn" onClick={onSettings} title={t('settings')}>
           <IconSettings size={16} />
         </button>
       </div>
 
       {!IS_MAC && (
         <div className="win-controls">
-          <button type="button" onClick={handleMin} title="Minimize" aria-label="Minimize">
+          <button
+            type="button"
+            onClick={handleMin}
+            title={t('minimize')}
+            aria-label={t('minimize')}
+          >
             <IconMin />
           </button>
-          <button type="button" onClick={handleMax} title="Maximize" aria-label="Maximize">
+          <button
+            type="button"
+            onClick={handleMax}
+            title={t('maximize')}
+            aria-label={t('maximize')}
+          >
             <IconMax />
           </button>
           <button
             type="button"
             className="close"
             onClick={handleClose}
-            title="Close"
-            aria-label="Close"
+            title={t('close')}
+            aria-label={t('close')}
           >
             <IconClose />
           </button>

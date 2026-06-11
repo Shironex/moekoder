@@ -1,0 +1,45 @@
+{
+  "title": "Wyodrębnij napisy",
+  "source": {
+    "title": "Plik źródłowy",
+    "chooseAnother": "Wybierz inny",
+    "probing": "badanie…",
+    "noFile": "Nie wybrano pliku"
+  },
+  "tracks": {
+    "title": "Osadzone ścieżki napisów",
+    "deselectAll": "Odznacz wszystko",
+    "selectAll": "Zaznacz wszystko",
+    "empty": "W tym pliku nie znaleziono ścieżek napisów."
+  },
+  "table": {
+    "selectHeader": "Zaznacz",
+    "codec": "Kodek",
+    "lang": "Język",
+    "trackTitle": "Tytuł",
+    "result": "Wynik",
+    "selectTrack": "Zaznacz ścieżkę napisów {{ordinal}}",
+    "imageBadge": "obraz"
+  },
+  "result": {
+    "saved": "zapisano",
+    "failed": "błąd"
+  },
+  "format": {
+    "description": "Format wyjściowy wyodrębnionych napisów",
+    "ariaLabel": "Format wyjściowy",
+    "matchSource": "Zgodny ze źródłem",
+    "assWarning": "Konwersja ASS → SRT usuwa style, pozycjonowanie i tagi nadpisania. Wybierz <ass>ASS</ass> lub <match>Zgodny ze źródłem</match>, aby je zachować."
+  },
+  "output": {
+    "noFolder": "Nie wybrano folderu",
+    "folderButton": "Folder wyjściowy"
+  },
+  "selectedCount_one": "zaznaczono {{count}}",
+  "selectedCount_few": "zaznaczono {{count}}",
+  "selectedCount_many": "zaznaczono {{count}}",
+  "selectedCount_other": "zaznaczono {{count}}",
+  "doneSuffix": "· gotowe",
+  "extracting": "Wyodrębnianie…",
+  "extractSelected": "Wyodrębnij zaznaczone"
+}

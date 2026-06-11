@@ -1,0 +1,25 @@
+{
+  "title": "Kodowanie. Zostań przy herbacie.",
+  "status": {
+    "live": "na żywo · ffmpeg",
+    "transcoding": "kodowanie",
+    "waitingIdle": "oczekiwanie · cisza na stderr"
+  },
+  "logLines_one": "{{count}} linia",
+  "logLines_few": "{{count}} linie",
+  "logLines_many": "{{count}} linii",
+  "logLines_other": "{{count}} linii",
+  "log": {
+    "collapse": "Zwiń log",
+    "expand": "Rozwiń log"
+  },
+  "file": {
+    "burning": "↓ wypalanie ↓"
+  },
+  "metric": {
+    "fps": "FPS",
+    "speed": "Prędkość",
+    "bitrate": "Przepływność",
+    "elapsed": "Czas"
+  }
+}

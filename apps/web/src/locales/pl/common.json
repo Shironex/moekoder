@@ -1,0 +1,17 @@
+{
+  "route": {
+    "single": "Pojedynczy plik",
+    "queue": "Kolejka"
+  },
+  "screen": {
+    "idle": "bezczynny",
+    "encoding": "kodowanie",
+    "queue": "kolejka",
+    "done": "ukończono"
+  },
+  "back": "Wstecz",
+  "cancel": "Anuluj",
+  "save": "Zapisz",
+  "retry": "Ponów",
+  "browse": "Przeglądaj"
+}

@@ -1,0 +1,17 @@
+{
+  "route": {
+    "single": "Single file",
+    "queue": "Queue"
+  },
+  "screen": {
+    "idle": "idle",
+    "encoding": "encoding",
+    "queue": "queue",
+    "done": "done"
+  },
+  "back": "Back",
+  "cancel": "Cancel",
+  "save": "Save",
+  "retry": "Retry",
+  "browse": "Browse"
+}

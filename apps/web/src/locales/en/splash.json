@@ -1,0 +1,29 @@
+{
+  "boot": {
+    "locatingBinaries": "Locating ffmpeg binaries",
+    "probingGpu": "Probing GPU encoders",
+    "indexingFonts": "Indexing subtitle fonts",
+    "restoringSession": "Restoring last session",
+    "ready": "Ready"
+  },
+  "status": {
+    "launching": "launching",
+    "returning": "returning",
+    "done": "done",
+    "running": "running",
+    "wait": "wait"
+  },
+  "build": {
+    "label": "build {{today}}"
+  },
+  "edition": {
+    "label": "{{versionLabel}} · yoru edition"
+  },
+  "hero": {
+    "subtitleBurner": "subtitle burner"
+  },
+  "footer": {
+    "sourceAvailable": "source available",
+    "poweredBy": "powered by ffmpeg"
+  }
+}

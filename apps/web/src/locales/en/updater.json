@@ -1,0 +1,27 @@
+{
+  "status": {
+    "error": "update · error",
+    "checking": "Checking for updates…",
+    "failed": "Update check failed."
+  },
+  "available": {
+    "title": "Update available",
+    "newVersion": "New version · v{{version}}",
+    "subtitle": "A new MoeKoder release is ready to download."
+  },
+  "downloading": {
+    "title": "Downloading update",
+    "pct": "{{pct}}"
+  },
+  "downloaded": {
+    "title": "Update ready to install",
+    "subtitle": "MoeKoder will close, install, and reopen. v{{version}}",
+    "subtitleNoVersion": "MoeKoder will close, install, and reopen."
+  },
+  "cta": {
+    "download": "Download",
+    "later": "Later",
+    "restartInstall": "Restart & install"
+  },
+  "dismiss": "Dismiss"
+}

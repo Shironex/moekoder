@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui';
 import { useFfmpegInstall, type FfmpegInstallProbe } from '@/hooks';
 import { cn } from '@/lib/cn';
@@ -25,6 +26,7 @@ interface EngineProps {
  * reports.
  */
 export const Engine = ({ onReady, probe }: EngineProps) => {
+  const { t } = useTranslation('onboarding');
   const {
     phase,
     stages,
@@ -43,11 +45,11 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
   // renders later (Rules of Hooks — a past regression here bit us when an
   // early return sat above a useMemo).
   const busyHeadline = useMemo(() => {
-    if (phase === 'already') return 'Already installed.';
-    if (phase === 'done') return 'Engine ready.';
-    if (phase === 'error') return 'Download failed.';
-    return activeStage.label;
-  }, [phase, activeStage]);
+    if (phase === 'already') return t('engine.alreadyInstalled');
+    if (phase === 'done') return t('engine.engineReady');
+    if (phase === 'error') return t('engine.downloadFailed');
+    return t(activeStage.labelKey);
+  }, [phase, activeStage, t]);
 
   if (phase === 'probing' || phase === 'needs-install') {
     return (
@@ -71,13 +73,13 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          Fetching the <em className="not-italic text-primary">engine.</em>
+          {t('engine.title')}{' '}
+          <em className="not-italic text-primary">{t('engine.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[780px] text-sm leading-relaxed text-muted-foreground">
-          MoeKoder is ffmpeg wearing a yukata — and it needs the binaries. We download the official{' '}
-          <b className="text-foreground">BtbN ffmpeg n8.1</b> build, verify its SHA-256 against the
-          manifest, and drop it in your AppData.{' '}
-          <b className="text-foreground">One-time, ~180 MB, then never again.</b>
+          {t('engine.subtitleIntro')} <b className="text-foreground">{t('engine.subtitleBuild')}</b>{' '}
+          {t('engine.subtitleVerify')}{' '}
+          <b className="text-foreground">{t('engine.subtitleOneTime')}</b>
         </p>
       </div>
 
@@ -92,10 +94,10 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
                 <b className="font-display text-base text-foreground">{busyHeadline}</b>
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                   {phase === 'already'
-                    ? (version ?? 'local binaries found')
+                    ? (version ?? t('engine.localBinariesFound'))
                     : phase === 'error'
-                      ? 'retry to try again'
-                      : activeStage.sub}
+                      ? t('engine.retryToTryAgain')
+                      : t(activeStage.subKey)}
                 </span>
               </div>
               <span className="font-display text-3xl leading-none text-foreground">
@@ -117,11 +119,13 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
                 <b className="text-foreground">
                   {formatMB(downloadedBytes)} / {totalBytes > 0 ? formatMB(totalBytes) : '—'} MB
                 </b>{' '}
-                downloaded
+                {t('engine.downloaded')}
               </div>
               <div className="text-right">
                 <b className="text-foreground">
-                  {phase === 'done' || phase === 'already' ? 'done' : 'working'}
+                  {phase === 'done' || phase === 'already'
+                    ? t('engine.status.done')
+                    : t('engine.status.working')}
                 </b>{' '}
                 · {activeStage.id}
               </div>
@@ -134,14 +138,14 @@ export const Engine = ({ onReady, probe }: EngineProps) => {
             <div className="flex items-center gap-3 rounded-lg border border-bad/40 bg-bad/10 px-4 py-3">
               <span className="font-display text-2xl text-bad">否</span>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <b className="font-display text-sm text-foreground">Install failed</b>
+                <b className="font-display text-sm text-foreground">{t('engine.installFailed')}</b>
                 <span className="truncate font-mono text-[11px] text-muted-foreground">
-                  {errorMsg ?? 'unknown error'}
+                  {errorMsg ?? t('engine.unknownError')}
                 </span>
               </div>
               <Button variant="primary" size="sm" onClick={retry}>
                 <RefreshCw size={13} />
-                Retry
+                {t('retry', { ns: 'common' })}
               </Button>
             </div>
           )}

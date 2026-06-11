@@ -1,0 +1,43 @@
+{
+  "title": "Extract subtitles",
+  "source": {
+    "title": "Source file",
+    "chooseAnother": "Choose another",
+    "probing": "probing…",
+    "noFile": "No file selected"
+  },
+  "tracks": {
+    "title": "Embedded subtitle tracks",
+    "deselectAll": "Deselect all",
+    "selectAll": "Select all",
+    "empty": "No subtitle tracks found in this file."
+  },
+  "table": {
+    "selectHeader": "Select",
+    "codec": "Codec",
+    "lang": "Lang",
+    "trackTitle": "Title",
+    "result": "Result",
+    "selectTrack": "Select subtitle track {{ordinal}}",
+    "imageBadge": "image"
+  },
+  "result": {
+    "saved": "saved",
+    "failed": "failed"
+  },
+  "format": {
+    "description": "Output format for the extracted subtitles",
+    "ariaLabel": "Output format",
+    "matchSource": "Match source",
+    "assWarning": "Converting ASS → SRT drops styling, positioning, and override tags. Choose <ass>ASS</ass> or <match>Match source</match> to keep them."
+  },
+  "output": {
+    "noFolder": "No folder selected",
+    "folderButton": "Output folder"
+  },
+  "selectedCount_one": "{{count}} selected",
+  "selectedCount_other": "{{count}} selected",
+  "doneSuffix": "· done",
+  "extracting": "Extracting…",
+  "extractSelected": "Extract selected"
+}

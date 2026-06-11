@@ -1,0 +1,55 @@
+{
+  "header": {
+    "title": "Potok",
+    "eyebrow": "trzy składniki · 三素材"
+  },
+  "stage": {
+    "videoLabel": "Źródło wideo",
+    "videoPlaceholder": "MKV · MP4 · dowolne wideo",
+    "subsLabel": "Ścieżka napisów",
+    "subsPlaceholder": "ASS · SSA · SRT",
+    "outputLabel": "Plik wyjściowy",
+    "outputPlaceholder": "Miejsce zapisu",
+    "clickToPick": "kliknij, aby wybrać",
+    "ariaChange": "Zmień {{label}}: {{name}}",
+    "ariaPick": "Wybierz {{label}}"
+  },
+  "candidates": {
+    "swapVideo": "Zamień źródło wideo",
+    "swapSubtitle": "Zamień ścieżkę napisów",
+    "triggerVideo_one": "Zamień wideo ({{count}} wariant)",
+    "triggerVideo_few": "Zamień wideo ({{count}} warianty)",
+    "triggerVideo_many": "Zamień wideo ({{count}} wariantów)",
+    "triggerVideo_other": "Zamień wideo ({{count}} wariantu)",
+    "triggerSubtitle_one": "Zamień napisy ({{count}} wariant)",
+    "triggerSubtitle_few": "Zamień napisy ({{count}} warianty)",
+    "triggerSubtitle_many": "Zamień napisy ({{count}} wariantów)",
+    "triggerSubtitle_other": "Zamień napisy ({{count}} wariantu)",
+    "header_one": "{{count}} wariant · {{kanji}}",
+    "header_few": "{{count}} warianty · {{kanji}}",
+    "header_many": "{{count}} wariantów · {{kanji}}",
+    "header_other": "{{count}} wariantu · {{kanji}}"
+  },
+  "cta": {
+    "begin": "Rozpocznij kodowanie",
+    "encoding": "Kodowanie…",
+    "tooltipEncoding": "Kodowanie w toku",
+    "eyebrowInProgress": "in progress · 進行",
+    "eyebrowReady": "wszystkie trzy · gotowe",
+    "toGo": "jeszcze {{count}}"
+  },
+  "ingredientsToGo_one": "{{count}} składnik do uzupełnienia",
+  "ingredientsToGo_few": "{{count}} składniki do uzupełnienia",
+  "ingredientsToGo_many": "{{count}} składników do uzupełnienia",
+  "ingredientsToGo_other": "{{count}} składnika do uzupełnienia",
+  "toggle": {
+    "expand": "Rozwiń pasek boczny",
+    "collapse": "Zwiń pasek boczny"
+  },
+  "rail": {
+    "saveLabel": "zapis · folder",
+    "gpuLabel": "gpu · enkoder",
+    "codecLabel": "kodek · {{container}}",
+    "codecLabelEmpty": "kodek · —"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "headline": {
+    "tripped": "tripped.",
+    "getMoving": "Let's get you moving.",
+    "fallback": "Something collapsed mid-render."
+  },
+  "body": {
+    "safeSettings": "Your settings are safe — they live on disk. Reload the app to start fresh, or copy the crash report if you'd like to file an issue."
+  },
+  "actions": {
+    "reloadApp": "Reload app",
+    "copied": "Copied",
+    "copyReport": "Copy report",
+    "resetView": "Reset view"
+  },
+  "pills": {
+    "sessionCrashed": "session · crashed"
+  },
+  "diagnostics": {
+    "ariaLabel": "Crash diagnostics",
+    "title": "Diagnostics",
+    "fatal": "fatal",
+    "stackTrace": "stack trace",
+    "stackHide": "Hide",
+    "stackShow": "Show",
+    "unexpectedError": "An unexpected error occurred."
+  },
+  "eb": {
+    "crashedApp": "Something crashed the app",
+    "crashedView": "This view crashed",
+    "viewLabel": "View · {{viewName}}"
+  },
+  "manualView": "Manual crash view — use the titlebar to return."
+}

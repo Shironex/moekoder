@@ -1,0 +1,29 @@
+{
+  "boot": {
+    "locatingBinaries": "Szukanie binariów ffmpeg",
+    "probingGpu": "Sprawdzanie enkoderów GPU",
+    "indexingFonts": "Indeksowanie czcionek napisów",
+    "restoringSession": "Przywracanie ostatniej sesji",
+    "ready": "Gotowe"
+  },
+  "status": {
+    "launching": "uruchamianie",
+    "returning": "powrót",
+    "done": "ukończono",
+    "running": "trwa",
+    "wait": "oczekiwanie"
+  },
+  "build": {
+    "label": "kompilacja {{today}}"
+  },
+  "edition": {
+    "label": "{{versionLabel}} · yoru edition"
+  },
+  "hero": {
+    "subtitleBurner": "wypalarka napisów"
+  },
+  "footer": {
+    "sourceAvailable": "kod dostępny",
+    "poweredBy": "napędzane przez ffmpeg"
+  }
+}

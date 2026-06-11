@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { DropOverlay, PageHead } from '@/components/ui';
 import type { PickedFile } from '@/components/chrome';
 import { cn } from '@/lib/cn';
@@ -54,6 +55,7 @@ const StepPill = ({ n, label, done }: StepPillProps) => (
  * reused from `@/components/ui`.
  */
 export const IdleScreen = ({ video, subs, out, ffmpegVersion, onDropFiles }: IdleProps) => {
+  const { t } = useTranslation('idle');
   const today = new Date().toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
@@ -65,15 +67,15 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion, onDropFiles }: Idl
       <PageHead
         screen="idle"
         route="single"
-        title="Burn subs."
-        subtitle="Drop an MKV and an ASS file — MoeKoder hardburns them with the GPU while the pot whistles. No preview noise. No pop-ups."
+        title={t('title')}
+        subtitle={t('subtitle')}
         right={
           <div className="flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
             <span>— · {today}</span>
             <span className="text-foreground">
               <b>{ffmpegVersion ?? 'ffmpeg n8.1'}</b> · NVENC
             </span>
-            <span>session 0001</span>
+            <span>{t('meta.session')} 0001</span>
           </div>
         }
       />
@@ -105,28 +107,30 @@ export const IdleScreen = ({ video, subs, out, ffmpegVersion, onDropFiles }: Idl
             idle · 待
           </span>
           <h2 className="max-w-[40ch] font-display text-5xl leading-[1.05] text-foreground">
-            Ready when <em className="not-italic text-primary">you</em> are.
+            <Trans
+              t={t}
+              i18nKey="heading"
+              components={{ em: <em className="not-italic text-primary" /> }}
+            />
           </h2>
           <p className="max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-            Pick a video, a subtitle file, and a save location in the left rail — or drop them on
-            the window and MoeKoder will line them up. Nothing leaves your machine, no preview
-            popups.
+            {t('body')}
           </p>
         </div>
 
         <div className="relative z-[1] flex items-center gap-4">
-          <StepPill n="01" label="video" done={!!video} />
+          <StepPill n="01" label={t('step.video')} done={!!video} />
           <span className="h-px w-8 bg-border" />
-          <StepPill n="02" label="subs" done={!!subs} />
+          <StepPill n="02" label={t('step.subs')} done={!!subs} />
           <span className="h-px w-8 bg-border" />
-          <StepPill n="03" label="output" done={!!out} />
+          <StepPill n="03" label={t('step.output')} done={!!out} />
         </div>
 
         {video && subs && out && (
           <div className="relative z-[1] flex items-center gap-2 rounded-sm border border-primary/30 bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] px-3 py-2">
             <span className="font-display text-lg text-primary">好</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
-              all three · ready · press begin in the rail
+              {t('ready')}
             </span>
           </div>
         )}

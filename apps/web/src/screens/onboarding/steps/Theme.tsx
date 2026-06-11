@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { type ThemeId } from '@moekoder/shared';
 import { ThemePicker } from '@/components/ui';
 
@@ -15,6 +16,8 @@ interface ThemeStepProps {
  * onboarding chrome before committing.
  */
 export const Theme = ({ value, onChange }: ThemeStepProps) => {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
@@ -26,12 +29,11 @@ export const Theme = ({ value, onChange }: ThemeStepProps) => {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          Pick a <em className="not-italic text-primary">mood.</em>
+          {t('theme.title')} <em className="not-italic text-primary">{t('theme.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          Six themes, all borrowing their kanji from Japanese color names.{' '}
-          <b className="text-foreground">Plum</b> is the default — warm, purple, cozy. Changes apply
-          immediately so you can feel them against the wizard.
+          {t('theme.subtitleBefore')} <b className="text-foreground">{t('theme.subtitlePlum')}</b>{' '}
+          {t('theme.subtitleAfter')}
         </p>
       </div>
 
@@ -39,7 +41,7 @@ export const Theme = ({ value, onChange }: ThemeStepProps) => {
 
       <div className="flex items-center gap-3 rounded-lg border border-border bg-card/25 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
         <span className="font-display text-base text-primary">設</span>
-        <span>changeable later · settings · theme</span>
+        <span>{t('theme.hint')}</span>
       </div>
     </div>
   );

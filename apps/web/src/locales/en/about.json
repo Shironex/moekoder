@@ -1,0 +1,28 @@
+{
+  "title": "About",
+  "tagline": "subtitle burner",
+  "blurb": "Burn subtitles into video, cutely. Built for anime power users — one MKV, one ASS, one MP4 out the other side. No cloud, no telemetry, no ads.",
+  "suite": {
+    "title": "The Shiro Suite"
+  },
+  "siblings": {
+    "shiranami": "Anime tracking & discovery. Where your list lives.",
+    "shiroani": "A quieter way to watch. Stream without the noise.",
+    "moekoder": "Burn subtitles into video, cutely. You are here.",
+    "kireimanga": "Manga reader with taste. Clean pages, nothing else."
+  },
+  "youAreHere": "· you are here",
+  "meta": {
+    "version": "version",
+    "build": "build",
+    "license": "license",
+    "versionValue": "v{{version}}",
+    "buildValue": "{{hash}}",
+    "sourceAvailable": "Source Available",
+    "github": "GitHub · {{repo}}"
+  },
+  "credits": {
+    "title": "Built by Shironex",
+    "body": "A one-person project, stitched together with ffmpeg, libass, Electron, and a lot of late-night tea. Issues, PRs, and kind words all welcome on GitHub."
+  }
+}

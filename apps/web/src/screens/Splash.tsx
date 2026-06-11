@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
@@ -12,7 +13,7 @@ interface SplashProps {
 interface BootStep {
   id: string;
   k: string;
-  msg: string;
+  msgKey: string;
   ms: number;
 }
 
@@ -21,11 +22,11 @@ interface BootStep {
  * roughly mirrors a real first launch — 3s end-to-end.
  */
 const BOOT_STEPS: BootStep[] = [
-  { id: 'bin', k: '録', msg: 'Locating ffmpeg binaries', ms: 620 },
-  { id: 'probe', k: '核', msg: 'Probing GPU encoders', ms: 720 },
-  { id: 'fonts', k: '字', msg: 'Indexing subtitle fonts', ms: 560 },
-  { id: 'theme', k: '色', msg: 'Restoring last session', ms: 480 },
-  { id: 'ready', k: '始', msg: 'Ready', ms: 320 },
+  { id: 'bin', k: '録', msgKey: 'boot.locatingBinaries', ms: 620 },
+  { id: 'probe', k: '核', msgKey: 'boot.probingGpu', ms: 720 },
+  { id: 'fonts', k: '字', msgKey: 'boot.indexingFonts', ms: 560 },
+  { id: 'theme', k: '色', msgKey: 'boot.restoringSession', ms: 480 },
+  { id: 'ready', k: '始', msgKey: 'boot.ready', ms: 320 },
 ];
 
 interface Petal {
@@ -68,6 +69,7 @@ const buildPetals = (count: number): Petal[] =>
  * the whole screen ships as one component bundle.
  */
 export const SplashScreen = ({ onComplete }: SplashProps) => {
+  const { t } = useTranslation('splash');
   const api = useElectronAPI();
   const [stepIdx, setStepIdx] = useState(0);
   const [outgoing, setOutgoing] = useState(false);
@@ -99,8 +101,8 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
   useEffect(() => {
     if (stepIdx >= BOOT_STEPS.length) return;
     const step = BOOT_STEPS[stepIdx];
-    const t = setTimeout(() => setStepIdx(i => i + 1), step.ms);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setStepIdx(i => i + 1), step.ms);
+    return () => clearTimeout(timer);
   }, [stepIdx]);
 
   useEffect(() => {
@@ -204,9 +206,10 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
         <div className="h-px w-6 bg-border" />
         <div className="flex flex-col gap-0.5">
           <span className="text-foreground">
-            <span className="mr-1 font-display text-sm text-primary">初</span> launching
+            <span className="mr-1 font-display text-sm text-primary">初</span>{' '}
+            {t('status.launching')}
           </span>
-          <span>returning · 帰</span>
+          <span>{t('status.returning')} · 帰</span>
         </div>
       </div>
 
@@ -215,7 +218,7 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
         <div className="text-foreground">
           <b>{versionLabel}</b> <span className="text-muted/70">· moekoder</span>
         </div>
-        <div>build {today}</div>
+        <div>{t('build.label', { today })}</div>
       </div>
 
       {/* Hero */}
@@ -233,11 +236,11 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
             Moe<em className="not-italic text-primary">Koder</em>
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            <b className="text-foreground">{versionLabel}</b> · yoru edition
+            {t('edition.label', { versionLabel })}
           </div>
         </div>
         <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-          <span>subtitle burner</span>
+          <span>{t('hero.subtitleBurner')}</span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
           <span>
             <span className="mr-1 font-display text-sm text-primary">焼</span> yaku · to burn
@@ -260,7 +263,7 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
               )}
             >
               <span className="font-display text-lg text-primary">{s.k}</span>
-              <span className="flex-1 font-mono text-xs text-foreground">{s.msg}</span>
+              <span className="flex-1 font-mono text-xs text-foreground">{t(s.msgKey)}</span>
               <span
                 className={cn(
                   'font-mono text-[9px] uppercase tracking-[0.22em]',
@@ -269,7 +272,11 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
                   status === 'wait' && 'text-muted'
                 )}
               >
-                {status === 'ok' ? 'done' : status === 'run' ? 'running' : 'wait'}
+                {status === 'ok'
+                  ? t('status.done')
+                  : status === 'run'
+                    ? t('status.running')
+                    : t('status.wait')}
               </span>
             </div>
           );
@@ -290,10 +297,10 @@ export const SplashScreen = ({ onComplete }: SplashProps) => {
             © 2026 · <b className="text-foreground">{APP_NAME}</b>
           </span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
-          <span>source available</span>
+          <span>{t('footer.sourceAvailable')}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span>powered by ffmpeg</span>
+          <span>{t('footer.poweredBy')}</span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
           <span>{today}</span>
         </div>

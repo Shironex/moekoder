@@ -192,6 +192,7 @@ describe('queue handlers — manager event sink', () => {
   });
 
   it('fires notification when queueNotifyOnComplete = true', () => {
+    // First getSetting → queueNotifyOnComplete; second → uiLanguage (unset → en).
     getSettingMock.mockReturnValueOnce(true);
     const ctx = makeCtx();
     const events = buildQueueManagerEvents(ctx);
@@ -199,5 +200,17 @@ describe('queue handlers — manager event sink', () => {
     expect(shownNotifications).toHaveLength(1);
     expect(shownNotifications[0].title).toBe('Queue complete');
     expect(shownNotifications[0].body).toContain('3');
+  });
+
+  it('localizes the notification to Polish when uiLanguage = pl', () => {
+    getSettingMock.mockReturnValueOnce(true); // queueNotifyOnComplete
+    getSettingMock.mockReturnValueOnce('pl'); // uiLanguage
+    const ctx = makeCtx();
+    const events = buildQueueManagerEvents(ctx);
+    events.onQueueComplete?.(3);
+    expect(shownNotifications).toHaveLength(1);
+    expect(shownNotifications[0].title).toBe('Kolejka ukończona');
+    // 3 → Polish "few" plural form of "plik".
+    expect(shownNotifications[0].body).toBe('Ukończono 3 pliki.');
   });
 });

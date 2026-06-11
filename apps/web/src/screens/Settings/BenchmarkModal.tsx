@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Activity, Play, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useElectronAPI, useSetting } from '@/hooks';
@@ -33,12 +34,12 @@ interface BenchmarkModalProps {
  */
 type RowPhase = 'pending' | 'encoding' | 'measuring-psnr' | 'done' | 'error';
 
-const PHASE_LABEL: Record<RowPhase, string> = {
-  pending: 'queued',
-  encoding: 'encoding…',
-  'measuring-psnr': 'computing PSNR…',
-  done: 'done',
-  error: 'failed',
+const PHASE_KEY: Record<RowPhase, string> = {
+  pending: 'benchmark.phase.pending',
+  encoding: 'benchmark.phase.encoding',
+  'measuring-psnr': 'benchmark.phase.measuringPsnr',
+  done: 'benchmark.phase.done',
+  error: 'benchmark.phase.error',
 };
 
 /**
@@ -76,6 +77,7 @@ const buildDefaultCandidates = (current: EncodingProfile | null): BenchmarkCandi
  * benchmark progress into the main encode store.
  */
 export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
+  const { t } = useTranslation('settings');
   const api = useElectronAPI();
   const [encoding] = useSetting('encoding');
 
@@ -211,7 +213,7 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Benchmark"
+      aria-label={t('benchmark.ariaLabel')}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur"
       onClick={running ? undefined : onClose}
     >
@@ -227,33 +229,33 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 benchmark · 試 · shi
               </span>
-              <h2 className="font-display text-xl text-foreground">Benchmark candidates</h2>
+              <h2 className="font-display text-xl text-foreground">{t('benchmark.title')}</h2>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={running}>
             <X size={14} />
-            Close
+            {t('benchmark.closeBtn')}
           </Button>
         </header>
 
         {/* Body */}
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
-          <p className="text-sm text-muted-foreground">
-            Encodes a 10-second sample of the chosen video against each candidate, then measures
-            output size, encode time, and PSNR. Pick a representative scene — solid colour
-            transitions or fast motion expose differences best.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('benchmark.body')}</p>
 
           {/* File pickers */}
           <div className="flex flex-col gap-3">
-            <FilePickRow label="Video" value={video} onPick={onPickVideo} />
-            <FilePickRow label="Subtitles" value={subs} onPick={onPickSubs} />
+            <FilePickRow label={t('benchmark.filePick.video')} value={video} onPick={onPickVideo} />
+            <FilePickRow
+              label={t('benchmark.filePick.subtitles')}
+              value={subs}
+              onPick={onPickSubs}
+            />
           </div>
 
           {/* Candidate codec quick-switches */}
           <div className="flex flex-col gap-2">
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-              candidates
+              {t('benchmark.candidatesLabel')}
             </span>
             <ul className="flex flex-col gap-2">
               {candidateRows.map(({ c, i, phase, result, codec, hw }) => (
@@ -280,12 +282,15 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={onRun} disabled={!canRun}>
               <Play size={14} />
-              {running ? 'Running…' : 'Run benchmark'}
+              {running ? t('benchmark.running') : t('benchmark.runBtn')}
             </Button>
             {progress && running && (
               <span className="font-mono text-[11px] text-muted">
-                Candidate {progress.candidateIndex + 1} of {candidates.length} ·{' '}
-                {PHASE_LABEL[progress.phase as RowPhase]}
+                {t('benchmark.progress', {
+                  index: progress.candidateIndex + 1,
+                  total: candidates.length,
+                  phase: t(PHASE_KEY[progress.phase as RowPhase]),
+                })}
               </span>
             )}
           </div>
@@ -303,10 +308,10 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
               <table className="w-full font-mono text-[12px]">
                 <thead>
                   <tr className="border-b border-border text-left uppercase tracking-[0.18em] text-muted">
-                    <th className="px-4 py-2">Candidate</th>
-                    <th className="px-4 py-2 text-right">Size</th>
-                    <th className="px-4 py-2 text-right">Time</th>
-                    <th className="px-4 py-2 text-right">PSNR</th>
+                    <th className="px-4 py-2">{t('benchmark.table.candidate')}</th>
+                    <th className="px-4 py-2 text-right">{t('benchmark.table.size')}</th>
+                    <th className="px-4 py-2 text-right">{t('benchmark.table.time')}</th>
+                    <th className="px-4 py-2 text-right">{t('benchmark.table.psnr')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -345,20 +350,23 @@ interface FilePickRowProps {
   onPick: () => void;
 }
 
-const FilePickRow = ({ label, value, onPick }: FilePickRowProps) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
-    <div className="flex min-w-[120px] flex-col gap-1">
-      <span className="font-display text-sm text-foreground">{label}</span>
-      <span className="truncate font-mono text-[11px] text-muted-foreground">
-        {value ?? 'not picked'}
-      </span>
+const FilePickRow = ({ label, value, onPick }: FilePickRowProps) => {
+  const { t } = useTranslation('settings');
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
+      <div className="flex min-w-[120px] flex-col gap-1">
+        <span className="font-display text-sm text-foreground">{label}</span>
+        <span className="truncate font-mono text-[11px] text-muted-foreground">
+          {value ?? t('benchmark.filePick.notPicked')}
+        </span>
+      </div>
+      <Button variant="ghost" size="sm" onClick={onPick}>
+        <Activity size={14} />
+        {value ? t('benchmark.filePick.change') : t('benchmark.filePick.pick')}
+      </Button>
     </div>
-    <Button variant="ghost" size="sm" onClick={onPick}>
-      <Activity size={14} />
-      {value ? 'Change' : 'Pick'}
-    </Button>
-  </div>
-);
+  );
+};
 
 interface CodecCycleProps {
   codec: Codec;
@@ -385,6 +393,7 @@ interface RowStatusProps {
 }
 
 const RowStatus = ({ phase, result }: RowStatusProps) => {
+  const { t } = useTranslation('settings');
   if (phase === 'done' && result) {
     return (
       <span className="font-mono text-[11px] text-good">
@@ -396,11 +405,11 @@ const RowStatus = ({ phase, result }: RowStatusProps) => {
     );
   }
   if (phase === 'error') {
-    return <span className="font-mono text-[11px] text-bad">{PHASE_LABEL[phase]}</span>;
+    return <span className="font-mono text-[11px] text-bad">{t(PHASE_KEY[phase])}</span>;
   }
   return (
     <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-      {PHASE_LABEL[phase]}
+      {t(PHASE_KEY[phase])}
     </span>
   );
 };

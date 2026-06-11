@@ -1,6 +1,7 @@
 export * from './useElectronAPI';
 export * from './useSetting';
 export * from './useHydratedSetting';
+export * from './useUiLanguage';
 export * from './useFfmpegStatus';
 export * from './useFfmpegInstall';
 export * from './useGpuProbe';

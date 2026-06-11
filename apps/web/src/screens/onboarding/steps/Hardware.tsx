@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconCheck } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import type { GpuProbeResult, GpuVendor } from '@/types/electron-api';
@@ -49,17 +50,20 @@ interface HardwareProps {
  * get `detected = true`; the highest-priority available vendor gets `primary`.
  * When no hardware encoders are found, CPU is promoted to `primary` instead.
  */
-const applyProbe = (probe: GpuProbeResult | null): HwOption[] => {
+const applyProbe = (probe: GpuProbeResult | null, t: (key: string) => string): HwOption[] => {
   const available = probe?.available ?? [];
   const recommended = probe ? pickRecommended(available) : 'cpu';
   return HW_OPTIONS_TEMPLATE.map(o => {
     const detected = o.id === 'cpu' ? true : (available as string[]).includes(o.id);
     const primary = recommended === o.id;
+    // Device name (e.g. "NVIDIA NVENC") is a product name and stays as-is; only
+    // the availability suffix is localized.
+    const device = o.name.split('·')[0]?.trim();
     const chip = detected
       ? o.id === 'cpu'
-        ? 'software · always available'
-        : `${o.name.split('·')[0]?.trim()} · detected`
-      : `${o.name.split('·')[0]?.trim()} · not detected`;
+        ? t('hw.chip.always')
+        : `${device} · ${t('hw.chip.detected')}`
+      : `${device} · ${t('hw.chip.notDetected')}`;
     return { ...o, detected, primary, chip };
   });
 };
@@ -71,14 +75,15 @@ interface HwCardProps {
 }
 
 const HwCard = ({ opt, selected, onClick }: HwCardProps) => {
+  const { t } = useTranslation('onboarding');
   const disabled = !opt.detected;
   const badgeLabel = disabled
-    ? 'not available'
+    ? t('hw.badge.notAvailable')
     : selected
-      ? 'chosen'
+      ? t('hw.badge.chosen')
       : opt.primary
-        ? 'recommended'
-        : 'detected';
+        ? t('hw.badge.recommended')
+        : t('hw.badge.detected');
 
   return (
     <button
@@ -115,7 +120,7 @@ const HwCard = ({ opt, selected, onClick }: HwCardProps) => {
       </div>
       <div className="flex flex-col gap-1 rounded-lg bg-popover/40 px-3 py-2">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-          <span>chip</span>
+          <span>{t('hw.specs.chip')}</span>
           <b className="font-sans text-[12px] normal-case tracking-normal text-foreground">
             {opt.chip}
           </b>
@@ -125,7 +130,13 @@ const HwCard = ({ opt, selected, onClick }: HwCardProps) => {
             key={k}
             className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted"
           >
-            <span>{k.toLowerCase()}</span>
+            <span>
+              {k === 'Encoder'
+                ? t('hw.specs.encoder')
+                : k === 'Throughput'
+                  ? t('hw.specs.throughput')
+                  : k.toLowerCase()}
+            </span>
             <b className="font-sans text-[12px] normal-case tracking-normal text-foreground">{v}</b>
           </div>
         ))}
@@ -147,6 +158,7 @@ const HwCard = ({ opt, selected, onClick }: HwCardProps) => {
  * done by the time step 3 mounts.
  */
 export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) => {
+  const { t } = useTranslation('onboarding');
   const { result: probeResult, loading, error: probeError } = probe;
 
   // Keep the latest `onProbed` callback behind a ref so the settle effect can
@@ -167,7 +179,7 @@ export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) =>
     onProbedRef.current(probeResult);
   }, [loading, probeResult]);
 
-  const options = useMemo(() => applyProbe(probeResult), [probeResult]);
+  const options = useMemo(() => applyProbe(probeResult, t), [probeResult, t]);
   const gpuOptions = options.filter(o => o.id !== 'cpu');
   const cpuOption = options.find(o => o.id === 'cpu') ?? { ...HW_OPTIONS_TEMPLATE[3] };
 
@@ -185,24 +197,24 @@ export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) =>
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          Picked up your <em className="not-italic text-primary">hardware.</em>
+          {t('hw.title')} <em className="not-italic text-primary">{t('hw.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[780px] text-sm leading-relaxed text-muted-foreground">
-          We ran a quick probe.{' '}
+          {t('hw.subtitlePreamble')}{' '}
           {loading ? (
             <>
-              <b className="text-foreground">Probing ffmpeg encoders…</b> this takes a second.
+              <b className="text-foreground">{t('hw.subtitleProbing')}</b>{' '}
+              {t('hw.subtitleProbingSuffix')}
             </>
           ) : probeError ? (
             <>
-              Probe didn&apos;t return cleanly —{' '}
-              <b className="text-foreground">we&apos;ll use CPU (libx264) as a safe fallback.</b>{' '}
-              You can change this anytime in Settings.
+              {t('hw.subtitleError')}{' '}
+              <b className="text-foreground">{t('hw.subtitleErrorEmphasis')}</b>{' '}
+              {t('hw.subtitleErrorSuffix')}
             </>
           ) : (
             <>
-              <b className="text-foreground">{recommendedLabel}</b> is the fastest option on this
-              machine — we&apos;ll use it by default. You can change this anytime in Settings.
+              <b className="text-foreground">{recommendedLabel}</b> {t('hw.subtitleOk')}
             </>
           )}
         </p>
@@ -211,7 +223,7 @@ export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) =>
       {loading && (
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card/30 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
           <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-          <span>probing hardware encoders…</span>
+          <span>{t('hw.probingBanner')}</span>
         </div>
       )}
 
@@ -234,9 +246,9 @@ export const Hardware = ({ value, onChange, onProbed, probe }: HardwareProps) =>
           <div className="flex items-center gap-3 rounded-lg border border-border bg-card/20 px-4 py-3">
             <IconCheck size={16} className="text-primary" aria-hidden="true" />
             <div className="flex flex-col gap-0.5">
-              <b className="font-display text-sm text-foreground">CPU is always on</b>
+              <b className="font-display text-sm text-foreground">{t('hw.cpuAlwaysOn.title')}</b>
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-                software · libx264 · fallback is guaranteed
+                {t('hw.cpuAlwaysOn.mono')}
               </span>
             </div>
           </div>

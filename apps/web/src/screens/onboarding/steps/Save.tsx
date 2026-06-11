@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, IconFolder } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
 import { cn } from '@/lib/cn';
@@ -20,6 +21,7 @@ interface SaveStepProps {
  * the chosen path back into the onboarding store.
  */
 export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProps) => {
+  const { t } = useTranslation('onboarding');
   const api = useElectronAPI();
 
   const pickFolder = useCallback(async (): Promise<void> => {
@@ -44,13 +46,13 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          Where should MoeKoder <em className="not-italic text-primary">drop the file?</em>
+          {t('save.title')} <em className="not-italic text-primary">{t('save.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          The output gets this location by default. <b className="text-foreground">Beside source</b>{' '}
-          is the safest — MoeKoder never overwrites your original, it writes to a{' '}
-          <code className="font-mono text-[12px] text-foreground">moekoder/</code> subfolder next to
-          it.
+          {t('save.subtitleBefore')} <b className="text-foreground">{t('save.subtitleBeside')}</b>{' '}
+          {t('save.subtitleMid')}{' '}
+          <code className="font-mono text-[12px] text-foreground">{t('save.subtitleFolder')}</code>{' '}
+          {t('save.subtitleAfter')}
         </p>
       </div>
 
@@ -58,7 +60,7 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
         {OB_SAVES.map(s => {
           const selected = value === s.id;
           const isCustom = s.id === 'custom';
-          const pathText = s.path ?? customPath ?? 'click "Browse…" to pick a folder';
+          const pathText = s.path ?? customPath ?? t('save.browsePlaceholder');
           return (
             <button
               key={s.id}
@@ -83,7 +85,7 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
               </span>
               <span className="font-display text-3xl leading-none text-primary">{s.k}</span>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <b className="font-display text-base text-foreground">{s.label}</b>
+                <b className="font-display text-base text-foreground">{t(s.labelKey)}</b>
                 <span className="truncate font-mono text-[11px] text-muted-foreground">
                   {isCustom && !customPath ? <em className="not-italic">{pathText}</em> : pathText}
                 </span>
@@ -97,11 +99,11 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card/30 p-3">
           <IconFolder size={18} className="text-primary" aria-hidden="true" />
           <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-foreground">
-            {customPath ?? 'No folder picked yet.'}
+            {customPath ?? t('save.noFolderPicked')}
           </span>
           <Button variant="primary" size="sm" onClick={pickFolder}>
             <IconFolder size={14} />
-            {customPath ? 'Change' : 'Browse…'}
+            {customPath ? t('save.change') : t('save.browseEllipsis')}
           </Button>
         </div>
       )}

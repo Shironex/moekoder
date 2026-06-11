@@ -1,0 +1,27 @@
+{
+  "status": {
+    "error": "aktualizacja · błąd",
+    "checking": "Sprawdzanie aktualizacji…",
+    "failed": "Nie udało się sprawdzić aktualizacji."
+  },
+  "available": {
+    "title": "Dostępna aktualizacja",
+    "newVersion": "Nowa wersja · v{{version}}",
+    "subtitle": "Nowe wydanie MoeKoder jest gotowe do pobrania."
+  },
+  "downloading": {
+    "title": "Pobieranie aktualizacji",
+    "pct": "{{pct}}"
+  },
+  "downloaded": {
+    "title": "Aktualizacja gotowa do instalacji",
+    "subtitle": "MoeKoder zamknie się, zainstaluje aktualizację i uruchomi ponownie. v{{version}}",
+    "subtitleNoVersion": "MoeKoder zamknie się, zainstaluje aktualizację i uruchomi ponownie."
+  },
+  "cta": {
+    "download": "Pobierz",
+    "later": "Później",
+    "restartInstall": "Uruchom ponownie i zainstaluj"
+  },
+  "dismiss": "Zamknij"
+}

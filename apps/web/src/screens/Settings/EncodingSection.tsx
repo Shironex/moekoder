@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { useGpuProbe, useSetting } from '@/hooks';
@@ -116,6 +117,7 @@ const Segmented = <T extends string | number>({
  *     rest stop at 51.
  */
 export const EncodingSection = () => {
+  const { t } = useTranslation('settings');
   const { result: gpu, probe } = useGpuProbe();
   const [encoding, setEncoding] = useSetting('encoding');
   const [muxOnlySoftSubs, setMuxOnlySoftSubs] = useSetting('muxOnlySoftSubs');
@@ -145,15 +147,15 @@ export const EncodingSection = () => {
   const hwOptions = useMemo(() => {
     const legal = LEGAL_HW[codec];
     return legal.map(hw => {
-      const disabledReason = hwDisabledReason(codec, hw, gpu?.available, gpu?.details);
+      const reasonKey = hwDisabledReason(codec, hw, gpu?.available, gpu?.details);
       return {
         value: hw,
         label: HW_LABEL[hw],
-        disabled: Boolean(disabledReason),
-        title: disabledReason ?? undefined,
+        disabled: Boolean(reasonKey),
+        title: reasonKey ? t(reasonKey) : undefined,
       };
     });
-  }, [codec, gpu]);
+  }, [codec, gpu, t]);
 
   const cqRange = CQ_RANGE[hwAccel];
 
@@ -281,45 +283,39 @@ export const EncodingSection = () => {
   return (
     <div className="flex flex-col gap-5">
       {/* Codec */}
-      <Row label="Codec" hint="H.264 is the broadest compat. HEVC saves ~40% size, AV1 ~50%.">
+      <Row label={t('encoding.codec.label')} hint={t('encoding.codec.hint')}>
         <Segmented
           value={codec}
           options={CODEC_OPTIONS}
           onChange={onCodecChange}
-          ariaLabel="Video codec"
+          ariaLabel={t('encoding.codec.ariaLabel')}
         />
       </Row>
 
       {/* Hardware encoder */}
-      <Row
-        label="Encoder"
-        hint="Hardware encoders are faster; software encoders give finer quality control. NVENC options disable when your GPU doesn't advertise the encoder."
-      >
+      <Row label={t('encoding.hwEncoder.label')} hint={t('encoding.hwEncoder.hint')}>
         <Segmented
           value={hwAccel}
           options={hwOptions}
           onChange={onHwAccelChange}
-          ariaLabel="Hardware encoder"
+          ariaLabel={t('encoding.hwEncoder.ariaLabel')}
         />
       </Row>
 
       {/* Tier quick-set */}
-      <Row
-        label="Quality tier"
-        hint="One-click presets per codec. Fast = preview-grade, Balanced = anime-archival default, Pristine = max quality."
-      >
+      <Row label={t('encoding.tier.label')} hint={t('encoding.tier.hint')}>
         <Segmented
           value={activeTier}
           options={TIER_OPTIONS}
           onChange={onTierChange}
-          ariaLabel="Quality tier"
+          ariaLabel={t('encoding.tier.ariaLabel')}
         />
       </Row>
 
       {/* CQ slider */}
       <Row
-        label="Quality (CQ)"
-        hint={`Lower = better. Range ${cqRange.min}–${cqRange.max} for the current encoder.`}
+        label={t('encoding.cq.label')}
+        hint={t('encoding.cq.hint', { min: cqRange.min, max: cqRange.max })}
       >
         <div className="flex items-center gap-3">
           <input
@@ -329,7 +325,7 @@ export const EncodingSection = () => {
             step={1}
             value={cq}
             onChange={e => onCqChange(e.target.value)}
-            aria-label="Constant-quality value"
+            aria-label={t('encoding.cq.ariaLabel')}
             className="w-[180px] accent-primary"
           />
           <span className="w-[36px] text-right font-mono text-sm text-foreground">{cq}</span>
@@ -338,14 +334,11 @@ export const EncodingSection = () => {
 
       {/* Encoder-specific preset knob */}
       {hwAccel === 'nvenc' && (
-        <Row
-          label="NVENC preset"
-          hint="Higher numbers = slower + better quality. Anime archival sweet spot is p4–p7."
-        >
+        <Row label={t('encoding.nvencPreset.label')} hint={t('encoding.nvencPreset.hint')}>
           <select
             value={(profile.nvencPreset as NvencPreset | undefined) ?? 'p4'}
             onChange={e => onNvencPresetChange(e.target.value as NvencPreset)}
-            aria-label="NVENC preset"
+            aria-label={t('encoding.nvencPreset.ariaLabel')}
             className="rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
           >
             {NVENC_PRESET_OPTIONS.map(p => (
@@ -358,14 +351,11 @@ export const EncodingSection = () => {
       )}
 
       {hwAccel === 'libx265' && (
-        <Row
-          label="libx265 preset"
-          hint="Slower presets give finer compression at the cost of encode time."
-        >
+        <Row label={t('encoding.libx265Preset.label')} hint={t('encoding.libx265Preset.hint')}>
           <select
             value={(profile.libx265Preset as Libx265Preset | undefined) ?? 'medium'}
             onChange={e => onLibx265PresetChange(e.target.value as Libx265Preset)}
-            aria-label="libx265 preset"
+            aria-label={t('encoding.libx265Preset.ariaLabel')}
             className="rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
           >
             {LIBX265_PRESETS.map(p => (
@@ -378,14 +368,11 @@ export const EncodingSection = () => {
       )}
 
       {hwAccel === 'libsvtav1' && (
-        <Row
-          label="SVT-AV1 preset"
-          hint="0 = highest quality / slowest, 13 = fastest. Anime archival lands at 4–8."
-        >
+        <Row label={t('encoding.svtPreset.label')} hint={t('encoding.svtPreset.hint')}>
           <select
             value={String((profile.svtPreset as SvtPreset | undefined) ?? 8)}
             onChange={e => onSvtPresetChange(Number(e.target.value) as SvtPreset)}
-            aria-label="SVT-AV1 preset"
+            aria-label={t('encoding.svtPreset.ariaLabel')}
             className="rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm text-foreground focus:border-primary focus:outline-none"
           >
             {SVT_PRESETS.map(p => (
@@ -407,25 +394,19 @@ export const EncodingSection = () => {
             onChange={e => onTenBitChange(e.target.checked)}
           />
           <span className="flex flex-col leading-tight">
-            <b className="font-display text-sm text-foreground">10-bit (main10) output</b>
-            <span className="text-[12px] text-muted-foreground">
-              HEVC + AV1 main10 encodes hold up better in dark scenes. Slightly slower; widely
-              supported on modern players.
-            </span>
+            <b className="font-display text-sm text-foreground">{t('encoding.tenBit.label')}</b>
+            <span className="text-[12px] text-muted-foreground">{t('encoding.tenBit.desc')}</span>
           </span>
         </label>
       )}
 
       {/* Container */}
-      <Row
-        label="Container"
-        hint="MP4 plays everywhere; MKV preserves the full feature set + supports any audio codec stream-copied."
-      >
+      <Row label={t('encoding.container.label')} hint={t('encoding.container.hint')}>
         <Segmented
           value={container}
           options={CONTAINER_OPTIONS}
           onChange={onContainerChange}
-          ariaLabel="Output container"
+          ariaLabel={t('encoding.container.ariaLabel')}
         />
       </Row>
 
@@ -439,12 +420,8 @@ export const EncodingSection = () => {
             onChange={e => onMuxToggle(e.target.checked)}
           />
           <span className="flex flex-col leading-tight">
-            <b className="font-display text-sm text-foreground">Mux only (soft subs)</b>
-            <span className="text-[12px] text-muted-foreground">
-              Don't burn — stream-copy the video + audio and add the subtitle as a separate,
-              selectable track. Finishes in seconds (no re-encode). Forces the MKV container; codec
-              + quality settings above are ignored while this is on.
-            </span>
+            <b className="font-display text-sm text-foreground">{t('encoding.mux.label')}</b>
+            <span className="text-[12px] text-muted-foreground">{t('encoding.mux.desc')}</span>
           </span>
         </label>
 
@@ -455,23 +432,26 @@ export const EncodingSection = () => {
                 htmlFor="mux-lang"
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted"
               >
-                Track language
+                {t('encoding.mux.trackLangLabel')}
               </label>
               <input
                 id="mux-lang"
                 type="text"
                 value={muxSubtitleLang ?? ''}
                 onChange={e => onMuxLangChange(e.target.value)}
-                placeholder="auto (e.g. eng)"
+                placeholder={t('encoding.mux.trackLangPlaceholder')}
                 spellCheck={false}
                 maxLength={3}
                 className="w-[120px] rounded-md border border-border bg-card/40 px-3 py-1.5 font-mono text-sm lowercase text-foreground placeholder:text-muted/60 focus:border-primary focus:outline-none"
-                aria-label="Muxed subtitle track language code"
+                aria-label={t('encoding.mux.trackLangAriaLabel')}
               />
             </div>
             <p className="text-[12px] text-muted-foreground">
-              ISO-639-2 code (eng, pol, jpn) the player labels the track with. Leave blank to
-              auto-derive from the subtitle filename suffix (e.g. <code>.en.ass</code> → eng).
+              <Trans
+                ns="settings"
+                i18nKey="encoding.mux.trackLangHint"
+                components={[<code key="0" />]}
+              />
             </p>
           </div>
         )}
@@ -481,7 +461,11 @@ export const EncodingSection = () => {
             role="alert"
             className="rounded-md border border-bad/40 bg-bad/10 px-3 py-2 text-[12px] text-foreground"
           >
-            MP4 can't carry soft <code>.ass</code> subtitles — output will be written as MKV.
+            <Trans
+              ns="settings"
+              i18nKey="encoding.mux.mp4Warning"
+              components={[<code key="0" />]}
+            />
           </p>
         )}
       </div>
@@ -489,15 +473,14 @@ export const EncodingSection = () => {
       {/* Benchmark — opens the modal */}
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
         <div className="flex max-w-[440px] flex-col gap-1">
-          <span className="font-display text-sm text-foreground">Benchmark</span>
-          <span className="text-[12px] text-muted-foreground">
-            Encode a 10-second sample against three candidate profiles and compare size + time +
-            PSNR side-by-side. Results stay in this session.
+          <span className="font-display text-sm text-foreground">
+            {t('encoding.benchmark.label')}
           </span>
+          <span className="text-[12px] text-muted-foreground">{t('encoding.benchmark.desc')}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setBenchmarkOpen(true)}>
           <Activity size={14} />
-          Run benchmark
+          {t('encoding.benchmark.runBtn')}
         </Button>
       </div>
 
@@ -523,8 +506,9 @@ const Row = ({ label, hint, children }: RowProps) => (
 );
 
 /**
- * Returns a human-readable reason a (codec, hwAccel) tuple is unavailable
- * given the current GPU probe. Returns null when the option is allowed.
+ * Returns a translation key for the reason a (codec, hwAccel) tuple is
+ * unavailable given the current GPU probe. Returns null when the option is
+ * allowed. Resolve the key with t() at the render site.
  */
 const hwDisabledReason = (
   codec: Codec,
@@ -534,18 +518,18 @@ const hwDisabledReason = (
 ): string | null => {
   // Software paths are always available.
   if (hwAccel === 'libx264' || hwAccel === 'libx265' || hwAccel === 'libsvtav1') return null;
-  if (!available) return 'Detecting GPU…';
+  if (!available) return 'encoding.hw.detectingGpu';
   if (hwAccel === 'qsv') {
-    return available.includes('qsv') ? null : 'No Intel QSV encoder detected';
+    return available.includes('qsv') ? null : 'encoding.hw.noQsv';
   }
   if (hwAccel === 'nvenc') {
-    if (!available.includes('nvenc')) return 'No NVENC encoder detected';
+    if (!available.includes('nvenc')) return 'encoding.hw.noNvenc';
     const wanted = NVENC_ENCODER_NAME[codec];
     const have = details?.nvenc?.encoders ?? [];
     if (have.includes(wanted)) return null;
-    if (codec === 'av1') return 'AV1 NVENC requires an RTX 40-series GPU';
-    if (codec === 'hevc') return 'HEVC NVENC not available on this GPU';
-    return 'H.264 NVENC not available';
+    if (codec === 'av1') return 'encoding.hw.noAv1Nvenc';
+    if (codec === 'hevc') return 'encoding.hw.noHevcNvenc';
+    return 'encoding.hw.noH264Nvenc';
   }
   return null;
 };

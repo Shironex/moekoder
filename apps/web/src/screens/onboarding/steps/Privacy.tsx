@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 /**
  * Step 08 · Privacy. Static consent-style pledge screen. Five pledges
  * (three "no", two "yes") + a closing seal. `canNext` stays true; the
@@ -7,44 +9,46 @@
 interface PledgeItem {
   k: string;
   tone: 'no' | 'yes';
-  title: string;
-  body: string;
+  titleKey: string;
+  bodyKey: string;
 }
 
 const ITEMS: PledgeItem[] = [
   {
     k: '無',
     tone: 'no',
-    title: 'No account, no sign-in, no email',
-    body: "MoeKoder doesn't know who you are. There is no server to know who you are.",
+    titleKey: 'privacy.noAccount.title',
+    bodyKey: 'privacy.noAccount.body',
   },
   {
     k: '零',
     tone: 'no',
-    title: 'Zero telemetry, zero analytics',
-    body: 'No events, no crash reports, no "product usage metrics". The only network call is the ffmpeg download you just watched.',
+    titleKey: 'privacy.noTelemetry.title',
+    bodyKey: 'privacy.noTelemetry.body',
   },
   {
     k: '否',
     tone: 'no',
-    title: 'No update nags',
-    body: 'Background update checks are off by default. Click Settings → Updates → Check to look for a new version, or flip the toggle there if you want the app to check on its own.',
+    titleKey: 'privacy.noNags.title',
+    bodyKey: 'privacy.noNags.body',
   },
   {
     k: '自',
     tone: 'yes',
-    title: 'Your files stay on your disk',
-    body: 'Every byte of every encode is local. No cloud mirror, no temp upload, no "intelligent cache".',
+    titleKey: 'privacy.filesLocal.title',
+    bodyKey: 'privacy.filesLocal.body',
   },
   {
     k: '源',
     tone: 'yes',
-    title: 'Source-available · auditable',
-    body: "Every line of what you're running is on GitHub. Read it, audit it, file issues — see the LICENSE for redistribution terms.",
+    titleKey: 'privacy.sourceAvailable.title',
+    bodyKey: 'privacy.sourceAvailable.body',
   },
 ];
 
 export const Privacy = () => {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
       <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
@@ -56,10 +60,11 @@ export const Privacy = () => {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-4xl leading-tight text-foreground">
-          One <em className="not-italic text-primary">promise.</em>
+          {t('privacy.title')}{' '}
+          <em className="not-italic text-primary">{t('privacy.titleEmphasis')}</em>
         </h1>
         <p className="max-w-[720px] text-sm leading-relaxed text-muted-foreground">
-          Read the list. There&apos;s no fine print behind it.
+          {t('privacy.subtitle')}
         </p>
       </div>
 
@@ -84,8 +89,10 @@ export const Privacy = () => {
                 {item.k}
               </span>
               <div className="flex flex-col gap-1">
-                <b className="font-display text-base text-foreground">{item.title}</b>
-                <span className="text-sm leading-relaxed text-muted-foreground">{item.body}</span>
+                <b className="font-display text-base text-foreground">{t(item.titleKey)}</b>
+                <span className="text-sm leading-relaxed text-muted-foreground">
+                  {t(item.bodyKey)}
+                </span>
               </div>
             </div>
           ))}
@@ -97,12 +104,14 @@ export const Privacy = () => {
             静 · sei · stillness
           </span>
           <div className="font-display text-xl leading-snug text-foreground">
-            Built to be <em className="not-italic text-primary">quiet.</em>
+            {t('privacy.seal.quiet')}{' '}
+            <em className="not-italic text-primary">{t('privacy.seal.quietEmphasis')}</em>
             <br />
-            Built to be <em className="not-italic text-primary">gone.</em>
+            {t('privacy.seal.gone')}{' '}
+            <em className="not-italic text-primary">{t('privacy.seal.goneEmphasis')}</em>
           </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            the pledge · 夜 edition
+            {t('privacy.seal.pledge')}
           </span>
         </aside>
       </div>

@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { APP_NAME } from '@moekoder/shared';
 import { Button, IconCheck, IconClose, IconMax, IconMin } from '@/components/ui';
 import { useWindowControls } from '@/hooks';
@@ -45,6 +46,7 @@ interface RailEntryProps {
  * (muted text + dotted ring).
  */
 const RailEntry = ({ meta, status }: RailEntryProps) => {
+  const { t } = useTranslation('onboarding');
   const node =
     status === 'done' ? (
       <IconCheck size={12} strokeWidth={2.4} />
@@ -79,7 +81,7 @@ const RailEntry = ({ meta, status }: RailEntryProps) => {
             status === 'pending' ? 'text-muted-foreground' : 'text-foreground'
           )}
         >
-          {meta.label}
+          {t(meta.labelKey)}
         </span>
         <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted">
           {meta.mono}
@@ -106,6 +108,7 @@ export const OnboardingLayout = ({
   nextLabel,
   busy,
 }: OnboardingLayoutProps) => {
+  const { t } = useTranslation('onboarding');
   const idx = OB_STEPS.findIndex(s => s.id === step);
   const current = OB_STEPS[idx] ?? OB_STEPS[0];
   const isFirst = idx <= 0;
@@ -114,7 +117,11 @@ export const OnboardingLayout = ({
 
   const resolvedLabel =
     nextLabel ??
-    (isLast ? 'Start encoding' : idx === OB_STEPS.length - 2 ? 'Finish setup' : 'Continue');
+    (isLast
+      ? t('footer.startEncoding')
+      : idx === OB_STEPS.length - 2
+        ? t('footer.finishSetup')
+        : t('footer.continue'));
 
   const {
     onMin: handleMin,
@@ -163,7 +170,7 @@ export const OnboardingLayout = ({
         <div className="flex-1" />
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-          <span>setup in progress</span>
+          <span>{t('layout.setupInProgress')}</span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
           <span className="text-foreground">
             <span className="mr-1 font-display text-sm text-primary">{current.kanji}</span>
@@ -176,8 +183,8 @@ export const OnboardingLayout = ({
               type="button"
               className="title-icon-btn"
               onClick={handleMin}
-              title="Minimize"
-              aria-label="Minimize"
+              title={t('layout.windowControls.minimize')}
+              aria-label={t('layout.windowControls.minimize')}
             >
               <IconMin />
             </button>
@@ -185,8 +192,8 @@ export const OnboardingLayout = ({
               type="button"
               className="title-icon-btn"
               onClick={handleMax}
-              title="Maximize"
-              aria-label="Maximize"
+              title={t('layout.windowControls.maximize')}
+              aria-label={t('layout.windowControls.maximize')}
             >
               <IconMax />
             </button>
@@ -194,8 +201,8 @@ export const OnboardingLayout = ({
               type="button"
               className="title-icon-btn close"
               onClick={handleClose}
-              title="Close"
-              aria-label="Close"
+              title={t('layout.windowControls.close')}
+              aria-label={t('layout.windowControls.close')}
             >
               <IconClose />
             </button>
@@ -210,7 +217,9 @@ export const OnboardingLayout = ({
           <div className="flex items-center gap-3 border-b border-border px-5 py-4">
             <span className="font-display text-3xl leading-none text-primary">初</span>
             <div className="flex flex-col gap-0.5 leading-none">
-              <span className="font-display text-sm text-foreground">Getting set up</span>
+              <span className="font-display text-sm text-foreground">
+                {t('layout.gettingSetUp')}
+              </span>
               <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted">
                 shō · 初 · first time
               </span>
@@ -248,30 +257,28 @@ export const OnboardingLayout = ({
             <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               <span className="font-display text-lg text-primary">{current.kanji}</span>
               <span className="text-foreground">
-                <b>{current.label}</b>
+                <b>{t(current.labelKey)}</b>
               </span>
-              <span>
-                · step {idx + 1} of {OB_STEPS.length}
-              </span>
+              <span>· {t('layout.stepOf', { current: idx + 1, total: OB_STEPS.length })}</span>
             </div>
             <div className="flex-1" />
 
             {!isFirst && !isLast && (
               <Button variant="ghost" size="sm" onClick={onBack}>
                 <ArrowLeft size={14} />
-                Back
+                {t('back', { ns: 'common' })}
               </Button>
             )}
             {current.skippable && onSkip && !isLast && (
               <Button variant="ghost" size="sm" onClick={onSkip}>
-                Skip for now
+                {t('footer.skipForNow')}
               </Button>
             )}
             <Button variant="primary" size="sm" onClick={onNext} disabled={busy || !canNext}>
               {busy ? (
                 <>
                   <span className="h-2 w-2 animate-pulse rounded-full bg-primary-foreground/80" />
-                  Downloading…
+                  {t('footer.downloading')}
                 </>
               ) : (
                 <>

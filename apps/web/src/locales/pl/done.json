@@ -1,0 +1,23 @@
+{
+  "title": "Gotowe. Ładnie.",
+  "empty": "brak kodowania w historii · 空",
+  "eyebrow": "ukończono · 完",
+  "heading": {
+    "prefix": "Zakończono",
+    "highlight": "kodowanie."
+  },
+  "status": {
+    "sessionComplete": "sesja zakończona",
+    "saved": "zapisano"
+  },
+  "stat": {
+    "duration": "czas trwania",
+    "avgFps": "śr. fps",
+    "outputSize": "rozmiar pliku",
+    "realtime": "czas rzeczywisty"
+  },
+  "btn": {
+    "openFolder": "Otwórz folder",
+    "encodeAnother": "Zakoduj kolejny plik"
+  }
+}

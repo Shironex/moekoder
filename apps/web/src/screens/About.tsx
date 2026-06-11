@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { APP_KANJI, APP_NAME, APP_SIGIL, GITHUB_REPO } from '@moekoder/shared';
 import { Button } from '@/components/ui';
 import { useElectronAPI } from '@/hooks';
@@ -21,7 +22,8 @@ interface SiblingCard {
   kanji: string;
   /** Single-kanji sigil. */
   sigil: string;
-  blurb: string;
+  /** i18n key resolved with t() at the render site. */
+  blurbKey: string;
   /** Absolute URL; `null` for the "you are here" sibling. */
   url: string | null;
   youAreHere?: boolean;
@@ -33,7 +35,7 @@ const SIBLINGS: readonly SiblingCard[] = [
     name: 'Shiranami',
     kanji: '白波',
     sigil: '波',
-    blurb: 'Anime tracking & discovery. Where your list lives.',
+    blurbKey: 'siblings.shiranami',
     url: 'https://shiranami.moe',
   },
   {
@@ -41,7 +43,7 @@ const SIBLINGS: readonly SiblingCard[] = [
     name: 'ShiroAni',
     kanji: '白アニ',
     sigil: 'ア',
-    blurb: 'A quieter way to watch. Stream without the noise.',
+    blurbKey: 'siblings.shiroani',
     url: 'https://shiroani.moe',
   },
   {
@@ -49,7 +51,7 @@ const SIBLINGS: readonly SiblingCard[] = [
     name: APP_NAME,
     kanji: APP_KANJI,
     sigil: APP_SIGIL,
-    blurb: 'Burn subtitles into video, cutely. You are here.',
+    blurbKey: 'siblings.moekoder',
     url: null,
     youAreHere: true,
   },
@@ -58,7 +60,7 @@ const SIBLINGS: readonly SiblingCard[] = [
     name: 'KireiManga',
     kanji: '綺麗漫画',
     sigil: '漫',
-    blurb: 'Manga reader with taste. Clean pages, nothing else.',
+    blurbKey: 'siblings.kireimanga',
     url: 'https://kireimanga.moe',
   },
 ] as const;
@@ -74,6 +76,7 @@ const SIBLINGS: readonly SiblingCard[] = [
  * renders empty.
  */
 export const About = () => {
+  const { t } = useTranslation('about');
   const api = useElectronAPI();
   const setView = useAppStore(s => s.setView);
 
@@ -119,7 +122,7 @@ export const About = () => {
       <header className="relative z-10 flex shrink-0 items-center gap-4 border-b border-border bg-popover/40 px-10 py-5 backdrop-blur">
         <Button variant="ghost" size="sm" onClick={() => setView('settings')}>
           <ArrowLeft size={14} />
-          Back
+          {t('back', { ns: 'common' })}
         </Button>
         <div className="flex items-center gap-3">
           <span className="font-display text-3xl leading-none text-primary">解</span>
@@ -127,7 +130,7 @@ export const About = () => {
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               about · 解 · kai
             </span>
-            <h1 className="font-display text-xl text-foreground">About</h1>
+            <h1 className="font-display text-xl text-foreground">{t('title')}</h1>
           </div>
         </div>
       </header>
@@ -153,13 +156,12 @@ export const About = () => {
                 </h2>
                 <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                   <span className="font-display text-sm text-primary">焼</span>
-                  <span>subtitle burner</span>
+                  <span>{t('tagline')}</span>
                   <span className="h-1 w-1 rounded-full bg-muted/50" />
                   <span>yoru edition</span>
                 </div>
                 <p className="max-w-[560px] text-base leading-relaxed text-muted-foreground">
-                  Burn subtitles into video, cutely. Built for anime power users — one MKV, one ASS,
-                  one MP4 out the other side. No cloud, no telemetry, no ads.
+                  {t('blurb')}
                 </p>
               </div>
             </div>
@@ -173,7 +175,7 @@ export const About = () => {
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                   shiro suite · 白 · family
                 </span>
-                <h2 className="font-display text-xl text-foreground">The Shiro Suite</h2>
+                <h2 className="font-display text-xl text-foreground">{t('suite.title')}</h2>
               </div>
               <div className="ml-4 h-px flex-1 bg-border" />
             </div>
@@ -191,12 +193,12 @@ export const About = () => {
                         <span className="font-display text-sm text-primary/80">{s.kanji}</span>
                         {s.youAreHere && (
                           <span className="ml-auto rounded-sm border border-primary/40 bg-[color-mix(in_oklab,var(--primary)_12%,transparent)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
-                            · you are here
+                            {t('youAreHere')}
                           </span>
                         )}
                       </div>
                       <span className="text-[13px] leading-relaxed text-muted-foreground">
-                        {s.blurb}
+                        {t(s.blurbKey)}
                       </span>
                     </div>
                     {clickable && (
@@ -243,28 +245,33 @@ export const About = () => {
           <section className="grid gap-4 rounded-xl border border-border bg-card/30 p-6 sm:grid-cols-3">
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
-                version
+                {t('meta.version')}
               </span>
               <span className="font-display text-base text-foreground">
-                {APP_NAME} <span className="text-primary">v{version ?? '…'}</span>
+                {APP_NAME}{' '}
+                <span className="text-primary">
+                  {t('meta.versionValue', { version: version ?? '…' })}
+                </span>
               </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
-                build
+                {t('meta.build')}
               </span>
-              <span className="font-mono text-[13px] text-foreground">{buildHash}</span>
+              <span className="font-mono text-[13px] text-foreground">
+                {t('meta.buildValue', { hash: buildHash })}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
-                license
+                {t('meta.license')}
               </span>
               <button
                 type="button"
                 onClick={() => void onOpen(`https://github.com/${GITHUB_REPO}/blob/main/LICENSE`)}
                 className="group flex items-center gap-1.5 self-start font-mono text-[13px] text-foreground transition hover:text-primary"
               >
-                <span>Source Available</span>
+                <span>{t('meta.sourceAvailable')}</span>
                 <ExternalLink size={11} className="text-muted group-hover:text-primary" />
               </button>
             </div>
@@ -278,12 +285,11 @@ export const About = () => {
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                   credits · 謝 · sha
                 </span>
-                <h2 className="font-display text-lg text-foreground">Built by Shironex</h2>
+                <h2 className="font-display text-lg text-foreground">{t('credits.title')}</h2>
               </div>
             </div>
             <p className="max-w-[620px] text-sm leading-relaxed text-muted-foreground">
-              A one-person project, stitched together with ffmpeg, libass, Electron, and a lot of
-              late-night tea. Issues, PRs, and kind words all welcome on GitHub.
+              {t('credits.body')}
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <Button
@@ -292,7 +298,7 @@ export const About = () => {
                 onClick={() => void onOpen(`https://github.com/${GITHUB_REPO}`)}
               >
                 <ExternalLink size={14} />
-                GitHub · {GITHUB_REPO}
+                {t('meta.github', { repo: GITHUB_REPO })}
               </Button>
             </div>
           </section>

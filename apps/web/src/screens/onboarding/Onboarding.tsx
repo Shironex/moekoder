@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ThemeId } from '@moekoder/shared';
 import { useAppStore, useOnboardingStore } from '@/stores';
 import { useElectronAPI, useFfmpegStatus } from '@/hooks';
@@ -33,6 +34,7 @@ import { Done } from './steps/Done';
  * can surface them in v0.2 without a schema change).
  */
 export const Onboarding = () => {
+  const { t } = useTranslation('onboarding');
   const api = useElectronAPI();
   const step = useOnboardingStore(s => s.step);
   const setStep = useOnboardingStore(s => s.setStep);
@@ -217,8 +219,8 @@ export const Onboarding = () => {
 
   // Per-step CTA label / skip affordance overrides.
   const nextLabel = ((): string | undefined => {
-    if (currentStep.id === 'privacy') return 'I understand';
-    if (currentStep.id === 'done') return 'Start encoding';
+    if (currentStep.id === 'privacy') return t('privacy.iUnderstand');
+    if (currentStep.id === 'done') return t('done.startEncoding');
     return undefined;
   })();
 

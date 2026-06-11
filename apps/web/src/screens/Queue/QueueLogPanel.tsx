@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconCopy } from '@/components/ui/icons';
 import { LogLine } from '@/components/ui';
 import { useQueueStore, selectItemLogs } from '@/stores/useQueueStore';
@@ -31,6 +32,7 @@ const MAX_RENDERED_LINES = 500;
  * writes logs to `queue.json`), so there is nothing meaningful to restore.
  */
 export const QueueLogPanel = ({ itemId }: QueueLogPanelProps) => {
+  const { t } = useTranslation('queue');
   const logs = useQueueStore(selectItemLogs(itemId));
   const visible = logs.length > MAX_RENDERED_LINES ? logs.slice(-MAX_RENDERED_LINES) : logs;
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -65,14 +67,18 @@ export const QueueLogPanel = ({ itemId }: QueueLogPanelProps) => {
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">·</span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground">
-          {logs.length} {logs.length === 1 ? 'line' : 'lines'}
+          {t('log.lines', { count: logs.length })}
         </span>
         <button
           type="button"
           onClick={onCopy}
           disabled={logs.length === 0}
           title={
-            logs.length === 0 ? 'Nothing to copy yet' : copied ? 'Copied' : 'Copy log to clipboard'
+            logs.length === 0
+              ? t('log.nothingToCopy')
+              : copied
+                ? t('log.copied')
+                : t('log.copyTitle')
           }
           className={cn(
             'ml-auto flex items-center gap-1.5 rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] transition',
@@ -84,13 +90,13 @@ export const QueueLogPanel = ({ itemId }: QueueLogPanelProps) => {
           )}
         >
           <IconCopy size={11} />
-          <span>{copied ? 'Copied' : 'Copy'}</span>
+          <span>{copied ? t('log.copied') : t('log.copy')}</span>
         </button>
       </div>
       <div ref={bodyRef} className="max-h-[260px] min-h-[80px] overflow-y-auto px-3 py-2">
         {visible.length === 0 ? (
           <div className="py-4 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            no log lines yet
+            {t('log.empty')}
           </div>
         ) : (
           visible.map((l, i) => (

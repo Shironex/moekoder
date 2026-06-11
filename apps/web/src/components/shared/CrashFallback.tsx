@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ClipboardCopy, RefreshCw } from 'lucide-react';
 import { APP_NAME, APP_SIGIL } from '@moekoder/shared';
 import { Button } from '@/components/ui';
@@ -55,6 +56,7 @@ const buildReport = (error: Error | undefined, message: string | undefined): str
  * can still fall through cleanly even when its own state got wedged.
  */
 export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) => {
+  const { t } = useTranslation('crash');
   const [copied, setCopied] = useState(false);
   const [showStack, setShowStack] = useState(true);
 
@@ -80,7 +82,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
     }
   }, [report]);
 
-  const headline = message ?? error?.message ?? 'Something collapsed mid-render.';
+  const headline = message ?? error?.message ?? t('headline.fallback');
   const stack = error?.stack ?? '(no stack trace available)';
   const errName = error?.name ?? 'Error';
 
@@ -105,33 +107,31 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
           <span className="font-display text-base tracking-normal text-bad">崩</span>
           <span className="h-px w-8 bg-bad" />
           <span>unexpected error · hou · collapse</span>
+          {/* decorative trilingual eyebrow — left inline */}
         </div>
 
         {/* Headline */}
         <h1 className="max-w-[22ch] font-display text-6xl font-bold leading-[0.95] tracking-[-0.03em] text-foreground">
-          {APP_NAME} <em className="not-italic italic text-bad">tripped.</em>
+          {APP_NAME} <em className="not-italic italic text-bad">{t('headline.tripped')}</em>
           <br />
-          Let&apos;s get you moving.
+          {t('headline.getMoving')}
         </h1>
 
         {/* Sub */}
         <p className="mt-6 max-w-[52ch] text-[17px] leading-[1.55] text-muted-foreground">
           <b className="font-semibold text-foreground">{headline}</b>
           <br />
-          <span className="mt-2 block">
-            Your settings are safe — they live on disk. Reload the app to start fresh, or copy the
-            crash report if you&apos;d like to file an issue.
-          </span>
+          <span className="mt-2 block">{t('body.safeSettings')}</span>
         </p>
 
         {/* Actions */}
         <div className="mt-10 flex flex-wrap gap-3">
           <Button variant="primary" size="lg" onClick={handleReload}>
-            <RefreshCw size={16} />再 · Reload app
+            <RefreshCw size={16} />再 · {t('actions.reloadApp')}
           </Button>
           <Button variant="ghost" size="lg" onClick={handleCopy}>
             <ClipboardCopy size={16} />
-            {copied ? 'Copied · 済' : '告 · Copy report'}
+            {copied ? `${t('actions.copied')} · 済` : `告 · ${t('actions.copyReport')}`}
           </Button>
         </div>
 
@@ -140,27 +140,27 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
           <span className="font-display text-base tracking-normal text-primary">{APP_SIGIL}</span>
           <span>{APP_NAME}</span>
           <span className="h-1 w-1 rounded-full bg-muted/50" />
-          <span>session · crashed</span>
+          <span>{t('pills.sessionCrashed')}</span>
         </div>
       </div>
 
       {/* ──────────────── SIDE — diagnostics column ──────────────── */}
       <aside
         className="relative z-[1] flex min-h-0 flex-col overflow-hidden border-l border-border bg-[color-mix(in_oklab,var(--background)_40%,black_60%)] px-8 py-16 lg:py-24"
-        aria-label="Crash diagnostics"
+        aria-label={t('diagnostics.ariaLabel')}
       >
         <div className="mb-5 flex items-center gap-3 border-b border-border pb-4">
           <span className="font-display text-2xl leading-none text-primary">診</span>
           <div className="flex flex-col gap-0.5 leading-none">
             <span className="font-display text-[15px] font-semibold text-foreground">
-              Diagnostics
+              {t('diagnostics.title')}
             </span>
             <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
-              shin · diagnosis
+              shin · diagnosis{/* decorative trilingual eyebrow — left inline */}
             </span>
           </div>
           <span className="ml-auto rounded border border-[color-mix(in_oklab,var(--bad)_40%,transparent)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.05em] text-bad">
-            fatal
+            {t('diagnostics.fatal')}
           </span>
         </div>
 
@@ -170,7 +170,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
             {errName}
           </div>
           <div className="break-words font-mono text-[12px] leading-[1.4] text-foreground">
-            {error?.message || message || 'An unexpected error occurred.'}
+            {error?.message || message || t('diagnostics.unexpectedError')}
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
         <div className="mb-2 flex items-center gap-2 border-t border-border pt-3">
           <span className="font-display text-base text-primary">録</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-            stack trace
+            {t('diagnostics.stackTrace')}
           </span>
           <div className="flex-1" />
           <button
@@ -189,7 +189,7 @@ export const CrashFallback = ({ error, message, onReload }: CrashFallbackProps) 
               'hover:border-primary hover:text-primary'
             )}
           >
-            {showStack ? 'Hide' : 'Show'}
+            {showStack ? t('diagnostics.stackHide') : t('diagnostics.stackShow')}
           </button>
         </div>
 

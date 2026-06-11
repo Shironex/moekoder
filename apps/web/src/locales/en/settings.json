@@ -1,0 +1,217 @@
+{
+  "pageTitle": "Settings",
+  "app": {
+    "languageTitle": "Language",
+    "languageDesc": "Choose the interface language. Applies immediately."
+  },
+  "appearance": {
+    "title": "Appearance",
+    "desc": "Six themes, all borrowing their kanji from Japanese color names. Changes apply immediately."
+  },
+  "onboarding": {
+    "title": "Replay onboarding",
+    "desc": "Walk through the first-run wizard again to re-pick defaults. Your current settings are preserved until you finish the wizard.",
+    "replayBtn": "Replay onboarding"
+  },
+  "ffmpeg": {
+    "title": "FFmpeg engine",
+    "desc": "MoeKoder bundles ffmpeg + ffprobe under your user data directory. Reinstall if the binaries look damaged or you want a fresh copy.",
+    "statusChecking": "checking…",
+    "statusInstalled": "installed",
+    "statusNotInstalled": "not installed",
+    "statusNoVersion": "no binary found",
+    "reinstalling": "Reinstalling…",
+    "reinstallBtn": "Reinstall ffmpeg"
+  },
+  "logs": {
+    "title": "Logs",
+    "desc": "Open the log folder in your file manager. Useful when filing an issue — zip the folder and attach it.",
+    "openBtn": "Open logs folder"
+  },
+  "encoding": {
+    "title": "Encoding",
+    "desc": "Codec, hardware encoder, and quality knobs for every encode the app starts. Quick-set Fast/Balanced/Pristine for sane defaults; tune CQ + presets for fine control.",
+    "codec": {
+      "label": "Codec",
+      "hint": "H.264 is the broadest compat. HEVC saves ~40% size, AV1 ~50%.",
+      "ariaLabel": "Video codec"
+    },
+    "hwEncoder": {
+      "label": "Encoder",
+      "hint": "Hardware encoders are faster; software encoders give finer quality control. NVENC options disable when your GPU doesn't advertise the encoder.",
+      "ariaLabel": "Hardware encoder"
+    },
+    "tier": {
+      "label": "Quality tier",
+      "hint": "One-click presets per codec. Fast = preview-grade, Balanced = anime-archival default, Pristine = max quality.",
+      "ariaLabel": "Quality tier"
+    },
+    "cq": {
+      "label": "Quality (CQ)",
+      "hint": "Lower = better. Range {{min}}–{{max}} for the current encoder.",
+      "ariaLabel": "Constant-quality value"
+    },
+    "nvencPreset": {
+      "label": "NVENC preset",
+      "hint": "Higher numbers = slower + better quality. Anime archival sweet spot is p4–p7.",
+      "ariaLabel": "NVENC preset"
+    },
+    "libx265Preset": {
+      "label": "libx265 preset",
+      "hint": "Slower presets give finer compression at the cost of encode time.",
+      "ariaLabel": "libx265 preset"
+    },
+    "svtPreset": {
+      "label": "SVT-AV1 preset",
+      "hint": "0 = highest quality / slowest, 13 = fastest. Anime archival lands at 4–8.",
+      "ariaLabel": "SVT-AV1 preset"
+    },
+    "tenBit": {
+      "label": "10-bit (main10) output",
+      "desc": "HEVC + AV1 main10 encodes hold up better in dark scenes. Slightly slower; widely supported on modern players."
+    },
+    "container": {
+      "label": "Container",
+      "hint": "MP4 plays everywhere; MKV preserves the full feature set + supports any audio codec stream-copied.",
+      "ariaLabel": "Output container"
+    },
+    "mux": {
+      "label": "Mux only (soft subs)",
+      "desc": "Don't burn — stream-copy the video + audio and add the subtitle as a separate, selectable track. Finishes in seconds (no re-encode). Forces the MKV container; codec + quality settings above are ignored while this is on.",
+      "trackLangLabel": "Track language",
+      "trackLangPlaceholder": "auto (e.g. eng)",
+      "trackLangAriaLabel": "Muxed subtitle track language code",
+      "trackLangHint": "ISO-639-2 code (eng, pol, jpn) the player labels the track with. Leave blank to auto-derive from the subtitle filename suffix (e.g. <0>.en.ass</0> → eng).",
+      "mp4Warning": "MP4 can't carry soft <0>.ass</0> subtitles — output will be written as MKV."
+    },
+    "benchmark": {
+      "label": "Benchmark",
+      "desc": "Encode a 10-second sample against three candidate profiles and compare size + time + PSNR side-by-side. Results stay in this session.",
+      "runBtn": "Run benchmark"
+    },
+    "hw": {
+      "detectingGpu": "Detecting GPU…",
+      "noQsv": "No Intel QSV encoder detected",
+      "noNvenc": "No NVENC encoder detected",
+      "noAv1Nvenc": "AV1 NVENC requires an RTX 40-series GPU",
+      "noHevcNvenc": "HEVC NVENC not available on this GPU",
+      "noH264Nvenc": "H.264 NVENC not available"
+    }
+  },
+  "fonts": {
+    "title": "Embedded fonts",
+    "desc": "When the source is an MKV with attached fonts (the fansub default), MoeKoder extracts them into a per-job temp dir and feeds the path to libass so \\fn(CustomFont) typesetting renders as the author intended. Off ⇒ libass falls back to system fonts only, matching v0.4 behaviour.",
+    "checkboxLabel": "Use embedded fonts (recommended)",
+    "checkboxDesc": "On by default. Cleans up after every encode — no fonts are left on disk. Toggle off if you'd rather every typeset cue render in Arial."
+  },
+  "queue": {
+    "title": "Queue",
+    "desc": "Knobs for the batch pipeline. Concurrency mirrors the segmented control on the Queue screen — both write to electron-store, so changes from either side stick.",
+    "concurrency": {
+      "label": "Concurrency",
+      "hint": "How many encodes run in parallel. Mirrors the Queue screen control. Default 1 keeps the Single route's one-encode-at-a-time guarantee untouched.",
+      "ariaLabel": "Queue concurrency"
+    },
+    "maxRetries": {
+      "label": "Max retries",
+      "hint": "How many times a failed item retries before it gives up. Total attempts = {{totalAttempts}}.",
+      "ariaLabel": "Maximum retries per item"
+    },
+    "backoff": {
+      "label": "Retry backoff",
+      "hint": "Wait between retry attempts. Doubles each retry: {{a}}s → {{b}}s → {{c}}s…",
+      "ariaLabel": "Base retry backoff in seconds"
+    },
+    "notify": {
+      "label": "Notify when queue finishes",
+      "desc": "Show a desktop notification when the queue drains so you can walk away and still know when to come back."
+    },
+    "defaultRoute": {
+      "label": "Default screen on launch",
+      "hint": "Which tab Moekoder opens on launch. Pick Queue if you mostly batch.",
+      "ariaLabel": "Default route on launch",
+      "single": "Single",
+      "queue": "Queue"
+    }
+  },
+  "updates": {
+    "title": "Updates",
+    "desc": "MoeKoder never phones home unless you click Check — that's the pledge. Opt in below if you'd rather the app check in the background (once 5 s after launch, then hourly).",
+    "autoCheck": {
+      "label": "Check for updates automatically",
+      "desc": "Off by default. When on, MoeKoder queries GitHub Releases on launch + once per hour. Updates are never installed without your click."
+    },
+    "statusLabel": "status",
+    "checkBtn": "Check for updates now",
+    "checking": "Checking…",
+    "chip": {
+      "idle": "no checks yet this session",
+      "checking": "checking…",
+      "upToDate": "you're on the latest version",
+      "available": "update available · v{{version}}",
+      "availableNoVersion": "update available",
+      "downloaded": "ready to install · v{{version}}",
+      "downloadedNoVersion": "ready to install",
+      "error": "last check failed"
+    }
+  },
+  "about": {
+    "title": "About MoeKoder",
+    "desc": "Version, build, credits, and links to the rest of the Shiro Suite.",
+    "btn": "About MoeKoder"
+  },
+  "version": {
+    "title": "Version & source",
+    "appLabel": "app",
+    "githubBtn": "View repository on GitHub"
+  },
+  "presets": {
+    "title": "Custom presets",
+    "desc": "Save the current encoding profile under a name and apply it later in one click. Up to 20 presets; names must be unique. Survives app restart.",
+    "saveForm": {
+      "label": "Save current as preset",
+      "desc": "Captures whatever's set in the Encoding section above. Survives an app restart."
+    },
+    "namePlaceholder": "My preset",
+    "nameAriaLabel": "Preset name",
+    "applyBtn": "Apply",
+    "deleteBtn": "Delete",
+    "empty": "no saved presets yet",
+    "tooltip": {
+      "capReached": "Cap reached: {{max}} presets max",
+      "nameClash": "A preset with that name already exists",
+      "nameRequired": "Name required",
+      "save": "Save preset"
+    }
+  },
+  "benchmark": {
+    "title": "Benchmark candidates",
+    "ariaLabel": "Benchmark",
+    "body": "Encodes a 10-second sample of the chosen video against each candidate, then measures output size, encode time, and PSNR. Pick a representative scene — solid colour transitions or fast motion expose differences best.",
+    "candidatesLabel": "candidates",
+    "closeBtn": "Close",
+    "runBtn": "Run benchmark",
+    "running": "Running…",
+    "progress": "Candidate {{index}} of {{total}} · {{phase}}",
+    "filePick": {
+      "video": "Video",
+      "subtitles": "Subtitles",
+      "notPicked": "not picked",
+      "pick": "Pick",
+      "change": "Change"
+    },
+    "phase": {
+      "pending": "queued",
+      "encoding": "encoding…",
+      "measuringPsnr": "computing PSNR…",
+      "done": "done",
+      "error": "failed"
+    },
+    "table": {
+      "candidate": "Candidate",
+      "size": "Size",
+      "time": "Time",
+      "psnr": "PSNR"
+    }
+  }
+}

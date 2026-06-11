@@ -1,0 +1,15 @@
+{
+  "title": "Burn subs.",
+  "subtitle": "Drop an MKV and an ASS file — MoeKoder hardburns them with the GPU while the pot whistles. No preview noise. No pop-ups.",
+  "heading": "Ready when <em>you</em> are.",
+  "body": "Pick a video, a subtitle file, and a save location in the left rail — or drop them on the window and MoeKoder will line them up. Nothing leaves your machine, no preview popups.",
+  "meta": {
+    "session": "session"
+  },
+  "step": {
+    "video": "video",
+    "subs": "subs",
+    "output": "output"
+  },
+  "ready": "all three · ready · press begin in the rail"
+}

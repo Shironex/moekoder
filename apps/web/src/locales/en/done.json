@@ -1,0 +1,23 @@
+{
+  "title": "Done. Nicely.",
+  "empty": "no encode on record · 空",
+  "eyebrow": "complete · 完",
+  "heading": {
+    "prefix": "Finished",
+    "highlight": "encoding."
+  },
+  "status": {
+    "sessionComplete": "session complete",
+    "saved": "saved"
+  },
+  "stat": {
+    "duration": "duration",
+    "avgFps": "avg fps",
+    "outputSize": "output size",
+    "realtime": "realtime"
+  },
+  "btn": {
+    "openFolder": "Open folder",
+    "encodeAnother": "Encode another"
+  }
+}

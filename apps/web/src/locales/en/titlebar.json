@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "ariaLabel": "Main routes",
+    "single": "Single",
+    "queue": "Queue"
+  },
+  "history": "History",
+  "extract": "Extract subtitles",
+  "settings": "Settings",
+  "minimize": "Minimize",
+  "maximize": "Maximize",
+  "close": "Close"
+}
