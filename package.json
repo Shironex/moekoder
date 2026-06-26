@@ -69,7 +69,7 @@
     "lint-staged": "^17.0.8",
     "png-to-ico": "^3.0.1",
     "prettier": "^3.8.1",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.59.3",
     "wait-on": "^9.0.10"
