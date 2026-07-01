@@ -21,8 +21,8 @@
     "clsx": "^2.1.1",
     "i18next": "^26.3.0",
     "lucide-react": "^1.16.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-i18next": "^17.0.8",
     "tailwind-merge": "^3.6.0",
     "zustand": "^5.0.13"
@@ -30,8 +30,8 @@
   "devDependencies": {
     "@moekoder/shared": "workspace:*",
     "@tailwindcss/vite": "^4.3.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
