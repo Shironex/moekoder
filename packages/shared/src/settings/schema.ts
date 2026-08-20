@@ -37,6 +37,20 @@ export type PresetChoice = 'fast' | 'balanced' | 'pristine';
 export type ContainerChoice = 'mp4' | 'mkv' | 'webm';
 
 /**
+ * Logical buckets the app remembers a "last used directory" for. Callers tag
+ * each dialog invocation with one so the media library, the subtitle folder
+ * and the output folder each keep their own memory instead of clobbering a
+ * single global path.
+ *
+ * Electron 43 stopped deferring to the OS's remembered dialog location and
+ * defaults `defaultPath` to the user's Downloads folder, so this persistence
+ * is what keeps pickers reopening where the user left off.
+ */
+export const DIALOG_DIR_KINDS = ['video', 'subtitle', 'save-file', 'output-folder'] as const;
+
+export type DialogDirKind = (typeof DIALOG_DIR_KINDS)[number];
+
+/**
  * Persisted user settings shape, owned by the main process via
  * `electron-store` and mirrored through the `store:*` IPC channels.
  *
@@ -133,6 +147,14 @@ export interface UserSettings {
    * tractable; v0.4 only ever writes version 1.
    */
   customPresets: CustomPreset[];
+  /**
+   * Last directory the user picked from, per {@link DialogDirKind}. Written
+   * by the main-process dialog handlers on every successful pick and read
+   * back as the dialog's `defaultPath`. Entries are absolute directory
+   * paths; a kind is absent until the user has picked for it at least once,
+   * and a stale entry (folder since deleted) is skipped at read time.
+   */
+  lastDialogDirs: Partial<Record<DialogDirKind, string>>;
 }
 
 /**
@@ -202,6 +224,7 @@ export const USER_SETTINGS_DEFAULTS: UserSettings = {
   queueNotifyOnComplete: true,
   encoding: DEFAULT_ENCODING_PROFILE,
   customPresets: [],
+  lastDialogDirs: {},
 };
 
 export type UserSettingsKey = keyof UserSettings;

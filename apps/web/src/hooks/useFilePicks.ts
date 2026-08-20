@@ -131,7 +131,7 @@ export const useFilePicks = ({
 
   const onPickVideo = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFile({ filters: VIDEO_DIALOG_FILTERS });
+      const res = await api.dialog.openFile({ filters: VIDEO_DIALOG_FILTERS, kind: 'video' });
       if (res.canceled || !res.filePath) return;
       setOutUserDirty(false);
       setVideosCandidates([]);
@@ -143,7 +143,7 @@ export const useFilePicks = ({
 
   const onPickSubs = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFile({ filters: SUBTITLE_DIALOG_FILTERS });
+      const res = await api.dialog.openFile({ filters: SUBTITLE_DIALOG_FILTERS, kind: 'subtitle' });
       if (res.canceled || !res.filePath) return;
       setSubsFromPath(res.filePath);
       setSubsCandidates([]);
@@ -168,7 +168,7 @@ export const useFilePicks = ({
 
   const onPickOut = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFolder({});
+      const res = await api.dialog.openFolder({ kind: 'output-folder' });
       if (res.canceled || !res.folderPath) return;
       setOutFromFolder(res.folderPath);
       setOutUserDirty(true);

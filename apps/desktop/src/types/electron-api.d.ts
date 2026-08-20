@@ -7,6 +7,7 @@
  * main-process runtime code ever reaches the renderer bundle.
  */
 import type {
+  DialogDirKind,
   UserSettings,
   UserSettingsKey,
   UpdaterEventChannel,
@@ -52,17 +53,21 @@ export interface ElectronAPI {
     openFile: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }) => Promise<{ canceled: boolean; filePath: string | null }>;
     openFiles: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }) => Promise<{ canceled: boolean; filePaths: string[] }>;
     saveFile: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }) => Promise<{ canceled: boolean; filePath: string | null }>;
     openFolder: (input: {
       defaultPath?: string;
+      kind?: DialogDirKind;
     }) => Promise<{ canceled: boolean; folderPath: string | null }>;
   };
   fileSystem: {

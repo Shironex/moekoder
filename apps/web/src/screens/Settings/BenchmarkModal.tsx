@@ -121,6 +121,7 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
             extensions: ['mkv', 'mp4', 'm4v', 'webm', 'avi', 'mov', 'ts', 'm2ts'],
           },
         ],
+        kind: 'video',
       });
       if (res.canceled || !res.filePath) return;
       setVideo(res.filePath);
@@ -133,6 +134,7 @@ export const BenchmarkModal = ({ open, onClose }: BenchmarkModalProps) => {
     try {
       const res = await api.dialog.openFile({
         filters: [{ name: 'Subtitle', extensions: ['ass', 'ssa', 'srt', 'vtt'] }],
+        kind: 'subtitle',
       });
       if (res.canceled || !res.filePath) return;
       setSubs(res.filePath);

@@ -298,6 +298,7 @@ export const App = () => {
             ],
           },
         ],
+        kind: 'video',
       });
       if (res.canceled || res.filePaths.length === 0) return;
       enqueueDroppedFiles({ paths: res.filePaths });

@@ -266,6 +266,7 @@ export const QueueScreenContainer = () => {
             ],
           },
         ],
+        kind: 'video',
       });
       if (res.canceled || res.filePaths.length === 0) return;
       // Categorise + pair using the same helpers drag-and-drop uses, then
