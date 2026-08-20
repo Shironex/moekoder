@@ -67,6 +67,14 @@ async function ensureFont({ url, file }) {
   return buf;
 }
 
+/* satori 0.33.0 shapes text with HarfBuzz and no longer applies
+   letter-spacing to collapsible whitespace, which welds word runs like
+   "§ DESKTOP HARDSUB TOOL" into one string. U+00A0 is shaped as a regular
+   glyph and still picks the spacing up. Collapsing \s+ to a single NBSP
+   mirrors satori's own whitespace collapsing, so the padded literals below
+   stay readable without widening the rendered gaps. */
+const nbsp = s => s.replace(/\s+/g, '\u00A0');
+
 async function dataUri(path) {
   const buf = await readFile(path);
   return `data:image/png;base64,${buf.toString('base64')}`;
@@ -161,6 +169,12 @@ const markup = {
                               color: HOT_PINK,
                               letterSpacing: '6px',
                               display: 'flex',
+                              /* HarfBuzz measures this run 18px narrower than
+                                 0.26.0 did; without this the 56px rule slides
+                                 left and crowds the kana. Compensating here
+                                 rather than on the row's 18px gap, which also
+                                 governs the rule's correct right-hand side. */
+                              paddingRight: '18px',
                             },
                             children: '萌コーダー',
                           },
@@ -188,7 +202,7 @@ const markup = {
                               letterSpacing: '4px',
                               display: 'flex',
                             },
-                            children: '§ DESKTOP HARDSUB TOOL',
+                            children: nbsp('§ DESKTOP HARDSUB TOOL'),
                           },
                         },
                       ],
@@ -261,7 +275,7 @@ const markup = {
                         letterSpacing: '3px',
                         display: 'flex',
                       },
-                      children: 'MKV  ·  ASS  ·  MP4  ·  NVENC / QSV / CPU  ·  LIBASS',
+                      children: nbsp('MKV  ·  ASS  ·  MP4  ·  NVENC / QSV / CPU  ·  LIBASS'),
                     },
                   },
                 ],
