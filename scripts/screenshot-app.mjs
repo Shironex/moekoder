@@ -40,13 +40,17 @@ await page.waitForTimeout(1500); // let splash transition to idle
 try {
   await page.getByRole('button', { name: /^back$/i }).click({ timeout: 1500 });
   await page.waitForTimeout(400);
-} catch { /* not on settings */ }
+} catch {
+  /* not on settings */
+}
 
 // Ensure Single route is active
 try {
   await page.getByRole('button', { name: /^single$/i }).click({ timeout: 1500 });
   await page.waitForTimeout(400);
-} catch { /* already there or button not found */ }
+} catch {
+  /* already there or button not found */
+}
 
 // 1. Idle
 await shot('idle');

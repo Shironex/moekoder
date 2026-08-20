@@ -7,15 +7,7 @@ import type { ContainerChoice, HwChoice, PresetChoice, SaveTarget } from '@moeko
  * persisted `hasCompletedOnboarding` flag.
  */
 export type OnboardingStep =
-  | 'welcome'
-  | 'engine'
-  | 'hw'
-  | 'theme'
-  | 'preset'
-  | 'save'
-  | 'cont'
-  | 'privacy'
-  | 'done';
+  'welcome' | 'engine' | 'hw' | 'theme' | 'preset' | 'save' | 'cont' | 'privacy' | 'done';
 
 // Re-exported for screens that used to import these types from the store
 // before they became canonical in @moekoder/shared.

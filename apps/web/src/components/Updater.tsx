@@ -10,13 +10,7 @@ import { logger } from '@/lib/logger';
 const log = logger('updater');
 
 type UpdaterPhase =
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'downloading'
-  | 'downloaded'
-  | 'error'
-  | 'not-available';
+  'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'error' | 'not-available';
 
 interface AvailablePayload {
   version?: string;

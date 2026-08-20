@@ -8,12 +8,7 @@ import { useElectronAPI } from './useElectronAPI';
 const log = logger('useFfmpegInstall');
 
 export type FfmpegInstallPhase =
-  | 'probing'
-  | 'needs-install'
-  | 'running'
-  | 'done'
-  | 'error'
-  | 'already';
+  'probing' | 'needs-install' | 'running' | 'done' | 'error' | 'already';
 
 export type LogLevel = 'info' | 'ok' | 'warn' | 'err' | 'dl';
 

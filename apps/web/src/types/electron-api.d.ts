@@ -29,12 +29,7 @@ import type {
  * `resolving -> downloading -> verifying -> extracting -> installing -> done`.
  */
 export type InstallStage =
-  | 'resolving'
-  | 'downloading'
-  | 'verifying'
-  | 'extracting'
-  | 'installing'
-  | 'done';
+  'resolving' | 'downloading' | 'verifying' | 'extracting' | 'installing' | 'done';
 
 /** FFmpeg install-pipeline progress — mirrors `ffmpeg/manager` InstallProgress. */
 export interface InstallProgress {
