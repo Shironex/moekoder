@@ -19,12 +19,7 @@ const log = createMainLogger('ffmpeg/manager');
 
 /** Phases emitted by `ensureInstalled` — one logical step per stage. */
 export type InstallStage =
-  | 'resolving'
-  | 'downloading'
-  | 'verifying'
-  | 'extracting'
-  | 'installing'
-  | 'done';
+  'resolving' | 'downloading' | 'verifying' | 'extracting' | 'installing' | 'done';
 
 export interface InstallProgress {
   stage: InstallStage;

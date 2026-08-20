@@ -10,15 +10,7 @@ import type { InstallStage } from '@/types/electron-api';
 // ---------------------------------------------------------------------------
 
 export type OnboardingStepId =
-  | 'welcome'
-  | 'engine'
-  | 'hw'
-  | 'theme'
-  | 'preset'
-  | 'save'
-  | 'cont'
-  | 'privacy'
-  | 'done';
+  'welcome' | 'engine' | 'hw' | 'theme' | 'preset' | 'save' | 'cont' | 'privacy' | 'done';
 
 export interface OnboardingStepMeta {
   id: OnboardingStepId;
