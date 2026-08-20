@@ -26,7 +26,7 @@ export const Save = ({ value, customPath, onChange, onCustomPath }: SaveStepProp
 
   const pickFolder = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFolder({});
+      const res = await api.dialog.openFolder({ kind: 'output-folder' });
       if (res.canceled || !res.folderPath) return;
       onCustomPath(res.folderPath);
       onChange('custom');

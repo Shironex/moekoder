@@ -10,6 +10,7 @@
  * the desktop-internal types they mirror.
  */
 import type {
+  DialogDirKind,
   UserSettings,
   UserSettingsKey,
   UpdaterEventChannel,
@@ -195,12 +196,18 @@ export interface FileFilter {
 /** `dialog:open-file` / `dialog:save-file` input. */
 export interface DialogFileInput {
   filters: FileFilter[];
+  /** Overrides the remembered directory for this pick. */
   defaultPath?: string;
+  /** Which remembered last-used directory seeds the dialog. */
+  kind?: DialogDirKind;
 }
 
 /** `dialog:open-folder` input. */
 export interface DialogOpenFolderInput {
+  /** Overrides the remembered directory for this pick. */
   defaultPath?: string;
+  /** Which remembered last-used directory seeds the dialog. */
+  kind?: DialogDirKind;
 }
 
 /** `dialog:open-file` / `dialog:save-file` result. */

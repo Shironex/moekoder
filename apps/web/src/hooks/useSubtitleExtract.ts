@@ -138,7 +138,7 @@ export const useSubtitleExtract = (): UseSubtitleExtract => {
 
   const pickSource = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFile({ filters: CONTAINER_DIALOG_FILTERS });
+      const res = await api.dialog.openFile({ filters: CONTAINER_DIALOG_FILTERS, kind: 'video' });
       if (res.canceled || !res.filePath) return;
       setSource({ name: basename(res.filePath), path: res.filePath });
       await probeSource(res.filePath);
@@ -149,7 +149,7 @@ export const useSubtitleExtract = (): UseSubtitleExtract => {
 
   const pickOutputDir = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.dialog.openFolder({});
+      const res = await api.dialog.openFolder({ kind: 'output-folder' });
       if (res.canceled || !res.folderPath) return;
       setOutputDir(res.folderPath);
     } catch (err) {

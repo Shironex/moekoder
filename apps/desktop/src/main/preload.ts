@@ -11,6 +11,7 @@ import {
   IPC_CHANNELS,
   QUEUE_EVENT_CHANNELS,
   UPDATER_EVENT_CHANNELS,
+  type DialogDirKind,
   type NewQueueItem,
   type QueueItemLogEvent,
   type QueueItemProgressEvent,
@@ -113,6 +114,7 @@ const electronAPI = {
     openFile: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }): Promise<{ canceled: boolean; filePath: string | null }> =>
       invokeWithTimeout<{ canceled: boolean; filePath: string | null }>(
         IPC_CHANNELS.DIALOG_OPEN_FILE,
@@ -122,6 +124,7 @@ const electronAPI = {
     openFiles: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }): Promise<{ canceled: boolean; filePaths: string[] }> =>
       invokeWithTimeout<{ canceled: boolean; filePaths: string[] }>(
         IPC_CHANNELS.DIALOG_OPEN_FILES,
@@ -131,6 +134,7 @@ const electronAPI = {
     saveFile: (input: {
       filters: Electron.FileFilter[];
       defaultPath?: string;
+      kind?: DialogDirKind;
     }): Promise<{ canceled: boolean; filePath: string | null }> =>
       invokeWithTimeout<{ canceled: boolean; filePath: string | null }>(
         IPC_CHANNELS.DIALOG_SAVE_FILE,
@@ -139,6 +143,7 @@ const electronAPI = {
       ),
     openFolder: (input: {
       defaultPath?: string;
+      kind?: DialogDirKind;
     }): Promise<{ canceled: boolean; folderPath: string | null }> =>
       invokeWithTimeout<{ canceled: boolean; folderPath: string | null }>(
         IPC_CHANNELS.DIALOG_OPEN_FOLDER,
