@@ -23,14 +23,14 @@
     "electron-store": "^8.2.0",
     "electron-updater": "^6.8.9",
     "yauzl": "^3.4.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@moekoder/shared": "workspace:*",
-    "@types/node": "^22.19.17",
+    "@types/node": "^22.20.2",
     "@types/yauzl": "^3.4.0",
     "cross-env": "^10.1.0",
-    "electron": "^43.4.1",
+    "electron": "^43.7.0",
     "electron-builder": "^26.15.7",
     "electron-builder-squirrel-windows": "26.15.7",
     "esbuild": "^0.28.2",
