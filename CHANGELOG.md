@@ -4,6 +4,33 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-09-22
+
+Security patch release. No feature or behaviour changes. It picks up the advisories published since 0.7.0, including a **critical Astro RCE** and a **js-yaml advisory in the desktop auto-updater path**. `pnpm audit` is back to 0 vulnerabilities.
+
+### Changed
+
+- **Electron 43.4.1 → 43.7.3.** This stays on the 43.x line and brings in upstream Chromium security fixes. `electron-builder` is unchanged at 26.15.7.
+- **Patch and minor bumps:**
+  - Desktop: `zod` 4.6.5.
+  - Web: `react` / `react-dom` 19.3.0, `i18next` 26.4.2, `react-i18next` 17.0.15, `lucide-react` 1.47.0, `tailwind-merge` 3.7.0, `vite` 8.3.0, `@vitejs/plugin-react` 6.1.1.
+  - Landing: `astro` 7.3.3, `@astrojs/react` 6.0.6, `@astrojs/sitemap` 3.7.4, `satori` 0.33.5, `sharp` 0.35.4.
+  - Root tooling: `eslint` 10.11.0, `typescript-eslint` 8.70.1, `globals` 17.12.0, `lint-staged` 17.5.1, `prettier` 3.9.8.
+
+### Security
+
+- **`astro` 7.2.4 → 7.3.3** (landing): closes GHSA-26w7-cxv4-gfx2, a **critical** RCE in AVIF image optimisation via libheif. The landing site is static, so the exposure was limited to build time and the dev server.
+- **`sharp` 0.35.3 → 0.35.4**: closes GHSA-rgj7-g3m4-5g8c, a high-severity libheif overflow.
+- **`js-yaml` override floor raised to 4.3.2** (GHSA-2883-xcg3-v3hh). This is the highest-priority fix for end users, because `electron-updater` parses update manifests fetched over the network with js-yaml at runtime.
+- **Other override floors raised:**
+  - `fast-uri` to 3.1.6 (4 high-severity advisories).
+  - `svgo` to 4.1.0, now capped below v5.
+  - `devalue` to 5.9.2 (GHSA-9rgm-9g3h-6x36). Dependabot reported this one; `pnpm audit` didn't.
+- **New overrides:**
+  - `@xmldom/xmldom` ≥0.8.15 <0.9 (10 advisories). It's capped because `plist` only declares `^0.8.8`.
+  - `fflate` ≥0.7.5 <0.8. `satori` still exact-pins 0.7.3.
+  - `joi` ≥18.2.5 <19 (low severity, dev-only).
+
 ## [0.7.0] - 2026-08-21
 
 Localization and AMD hardware encoding, on top of a three-month dependency and security sweep. **Every UI string now ships in English and Polish** behind a language picker that lives in both Settings and the onboarding Welcome step. **AMD GPUs finally get a hardware path** — the encoder had no AMF branch at all, so an AMD-only machine on the default `hwAccel:'nvenc'` emitted `h264_nvenc` and failed with "unknown encoder"; AMF now has real args and the GPU probe is wired into the orchestrator so a detected encoder actually gets used. The probe also stopped taking ffmpeg's word for it: every detected encoder is confirmed with a 1-frame test-encode before it is offered. Alongside that, thirty-odd dependency commits took `pnpm audit` from 1 critical / 15 high / 20 moderate to zero, and carried Electron to 43, React to 19 and Astro to 7.
