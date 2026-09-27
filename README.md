@@ -1,7 +1,7 @@
 <a name="top"></a>
 
 <div align="center">
-  <img src="apps/desktop/build/icon.png" alt="Moekoder" width="128" height="128" />
+  <img src="assets/showcase/hero.en.webp" alt="Moekoder: idle, encoding and queue screens" width="100%" />
 
   <h1>萌コーダー &nbsp;·&nbsp; Moekoder</h1>
 
@@ -9,14 +9,14 @@
 
   <p>
     <a href="https://github.com/Shironex/moekoder/releases/latest">
-      <img src="https://img.shields.io/github/v/release/Shironex/moekoder?style=flat&color=ec4899" alt="GitHub Release" />
+      <img src="https://img.shields.io/github/v/release/Shironex/moekoder?style=flat&color=f37fb0" alt="GitHub Release" />
     </a>
-    <a href="https://github.com/Shironex/moekoder/releases">
-      <img src="https://img.shields.io/github/downloads/Shironex/moekoder/total?style=flat&color=f472b6" alt="Downloads" />
+    <a href="https://github.com/Shironex/moekoder/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/Shironex/moekoder/ci.yml?branch=main&style=flat&label=ci" alt="CI" />
     </a>
     <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-lightgrey" alt="Platform" />
     <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-Source%20Available-orange" alt="License" />
+      <img src="https://img.shields.io/badge/License-Source%20Available-lightgrey" alt="License" />
     </a>
   </p>
 
@@ -24,75 +24,93 @@
     <a href="https://github.com/Shironex/moekoder/releases/latest"><strong>Download</strong></a>
     &nbsp;·&nbsp;
     <a href="CHANGELOG.md"><strong>Changelog</strong></a>
+    &nbsp;·&nbsp;
+    <a href="README.pl.md">Polski</a>
   </p>
 
   <blockquote>
-    <p>Moekoder is still warming up the encoder — the app is in early development. Some edges are rough, but every release brings the pipeline closer to ready.</p>
+    <p>For people who keep their anime on disk and already know what NVENC and CQ mean. Drop in an MKV and its ASS subtitles, get a hardsubbed MP4 back.</p>
   </blockquote>
 </div>
 
 ---
 
-### What is Moekoder?
+## What is Moekoder?
 
-Moekoder is a desktop hardsub tool for people who keep their anime locally and care about the burn. Drop in an MKV and its ASS subtitle track, pick a save location, and Moekoder runs the full ffmpeg pipeline — subtitle rendering with libass, audio copy or smart AAC fallback, NVENC / QSV / libx264 depending on what your machine can do — and drops a playable MP4 next to the source. Built for people who already know what `CQ`, `NVENC`, and `libass` mean, but wrapped in a quiet dark-plum interface that stays out of the way.
+Moekoder is a desktop hardsub tool. I built it to take one MKV and its ASS subtitle track, burn the subtitles in with libass through ffmpeg, copy the audio whenever the container allows it, and write an MP4 (or MKV) next to the source. It uses NVENC, Quick Sync or AMF when your machine has them and falls back to libx264 on the CPU. Everything runs locally, in a quiet dark plum window that stays out of the way.
 
-Part of the **Shiro Suite** alongside [ShiroAni](https://github.com/Shironex/shiroani) (anime), [Shiranami](https://github.com/Shironex/shiranami) (music), and [KireiManga](https://github.com/Shironex/kirei-manga) (manga). The four siblings share design language, monorepo patterns, and the same late-night cozy mood.
+It is part of my Shiro Suite, next to [ShiroAni](https://github.com/Shironex/shiroani) (anime), [Shiranami](https://github.com/Shironex/shiranami) (music) and [KireiManga](https://github.com/Shironex/kirei-manga) (manga).
 
-### Screenshots
+## Screenshots
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/idle.png" alt="Idle screen — Ready when you are." /></td>
-    <td width="50%"><img src="assets/screenshots/queue.png" alt="Queue screen with a stopped item" /></td>
+    <td width="50%"><img src="assets/showcase/en/onboarding.webp" alt="Moekoder: First launch" /></td>
+    <td width="50%"><img src="assets/showcase/en/idle.webp" alt="Moekoder: Ready to encode" /></td>
   </tr>
   <tr>
-    <td align="center"><sub>Idle — drop a video + subtitle, pick a save target, hit Begin.</sub></td>
-    <td align="center"><sub>Queue — stack a batch, walk away, soft-pause anytime.</sub></td>
+    <td align="center"><sub>The setup wizard detects your GPU and installs ffmpeg for you.</sub></td>
+    <td align="center"><sub>Pick a video and its subtitles, then press Begin encode.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/settings-appearance.png" alt="Settings → Appearance with six theme cards" /></td>
-    <td width="50%"><img src="assets/screenshots/settings-encoding.png" alt="Settings → Encoding — codec, encoder, quality tier" /></td>
+    <td width="50%"><img src="assets/showcase/en/encoding.webp" alt="Moekoder: Encoding" /></td>
+    <td width="50%"><img src="assets/showcase/en/done.webp" alt="Moekoder: Done" /></td>
   </tr>
   <tr>
-    <td align="center"><sub>Appearance — six kanji-named themes, live switching.</sub></td>
-    <td align="center"><sub>Encoding — H.264 / HEVC / AV1 with Fast · Balanced · Pristine tiers.</sub></td>
+    <td align="center"><sub>A progress ring, a filmstrip and the ffmpeg log with fps, speed and ETA.</sub></td>
+    <td align="center"><sub>The finished file with its duration, average fps, size and speed.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/showcase/en/queue.webp" alt="Moekoder: Queue" /></td>
+    <td width="50%"><img src="assets/showcase/en/settings-appearance.webp" alt="Moekoder: Appearance" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>A whole season in the queue, two episodes encoding at once.</sub></td>
+    <td align="center"><sub>Six themes and the interface language, applied as you pick them.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/showcase/en/settings-encoding.webp" alt="Moekoder: Encoding settings" /></td>
+    <td width="50%"><img src="assets/showcase/en/extract.webp" alt="Moekoder: Subtitle extraction" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>H.264, HEVC or AV1, the hardware encoder and a quality tier.</sub></td>
+    <td align="center"><sub>Embedded subtitle tracks from an MKV, saved as ASS or SRT.</sub></td>
   </tr>
 </table>
 
-### What's inside
+## What's inside
 
-|                            |                                                                                                                                                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hardsub encode**         | MKV + ASS → MP4 / MKV with subtitles burned in via libass; H.264 / HEVC / AV1 codecs on NVENC + software paths; single job or 1–4 parallel via the queue                                                                              |
-| **Soft-sub mux**           | "Mux only (soft subs)" mode stream-copies video + audio and muxes the `.ass` in as a separate, selectable subtitle track — a playable MKV in seconds, no re-encode; language tagged from the subtitle filename with a manual override |
-| **Subtitle extraction**    | Open an MKV and pull its embedded subtitle tracks out to standalone files; choose the output format (ASS / SRT / match source) and Moekoder transcodes when needed, keeping same-language tracks distinct                             |
-| **Codec + preset editor**  | Per-codec Fast / Balanced / Pristine tiers, custom named presets that persist across runs, and a benchmark mode that scores 2–4 candidate profiles on a 10s sample (size + time + PSNR)                                               |
-| **FFmpeg manager**         | Auto-downloads the ffmpeg engine on first run (BtbN on Windows, evermeet.cx on macOS), verifies SHA-256, installs to your user-data directory — no manual setup                                                                       |
-| **Hardware encoder probe** | Detects NVENC / QSV / AMF on your machine and recommends the fastest option; CPU (libx264) is always a guaranteed fallback                                                                                                            |
-| **Disk-space preflight**   | Bitrate-driven size estimate + safety margin checks your free space before the job starts                                                                                                                                             |
-| **9-step onboarding**      | First launch walks you through theme, engine install, GPU detection, preset, save location, container, and privacy                                                                                                                    |
-| **Save targets**           | Sibling `moekoder/` folder, same folder as source, a dedicated "subbed" folder, or a custom path                                                                                                                                      |
-| **Six themes**             | Plum (default), Midnight, Matcha, Cosmic, Void, Paper — live switching, persists across runs                                                                                                                                          |
-| **Drag & drop**            | Drop a video + subtitle (or a folder containing them) onto the window; Moekoder auto-pairs by filename, routes folders to the output slot, and surfaces a swap dropdown when multiple candidates match                                |
-| **Batch queue**            | Persistent queue at `userData/queue.json` survives force-kill; soft-pause, configurable retries with exponential backoff, drag-reorder, per-item log viewer, total-queue disk-space preflight, desktop notification on drain          |
-| **Live progress**          | Ring + filmstrip + rolling log with fps, speed, bitrate, and ETA                                                                                                                                                                      |
-| **Smart audio fallback**   | Lossless-in-MP4 streams auto-transcoded to AAC 192k; everything else is stream-copied untouched                                                                                                                                       |
-| **Auto-updater**           | In-app updates on Windows; GitHub Releases link on macOS until code-signing lands                                                                                                                                                     |
-| **One-click logs**         | Reveal the logs folder in Finder / Explorer — the file transport captures everything the main process emits                                                                                                                           |
-| **Reinstall ffmpeg**       | If the binaries look damaged, Settings reruns the install pipeline on one click                                                                                                                                                       |
+|                           |                                                                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hardsub encode**        | MKV and ASS in, MP4 or MKV out, with the subtitles burned in by libass. H.264, HEVC or AV1                                                                                                            |
+| **Hardware encoders**     | Detects NVIDIA NVENC, Intel Quick Sync and AMD AMF, and checks each encoder with a one-frame test encode before offering it. libx264 on the CPU always works                                          |
+| **Soft-sub mux**          | "Mux only" copies the video and audio and adds the subtitles as a separate MKV track, with no re-encode. The track language comes from the file name (`.en.ass`) or a manual override                 |
+| **Subtitle extraction**   | Opens an MKV, lists its subtitle tracks and saves the text ones as ASS, SRT or their source format. Image tracks (PGS, VobSub) are listed but cannot be exported                                      |
+| **Presets and benchmark** | Fast, Balanced and Pristine tiers per codec, your own named presets, and a benchmark that encodes a 10 second sample with up to four profiles and compares size, time and PSNR                        |
+| **ffmpeg installer**      | ffmpeg is not bundled. On first launch Moekoder downloads it (BtbN builds on Windows, evermeet.cx on macOS), checks the SHA-256 and installs it into the app's data folder. Settings can reinstall it |
+| **Disk-space check**      | Estimates the output size from the bitrate and checks free space, with a safety margin, before an encode or a queue run starts                                                                        |
+| **Save targets**          | A `moekoder` folder next to the source, the source folder itself, a `subbed` folder, or a folder you pick                                                                                             |
+| **Batch queue**           | Saved to disk as it changes, so it survives a restart. Runs 1 to 4 jobs at once, with pause, retries with backoff, drag to reorder, per-item logs and a notification when it finishes                 |
+| **Drag and drop**         | Drop a video and its subtitles (or a whole folder) on the window and Moekoder pairs them by file name                                                                                                 |
+| **Embedded fonts**        | Fonts attached to the MKV are extracted and passed to libass, so fansub typesetting renders with the right fonts. Can be turned off in Settings                                                       |
+| **Smart audio**           | Audio is copied as is. For MP4 output, TrueHD, DTS, FLAC and PCM tracks (which MP4 cannot carry) are converted to AAC 192k                                                                            |
+| **Live progress**         | Progress ring, filmstrip and the ffmpeg log, with fps, speed, bitrate and ETA                                                                                                                         |
+| **Themes and languages**  | Six themes (Plum, Midnight, Matcha, Cosmic, Void, Paper), switched live. English and Polish UI, picked from your system language on first launch                                                      |
+| **Nine-step onboarding**  | The first launch walks through theme, ffmpeg, GPU, preset, save location, container and privacy                                                                                                       |
+| **Updates**               | Windows: checks GitHub Releases (automatic checks are opt-in), downloads when you ask and installs on quit. macOS: no in-app updater until the app is code-signed; the check opens Releases           |
+| **Logs**                  | One click in Settings opens the logs folder                                                                                                                                                           |
 
-### Getting started
+## Getting started
 
 Grab the latest build from [Releases](https://github.com/Shironex/moekoder/releases/latest).
 
-#### Windows
+### Windows
 
 1. Download the `.exe` installer.
-2. Run it — Windows might show a SmartScreen warning since the app isn't code-signed. Click **"More info"** then **"Run anyway"**.
-3. First launch walks you through onboarding (ffmpeg is fetched here, one-time ~180 MB).
+2. Run it. Windows may show a SmartScreen warning because the app isn't code-signed: click **"More info"**, then **"Run anyway"**.
+3. The first launch walks you through onboarding (ffmpeg is downloaded here, a one-time download of about 180 MB).
 
-#### macOS
+### macOS
 
 1. Download the `.dmg` file.
 2. Open it and drag Moekoder to your Applications folder.
@@ -101,30 +119,31 @@ Grab the latest build from [Releases](https://github.com/Shironex/moekoder/relea
    xattr -cr /Applications/Moekoder.app
    ```
    You'll need to run this after each update until code-signing lands.
-4. First launch walks you through onboarding.
+4. The first launch walks you through onboarding.
 
-### Built with
+## Built with
 
-|          |                                                        |
-| -------- | ------------------------------------------------------ |
-| Desktop  | Electron 42                                            |
-| Frontend | React 18, Vite 8, Tailwind CSS 4                       |
-| State    | Zustand 5                                              |
-| UI       | Radix UI, Lucide Icons                                 |
-| Landing  | Astro 6, Tailwind CSS 4                                |
-| Encoding | FFmpeg (auto-downloaded, not bundled) + libass         |
-| Store    | electron-store                                         |
-| Updater  | electron-updater                                       |
-| Logging  | @moekoder/shared logger (file transport in main)       |
-| Archives | yauzl (zip extraction for the ffmpeg install pipeline) |
-| Schemas  | zod (IPC boundary validation)                          |
-| Quality  | ESLint, Prettier, Husky                                |
-| Tests    | Vitest                                                 |
-| CI/CD    | GitHub Actions, electron-builder                       |
+|             |                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Desktop     | Electron 43                                                                                |
+| Frontend    | React 19, Vite 8, Tailwind CSS 4                                                           |
+| State       | Zustand 5                                                                                  |
+| UI          | Radix UI, Lucide icons                                                                     |
+| i18n        | i18next, react-i18next                                                                     |
+| Landing     | Astro 7 with React islands                                                                 |
+| Encoding    | FFmpeg (downloaded on first launch, not bundled) and libass                                |
+| Storage     | electron-store                                                                             |
+| Updater     | electron-updater                                                                           |
+| Archives    | yauzl (zip extraction for the ffmpeg installer)                                            |
+| Schemas     | zod (IPC validation)                                                                       |
+| Quality     | ESLint, Prettier, Husky, lint-staged                                                       |
+| Tests       | Vitest                                                                                     |
+| Screenshots | [@noctcore/showcase-kit](https://www.npmjs.com/package/@noctcore/showcase-kit), Playwright |
+| CI/CD       | GitHub Actions, electron-builder                                                           |
 
-### Building from source
+## Building from source
 
-You'll need [Node.js](https://nodejs.org/) >= 22.13 (see `.nvmrc`) and [pnpm](https://pnpm.io/) >= 10.
+You'll need [Node.js](https://nodejs.org/) 22.22.1 or newer (see `.nvmrc`) and [pnpm](https://pnpm.io/) (the repo pins `pnpm@10.9.0` in `packageManager`).
 
 ```bash
 git clone https://github.com/Shironex/moekoder.git
@@ -133,24 +152,27 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts the Vite renderer on `localhost:15180`, waits for it to come up, then launches Electron pointed at that URL.
+`pnpm dev` starts the Vite renderer on `localhost:15180`, waits for it, then launches Electron pointed at it.
 
 <details>
 <summary>All commands</summary>
 
 ```bash
-pnpm dev                                      # Desktop + web
-pnpm dev:landing                              # Astro landing page only
-pnpm build                                    # Build web + desktop
-pnpm build:landing                            # Build landing page
-pnpm lint                                     # eslint
-pnpm typecheck                                # Typecheck every workspace
-pnpm test                                     # Desktop test suite (Vitest)
-pnpm --filter @moekoder/desktop package       # Package for the host platform
-pnpm --filter @moekoder/desktop package:win   # Package for Windows (NSIS)
-pnpm --filter @moekoder/desktop package:mac   # Package for macOS (DMG)
-pnpm generate-icons                           # Fan apps/desktop/resources/mascot.png into platform icons
-pnpm version:patch                            # Bump version + tag (minor / major also available)
+pnpm dev                          # Renderer + Electron
+pnpm dev:landing                  # Astro landing page only
+pnpm build                        # Build web + desktop
+pnpm build:landing                # Build the landing page
+pnpm lint                         # ESLint
+pnpm format:check                 # Prettier
+pnpm -r typecheck                 # Typecheck every workspace
+pnpm test                         # Desktop tests (Vitest)
+pnpm --filter @moekoder/web test  # Renderer tests (Vitest)
+pnpm package                      # Build and package for the host platform
+pnpm package:win                  # Build and package for Windows (NSIS)
+pnpm package:mac                  # Build and package for macOS (DMG)
+pnpm generate-icons               # Turn apps/desktop/resources/mascot.png into app icons
+pnpm version:patch                # Bump every package, commit and tag (minor / major too)
+pnpm showcase                     # Regenerate the README screenshots and banners
 ```
 
 </details>
@@ -162,30 +184,56 @@ moekoder/
 ├── apps/
 │   ├── desktop/              # Electron main process (esbuild-bundled)
 │   │   ├── src/main/         # Bootstrap, window, CSP, logger, updater
-│   │   │   ├── ffmpeg/       # Manager, probe, args, output parser, processor
-│   │   │   ├── encode/       # Orchestrator — one job at a time, IPC event routing
+│   │   │   ├── ffmpeg/       # Installer, probes, args, output parser, processor
+│   │   │   ├── encode/       # Orchestrator and benchmark
+│   │   │   ├── queue/        # Batch queue manager, persistence, preflight
 │   │   │   └── ipc/          # Typed handlers, zod schemas, error contract
 │   │   ├── resources/        # Source mascot PNG (feeds generate-icons)
 │   │   └── build/            # Generated app icons + electron-builder output
-│   ├── landing/              # Astro landing page (moekoder.app)
+│   ├── landing/              # Astro landing page
 │   └── web/                  # React + Vite renderer
-│       ├── src/screens/      # Splash, Idle, Encoding, Done, Settings, About, onboarding/
-│       ├── src/stores/       # Zustand stores (app view, encode state, onboarding)
-│       └── src/styles/       # tokens.css, base.css, primitives.css, chrome.css
+│       ├── src/screens/      # Splash, Idle, Encoding, Done, Queue, Extract, Settings, About, onboarding/
+│       ├── src/stores/       # Zustand stores (app view, encode, queue, onboarding)
+│       ├── src/locales/      # English and Polish strings
+│       └── src/showcase/     # Invented demo data for `pnpm showcase` (showcase build mode only)
 ├── packages/
-│   └── shared/               # Types, IPC channels, logger, theme tokens, constants
-├── scripts/                  # bump-version, generate-icons
+│   └── shared/               # Types, IPC channels, settings schema, logger, themes, constants
+├── assets/showcase/          # README screenshots and banners
+├── scripts/                  # bump-version, generate-icons, showcase-extras
 └── docs/                     # Roadmaps, design notes (gitignored)
 ```
 
----
+## Showcase images
+
+The screenshots and banners above come from `pnpm showcase`, built on [`@noctcore/showcase-kit`](https://www.npmjs.com/package/@noctcore/showcase-kit). It builds the renderer alone in a showcase mode with invented demo data (no Electron, no ffmpeg, no real files), captures every screen in English and Polish, and writes `assets/showcase/`. The setup lives in `showcase.config.mjs`. The first run needs a browser for Playwright:
+
+```bash
+pnpm exec playwright install chromium
+pnpm showcase
+```
+
+To also export fixed-size portfolio images, point `SHOWCASE_PORTFOLIO_DIR` at the target folder (a relative path resolves from the repo root). The export only adds files there:
+
+```bash
+# macOS / Linux / Git Bash
+SHOWCASE_PORTFOLIO_DIR=../portfolio/public/projects/moekoder pnpm showcase
+```
+
+```powershell
+# Windows PowerShell
+$env:SHOWCASE_PORTFOLIO_DIR = '../portfolio/public/projects/moekoder'; pnpm showcase
+```
+
+## Releases
+
+`pnpm version:patch` (or `version:minor` / `version:major`) bumps every package, commits and tags `vX.Y.Z`. Publishing a GitHub Release from that tag runs `.github/workflows/release.yml`, which builds the Windows and macOS installers and attaches them to the release. [`CHANGELOG.md`](CHANGELOG.md) is written by hand.
 
 ## License
 
-Moekoder Source Available License — see [LICENSE](LICENSE). Personal use and contributions via pull requests are permitted; redistribution, reselling, and derivative works are not.
+Moekoder Source Available License, see [LICENSE](LICENSE). Personal use and contributions through pull requests are allowed; redistribution, reselling and derivative works are not.
 
 ## Credits
 
-Moekoder stands on the shoulders of the Shiro Suite — design and architectural patterns are descended from [ShiroAni](https://github.com/Shironex/shiroani), [Shiranami](https://github.com/Shironex/shiranami), and [KireiManga](https://github.com/Shironex/kirei-manga). The encoding engine is [FFmpeg](https://ffmpeg.org) ([BtbN builds](https://github.com/BtbN/FFmpeg-Builds) on Windows, [evermeet.cx](https://evermeet.cx/ffmpeg/) on macOS); subtitle rendering is handled by [libass](https://github.com/libass/libass).
+The encoding engine is [FFmpeg](https://ffmpeg.org) ([BtbN builds](https://github.com/BtbN/FFmpeg-Builds) on Windows, [evermeet.cx](https://evermeet.cx/ffmpeg/) on macOS), and subtitle rendering is [libass](https://github.com/libass/libass).
 
 <p align="right"><a href="#top">Back to top ↑</a></p>
