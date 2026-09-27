@@ -43,6 +43,8 @@ export default defineConfig(
       '**/release/**',
       '**/.astro/**',
       '**/coverage/**',
+      '**/dist-showcase/**',
+      'showcase-out/**',
       '**/generated/**',
       '**/*.js',
     ],
