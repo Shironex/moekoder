@@ -274,7 +274,13 @@ export const OnboardingLayout = ({
                 {t('footer.skipForNow')}
               </Button>
             )}
-            <Button variant="primary" size="sm" onClick={onNext} disabled={busy || !canNext}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onNext}
+              disabled={busy || !canNext}
+              data-testid="onboarding-next"
+            >
               {busy ? (
                 <>
                   <span className="h-2 w-2 animate-pulse rounded-full bg-primary-foreground/80" />

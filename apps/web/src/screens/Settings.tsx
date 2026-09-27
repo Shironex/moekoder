@@ -59,11 +59,16 @@ interface SectionProps {
   mono: string;
   title: string;
   description?: string;
+  /** Optional `data-testid` on the outer `<section>`. */
+  testId?: string;
   children: React.ReactNode;
 }
 
-const Section = ({ kanji, mono, title, description, children }: SectionProps) => (
-  <section className="flex flex-col gap-4 rounded-xl border border-border bg-card/30 p-6">
+const Section = ({ kanji, mono, title, description, testId, children }: SectionProps) => (
+  <section
+    className="flex flex-col gap-4 rounded-xl border border-border bg-card/30 p-6"
+    data-testid={testId}
+  >
     <header className="flex items-start gap-4">
       <span className="font-display text-4xl leading-none text-primary">{kanji}</span>
       <div className="flex flex-col gap-1">
@@ -288,6 +293,7 @@ export const Settings = () => {
             mono="look · 色 · appearance"
             title={t('appearance.title')}
             description={t('appearance.desc')}
+            testId="settings-section-appearance"
           >
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-popover/30 px-4 py-3">
@@ -370,6 +376,7 @@ export const Settings = () => {
             mono="encoding · 符 · fugō"
             title={t('encoding.title')}
             description={t('encoding.desc')}
+            testId="settings-section-encoding"
           >
             <EncodingSection />
           </Section>
