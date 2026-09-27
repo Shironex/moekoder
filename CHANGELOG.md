@@ -4,6 +4,28 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-09-28
+
+Translation hotfix. The packaged 0.7.0 and 0.7.1 apps shipped without their English and Polish strings, so the interface showed raw translation keys (`cta.begin`, `hw.title`) instead of text. Development builds were fine, which is why it slipped through. This release restores both languages and changes nothing else about how the app behaves.
+
+### Fixed
+
+- **Translations missing from release builds (0.7.0, 0.7.1).** The renderer entry loads the i18next bootstrap through a bare side-effect import, but `apps/web/package.json` has declared only CSS as having side effects since 0.1.0. When i18n landed in 0.7.0, the production bundler treated `lib/i18n.ts` as side-effect free and dropped it, locale resources included. `./src/lib/i18n.ts` is now listed in `sideEffects`, and the packaged renderer contains both locales again.
+
+### Added
+
+- **`pnpm showcase`** regenerates the README screenshots and banners with `@noctcore/showcase-kit`. It builds the renderer alone in a `showcase` Vite mode with an invented stand-in for the Electron bridge (made-up files, a fixed GPU probe, frozen encode numbers), so no real files or hardware appear on screen. None of it is included in normal builds.
+- **`data-testid` hooks** on the titlebar, sidebar, onboarding, Settings and Extract screens, so automated captures don't depend on translated labels.
+
+### Changed
+
+- **README rewritten** with a hero banner, screenshots of every main screen, a feature table checked against the code and an up-to-date stack. A Polish `README.pl.md` sits alongside it.
+- **New dev dependencies:** `@noctcore/showcase-kit` 0.3.0 and `playwright` 1.63.0, both pinned exactly. Nothing new ships in the app.
+
+### Removed
+
+- The old CDP screenshot script (`scripts/screenshot-app.mjs`) and the `assets/screenshots/` images it produced, replaced by `pnpm showcase`.
+
 ## [0.7.1] - 2026-09-22
 
 Security patch release. No feature or behaviour changes. It picks up the advisories published since 0.7.0, including a **critical Astro RCE** and a **js-yaml advisory in the desktop auto-updater path**. `pnpm audit` is back to 0 vulnerabilities.
