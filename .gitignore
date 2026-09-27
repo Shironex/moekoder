@@ -16,5 +16,9 @@ Thumbs.db
 .mcp.json
 coverage
 
+# pnpm showcase: throwaway renderer build and raw captures
+apps/web/dist-showcase/
+showcase-out/
+
 # Internal planning docs — kept locally, not published
 docs/

@@ -60,7 +60,7 @@ export const Titlebar = ({
   const handleClose = onClose ?? controls.onClose;
 
   return (
-    <header className={`titlebar${IS_MAC ? ' titlebar--mac' : ''}`}>
+    <header className={`titlebar${IS_MAC ? ' titlebar--mac' : ''}`} data-testid="app-ready">
       <div className="brand">
         <span className="kanji-sm">{APP_SIGIL}</span>
         <span>{APP_NAME}</span>
@@ -78,6 +78,7 @@ export const Titlebar = ({
               type="button"
               className={route === 'single' ? 'active' : ''}
               onClick={() => onRouteChange('single')}
+              data-testid="titlebar-route-single"
             >
               {t('nav.single')}
             </button>
@@ -85,6 +86,7 @@ export const Titlebar = ({
               type="button"
               className={route === 'queue' ? 'active' : ''}
               onClick={() => onRouteChange('queue')}
+              data-testid="titlebar-route-queue"
             >
               {t('nav.queue')}
             </button>
@@ -107,11 +109,18 @@ export const Titlebar = ({
             onClick={onExtract}
             title={t('extract')}
             aria-label={t('extract')}
+            data-testid="titlebar-extract"
           >
             <Subtitles size={16} />
           </button>
         )}
-        <button type="button" className="title-icon-btn" onClick={onSettings} title={t('settings')}>
+        <button
+          type="button"
+          className="title-icon-btn"
+          onClick={onSettings}
+          title={t('settings')}
+          data-testid="titlebar-settings"
+        >
           <IconSettings size={16} />
         </button>
       </div>

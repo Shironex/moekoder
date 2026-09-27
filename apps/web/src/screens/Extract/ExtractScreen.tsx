@@ -111,7 +111,13 @@ export const ExtractScreen = () => {
                 </span>
                 <h2 className="font-display text-lg text-foreground">{t('source.title')}</h2>
               </div>
-              <Button variant="ghost" size="sm" onClick={pickSource} disabled={probing}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={pickSource}
+                disabled={probing}
+                data-testid="extract-pick-source"
+              >
                 <FileVideo size={14} />
                 {source ? t('source.chooseAnother') : t('browse', { ns: 'common' })}
               </Button>

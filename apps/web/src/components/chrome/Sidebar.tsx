@@ -104,6 +104,8 @@ interface StageProps {
   onSelectCandidate?: (path: string) => void;
   /** Passed through to `CandidatesMenu` to drive copy and ARIA labels. */
   candidatesKind?: 'subtitle' | 'video';
+  /** `data-testid` for the click-to-pick button, in both rail variants. */
+  testId?: string;
 }
 
 interface CandidatesMenuProps {
@@ -251,6 +253,7 @@ const Stage = ({
   candidates,
   onSelectCandidate,
   candidatesKind,
+  testId,
 }: StageProps) => {
   const { t } = useTranslation('sidebar');
   const filled = !!data;
@@ -272,6 +275,7 @@ const Stage = ({
         onClick={handleClick}
         title={tooltip}
         aria-label={tooltip}
+        data-testid={testId}
         className={cn(
           'group relative flex w-full flex-col items-center justify-center gap-1 rounded-md border border-border bg-transparent py-3 transition',
           'hover:border-primary/40 hover:bg-[color-mix(in_oklab,var(--primary)_6%,transparent)]',
@@ -316,6 +320,7 @@ const Stage = ({
         type="button"
         onClick={handleClick}
         title={tooltip}
+        data-testid={testId}
         className={cn(
           'absolute inset-0 z-0 cursor-pointer rounded-md',
           menuOpen && 'pointer-events-none'
@@ -504,6 +509,7 @@ export const Sidebar = ({
           candidates={videosCandidates}
           onSelectCandidate={onSelectVideoCandidate}
           candidatesKind="video"
+          testId="sidebar-pick-video"
         />
         <Stage
           n="弐"
@@ -516,6 +522,7 @@ export const Sidebar = ({
           candidates={subsCandidates}
           onSelectCandidate={onSelectSubCandidate}
           candidatesKind="subtitle"
+          testId="sidebar-pick-subs"
         />
         <Stage
           n="参"
@@ -526,6 +533,7 @@ export const Sidebar = ({
           ext={outputExt}
           onPick={onPickOut}
           collapsed={collapsed}
+          testId="sidebar-pick-out"
         />
       </div>
 
@@ -537,6 +545,7 @@ export const Sidebar = ({
         aria-busy={encoding || undefined}
         title={collapsed ? ctaTooltip : undefined}
         aria-label={collapsed ? ctaTooltip : undefined}
+        data-testid="sidebar-cta-begin"
         className={cn(
           'group mt-1 rounded-md border transition',
           collapsed
