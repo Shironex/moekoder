@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwind from '@tailwindcss/vite';
 import path from 'node:path';
@@ -30,9 +30,45 @@ function resolveGitHash(): string {
   }
 }
 
+/** `vite build --mode showcase` adds `src/showcase/entry.ts` as a module
+ *  script ahead of `src/main.tsx`. It installs an in-memory
+ *  `window.electronAPI` with invented data before the app runs, so the
+ *  renderer can be screenshotted in a plain browser for the README
+ *  (`pnpm showcase` at the repo root). Every other mode leaves the HTML
+ *  alone, and nothing imports `src/showcase`, so none of it ships.
+ *
+ *  A separate script rather than a dynamic `import('./main')` from the
+ *  fixture: `sideEffects` in package.json lets the bundler strip the body
+ *  of an export-less module reached that way. */
+function showcaseFixturePlugin(): Plugin {
+  let enabled = false;
+  return {
+    name: 'moekoder-showcase-fixtures',
+    config(_config, { mode }) {
+      enabled = mode === 'showcase';
+    },
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html) {
+        if (!enabled) return html;
+        return {
+          html,
+          tags: [
+            {
+              tag: 'script',
+              attrs: { type: 'module', src: '/src/showcase/entry.ts' },
+              injectTo: 'head-prepend',
+            },
+          ],
+        };
+      },
+    },
+  };
+}
+
 export default defineConfig({
   base: './',
-  plugins: [react(), tailwind()],
+  plugins: [react(), tailwind(), showcaseFixturePlugin()],
   define: {
     __MOEKODER_BUILD_HASH__: JSON.stringify(resolveGitHash()),
   },
