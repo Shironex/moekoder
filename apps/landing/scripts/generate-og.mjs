@@ -135,6 +135,7 @@ const markup = {
             width: '100%',
             height: '100%',
             padding: '76px 88px',
+            boxSizing: 'border-box',
           },
           children: [
             // Left column — editorial masthead
