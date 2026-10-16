@@ -4,6 +4,32 @@ All notable changes to Moekoder will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-10-16
+
+Platform and security release. The desktop app moves to **Electron 44** (Chromium 152), which **drops macOS 12**: macOS 13 or newer is now required. Windows (x64) is unaffected. Alongside that, the advisories published since 0.7.2 are closed, including a **critical `shell-quote` advisory** in dev tooling, and `pnpm audit` goes from 1 critical / 15 high / 14 moderate / 3 low to a single moderate with no upstream fix. No feature or behaviour changes in the app itself.
+
+### Changed
+
+- **Electron 43.7.3 → 44.7.0.** None of the Electron 44 breaking changes touch Moekoder's code (the renderer already uses `navigator.clipboard`, the window keeps `sandbox: true`). `electron-builder` stays at 26.15.7 and `electron-updater` at 6.8.9.
+- **Major bumps:**
+  - Desktop and web: `vitest` 4.1.11 → 5.0.3. Desktop now declares `vite` as a dev dependency, since vitest 5 needs it as a peer.
+  - Landing: `@astrojs/react` 6.0.6 → 7.0.1, with `astro` 7.3.8.
+  - Landing: `satori` 0.33.5 → 0.47.1, pinned exactly. Newer satori sizes boxes like a browser, so the OG card frame is now `border-box` and `og-default.png` was regenerated. Apart from a few pixels in the rotated seal, the card is unchanged.
+- **pnpm 10.9.0 → 10.34.6** in `packageManager`, CI, the release workflow and the landing Dockerfile. pnpm-workspace.yaml now sets `minimumReleaseAge` to 7 days. pnpm 10.9.0 ignored the setting, so dependency ranges could resolve to releases only hours old. Every locked version is now at least a week old.
+
+### Security
+
+- **`concurrently` 10.0.5 → 10.0.6**: closes the **critical** `shell-quote` advisory GHSA-pqg4-j6r4-53mv. Dev tooling only, nothing ships in the app.
+- **`wait-on` 9.1.0 → 9.5.1**: pulls `axios` up to 1.20.0 and closes 13 axios advisories (7 high). Dev tooling only.
+- **`sharp` 0.35.4 → 0.35.5**: closes GHSA-wq5f-xc86-pv6w.
+- **Override floors raised:** these four overrides stopped one patch short of the fixed releases.
+  - `undici` to 8.10.2 (11 advisories).
+  - `brace-expansion` to 5.0.12 (3 advisories, 2 high).
+  - `fast-uri` to 3.1.8.
+  - `shell-quote` to 1.11.0.
+- **New overrides:** `source-map-js` ≥1.2.2 (high), `http-cache-semantics` ≥4.3.0 (high), `smol-toml` ≥1.9.0.
+- **Known and accepted:** `sprintf-js` (moderate, GHSA-hp3w-g68c-fv3c) has no fixed release. It only reaches the build through `electron-builder` and is never shipped.
+
 ## [0.7.2] - 2026-09-28
 
 Translation hotfix. The packaged 0.7.0 and 0.7.1 apps shipped without their English and Polish strings, so the interface showed raw translation keys (`cta.begin`, `hw.title`) instead of text. Development builds were fine, which is why it slipped through. This release restores both languages and changes nothing else about how the app behaves.
