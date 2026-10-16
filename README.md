@@ -143,7 +143,7 @@ Grab the latest build from [Releases](https://github.com/Shironex/moekoder/relea
 
 ## Building from source
 
-You'll need [Node.js](https://nodejs.org/) 22.22.1 or newer (see `.nvmrc`) and [pnpm](https://pnpm.io/) (the repo pins `pnpm@10.9.0` in `packageManager`).
+You'll need [Node.js](https://nodejs.org/) 22.22.1 or newer (see `.nvmrc`) and [pnpm](https://pnpm.io/) (the repo pins `pnpm@10.34.6` in `packageManager`).
 
 ```bash
 git clone https://github.com/Shironex/moekoder.git

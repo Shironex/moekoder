@@ -4,7 +4,7 @@
   "private": true,
   "description": "Moekoder - Burn subtitles into video, cutely.",
   "license": "SEE LICENSE IN LICENSE",
-  "packageManager": "pnpm@10.9.0",
+  "packageManager": "pnpm@10.34.6",
   "scripts": {
     "dev": "concurrently -k -n web,desktop -c cyan,yellow \"pnpm dev:web\" \"wait-on -t 30000 -i 1000 http-get://localhost:15180 && pnpm dev:desktop\"",
     "dev:web": "pnpm --filter @moekoder/web dev",

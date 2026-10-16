@@ -143,7 +143,7 @@ Pobierz najnowszą wersję ze strony [Releases](https://github.com/Shironex/moek
 
 ## Budowanie ze źródeł
 
-Potrzebujesz [Node.js](https://nodejs.org/) w wersji 22.22.1 lub nowszej (zobacz `.nvmrc`) i [pnpm](https://pnpm.io/) (repozytorium przypina `pnpm@10.9.0` w polu `packageManager`).
+Potrzebujesz [Node.js](https://nodejs.org/) w wersji 22.22.1 lub nowszej (zobacz `.nvmrc`) i [pnpm](https://pnpm.io/) (repozytorium przypina `pnpm@10.34.6` w polu `packageManager`).
 
 ```bash
 git clone https://github.com/Shironex/moekoder.git
