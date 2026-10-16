@@ -83,7 +83,7 @@ function readRememberedDir(kind: DialogDirKind): string | undefined {
 /**
  * Resolves the `defaultPath` handed to Electron. An explicit caller-supplied
  * path always wins; otherwise we reopen where the user last landed for this
- * kind. Electron 43 defaults an omitted `defaultPath` to the Downloads
+ * kind. Electron 43+ defaults an omitted `defaultPath` to the Downloads
  * folder rather than deferring to the OS's remembered location, so without
  * this every picker would reset to Downloads on each open.
  */

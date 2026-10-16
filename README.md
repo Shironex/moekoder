@@ -125,7 +125,7 @@ Grab the latest build from [Releases](https://github.com/Shironex/moekoder/relea
 
 |             |                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------ |
-| Desktop     | Electron 43                                                                                |
+| Desktop     | Electron 44                                                                                |
 | Frontend    | React 19, Vite 8, Tailwind CSS 4                                                           |
 | State       | Zustand 5                                                                                  |
 | UI          | Radix UI, Lucide icons                                                                     |

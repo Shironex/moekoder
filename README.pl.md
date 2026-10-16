@@ -125,7 +125,7 @@ Pobierz najnowszą wersję ze strony [Releases](https://github.com/Shironex/moek
 
 |               |                                                                                            |
 | ------------- | ------------------------------------------------------------------------------------------ |
-| Desktop       | Electron 43                                                                                |
+| Desktop       | Electron 44                                                                                |
 | Frontend      | React 19, Vite 8, Tailwind CSS 4                                                           |
 | Stan          | Zustand 5                                                                                  |
 | UI            | Radix UI, ikony Lucide                                                                     |
