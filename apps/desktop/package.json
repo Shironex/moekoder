@@ -30,7 +30,7 @@
     "@types/node": "^22.20.2",
     "@types/yauzl": "^3.4.0",
     "cross-env": "^10.1.0",
-    "electron": "44.7.0",
+    "electron": "44.9.1",
     "electron-builder": "^26.15.7",
     "electron-builder-squirrel-windows": "26.15.7",
     "esbuild": "^0.28.2",
